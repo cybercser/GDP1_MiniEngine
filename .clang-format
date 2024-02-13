@@ -1,0 +1,13 @@
+BasedOnStyle: Google
+Language: Cpp
+ColumnLimit: 120
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+SortIncludes: false
+AccessModifierOffset: -4
+IndentAccessModifiers: false
+AllowShortFunctionsOnASingleLine: All
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerIndentWidth: 4
+BreakConstructorInitializers: BeforeComma
