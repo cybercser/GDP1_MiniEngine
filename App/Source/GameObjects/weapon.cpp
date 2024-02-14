@@ -3,12 +3,6 @@
 
 namespace Game {
 
-int ammo_capacity;
-int reload_speed;
-int damage;
-int ammunition;
-int firing_delay;
-
 Weapon::Weapon(gdp1::Scene* scn, const gdp1::GameObjectDesc& desc, WeaponType weapon_type)
     : gdp1::GameObject(scn, desc)
     , weapon_type(weapon_type)
