@@ -1,0 +1,125 @@
+{
+  "name": "fps_test",
+  "comment": "FPS Test Scene",
+  "version": "1.0",
+  "cameras": [
+    {
+      "name": "MainCamera",
+      "main": true,
+      "position": {
+        "x": 76.2,
+        "y": 49.5,
+        "z": 34.9
+      },
+      "up": {
+        "x": -0.3,
+        "y": 1.0,
+        "z": -0.1
+      },
+      "yaw": 191.9,
+      "pitch": -18.2,
+      "fov": 70.0,
+      "nearZ": 0.1,
+      "farZ": 1000.0
+    }
+  ],
+  "directionalLights": [
+    {
+      "name": "Sun",
+      "direction": {
+        "x": -1.0,
+        "y": -1.00,
+        "z": 0.447
+      },
+      "color": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "intensity": 1.0
+    }
+  ],
+  "pointLights": [],
+  "spotLights": [],
+  "models": [
+    {
+      "name": "sphere",
+      "filepath": "Assets/Models/FPS_Test/sphere.obj",
+      "shader": "untextured"
+    },
+    {
+      "name": "world",
+      "filepath": "Assets/Models/FPS_Test/collision-world.glb",
+      "shader": "untextured"
+    }
+  ],
+  "gameObjects": [
+    {
+      "name": "ball",
+      "model": "sphere",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "test_world",
+      "model": "world",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "children": [],
+      "parent": ""
+    }
+  ],
+  "rigidbodies": [],
+  "animation": {
+    "name": "",
+    "path": ""
+  },
+  "audioSources": [],
+  "skybox": {
+    "name": "StandardSkybox",
+    "size": 2.0,
+    "faces": [
+      "Assets/Textures/Standard-Cube-Map/px.png",
+      "Assets/Textures/Standard-Cube-Map/nx.png",
+      "Assets/Textures/Standard-Cube-Map/py.png",
+      "Assets/Textures/Standard-Cube-Map/ny.png",
+      "Assets/Textures/Standard-Cube-Map/pz.png",
+      "Assets/Textures/Standard-Cube-Map/nz.png"
+    ]
+  }
+}
