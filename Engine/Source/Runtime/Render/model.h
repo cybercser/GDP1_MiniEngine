@@ -30,9 +30,9 @@ public:
     Model(const std::string& path, const std::string& shaderName, bool gamma = false);
 
     // draws the model, and thus all its meshes
-    void Draw(std::shared_ptr<Shader> shader);
+    void Draw(Shader* shader);
 
-    void DrawDebug(std::shared_ptr<Shader> shader);
+    void DrawDebug(Shader* shader);
 
     unsigned int GetVertexCount() const;
     unsigned int GetTriangleCount() const;

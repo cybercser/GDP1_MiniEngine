@@ -50,13 +50,11 @@ OctreeNode::~OctreeNode() {
     }
 }
 
-void OctreeNode::AddCollider(Collider* collider) {
-    DivideAndAdd(collider);
-}
+void OctreeNode::AddCollider(Collider* collider) { DivideAndAdd(collider); }
 
 void OctreeNode::Draw(std::shared_ptr<Shader> shader) {
-    shader->use();
-    shader->setUniform("u_Model", glm::mat4(1.0f));
+    shader->Use();
+    shader->SetUniform("u_Model", glm::mat4(1.0f));
     glBindVertexArray(VAO);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
@@ -201,9 +199,7 @@ Octree::Octree(std::vector<Collider*> colliders, unsigned max_level, float min_s
     AddColliders(colliders);
 }
 
-Octree::~Octree() {
-    delete root;
-}
+Octree::~Octree() { delete root; }
 
 void Octree::AddColliders(std::vector<Collider*> colliders) {
     for (auto collider : colliders) {

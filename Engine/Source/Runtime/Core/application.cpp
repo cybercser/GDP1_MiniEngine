@@ -48,7 +48,7 @@ void Application::PushOverlay(Layer* overlay) { m_LayerStack.PushOverlay(overlay
 
 void Application::Run() {
     while (m_Running) {
-        float time = (float)glfwGetTime();  // Platform::GetTime();
+        float time = (float)glfwGetTime();
         Timestep timestep = time - m_LastFrameTime;
         m_LastFrameTime = time;
 

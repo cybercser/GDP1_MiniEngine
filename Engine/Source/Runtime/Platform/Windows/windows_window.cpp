@@ -34,6 +34,19 @@ void WindowsWindow::Init(const WindowProps& props) {
         int success = glfwInit();
         GLCORE_ASSERT(success, "Could not initialize GLFW!");
         glfwSetErrorCallback(GLFWErrorCallback);
+
+        // Select OpenGL 4.6
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);  // disable window resize
+        // if (gl_debug_) glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+        // if (multi_samples_ > 0) {
+        //     glfwWindowHint(GLFW_SAMPLES, multi_samples_);
+        // }
+
         s_GLFWInitialized = true;
     }
 
@@ -43,7 +56,7 @@ void WindowsWindow::Init(const WindowProps& props) {
     int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     GLCORE_ASSERT(status, "Failed to initialize Glad!");
 
-    GLUtils::dumpGLInfo();
+    utils::DumpGLInfo();
 
     glfwSetWindowUserPointer(m_Window, &m_Data);
     SetVSync(true);

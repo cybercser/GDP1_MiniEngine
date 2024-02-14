@@ -20,7 +20,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
     SetupDebugData();
 }
 
-void Mesh::Draw(std::shared_ptr<Shader> shader) {
+void Mesh::Draw(Shader* shader) {
     // bind appropriate textures
     unsigned int diffuseUnit = 1;
     unsigned int specularUnit = 1;
@@ -46,7 +46,7 @@ void Mesh::Draw(std::shared_ptr<Shader> shader) {
         if (diffuseUnit < 2 && specularUnit < 2 && normalUnit < 2 && heightUnit < 2 &&
             opacityUnit < 2) {  // only deal with the first unit of each type
             std::string uniformName = "u_Material." + name + number;
-            shader->setUniform(uniformName.c_str(), i);
+            shader->SetUniform(uniformName.c_str(), i);
         }
 
         // and finally bind the texture
@@ -62,7 +62,7 @@ void Mesh::Draw(std::shared_ptr<Shader> shader) {
     glActiveTexture(GL_TEXTURE0);
 }
 
-void Mesh::DrawDebug(std::shared_ptr<Shader> shader) {
+void Mesh::DrawDebug(Shader* shader) {
     // draw bounds
     glBindVertexArray(debugVAO);
     glDrawElements(GL_LINES, static_cast<unsigned int>(boundsIndices.size()), GL_UNSIGNED_INT, 0);
