@@ -14,21 +14,17 @@ Model::Model(const std::string const& path, const std::string& shader, bool gamm
     LoadModel(path);
 }
 
-void Model::Draw(std::shared_ptr<Shader> shader) {
+void Model::Draw(Shader* shader) {
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
 }
 
-void Model::DrawDebug(std::shared_ptr<Shader> shader) {
+void Model::DrawDebug(Shader* shader) {
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].DrawDebug(shader);
 }
 
-unsigned int Model::GetVertexCount() const {
-    return num_vertices_;
-}
+unsigned int Model::GetVertexCount() const { return num_vertices_; }
 
-unsigned int Model::GetTriangleCount() const {
-    return num_triangles_;
-}
+unsigned int Model::GetTriangleCount() const { return num_triangles_; }
 
 void Model::LoadModel(std::string const& path) {
     // read file via ASSIMP

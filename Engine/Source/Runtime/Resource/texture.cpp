@@ -39,9 +39,7 @@ GLuint Texture::LoadTexture(const std::string& texPath, bool flipY) {
     return tex;
 }
 
-void Texture::DeletePixels(unsigned char* data) {
-    stbi_image_free(data);
-}
+void Texture::DeletePixels(unsigned char* data) { stbi_image_free(data); }
 
 unsigned char* Texture::LoadPixels(const std::string& fName, int& width, int& height, int& numChannels, bool flip) {
     stbi_set_flip_vertically_on_load(flip);
@@ -91,7 +89,12 @@ GLuint Texture::LoadCubeMap(const std::vector<std::string>& faces, bool flipY) {
     for (unsigned int i = 0; i < faces.size(); i++) {
         data = Texture::LoadPixels(faces[i], width, height, nChannels, flipY);
         if (data) {
-            glTextureSubImage3D(cubemap, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            if (nChannels == 3) {
+                glTextureSubImage3D(cubemap, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+            } else if (nChannels == 4) {
+                glTextureSubImage3D(cubemap, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            }
         } else {
             LOG_ERROR("Cubemap texture failed to load at path: {}", faces[i]);
             return false;

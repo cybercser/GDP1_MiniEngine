@@ -2,6 +2,11 @@
 
 #include "common.h"
 
+#include "Core/timestep.h"
+#include "Events/event.h"
+#include "Events/mouse_event.h"
+#include "Events/application_event.h"
+
 namespace gdp1 {
 
 // Forward declaration
@@ -26,30 +31,30 @@ public:
 
     void SetAspect(float aspect);
 
-    // std::shared_ptr<Camera> GetCamera() const { return camera_ptr_; }
+    std::shared_ptr<Camera> GetCamera() const { return camera_ptr_; }
 
-    const glm::vec3& GetPosition() const {
-        return position_;
-    }
+    const glm::vec3& GetPosition() const { return position_; }
 
-    const glm::vec3& GetUp() const {
-        return up_;
-    }
+    const glm::vec3& GetUp() const { return up_; }
 
-    float GetYaw() const {
-        return yaw_;
-    }
+    float GetYaw() const { return yaw_; }
 
-    float GetPitch() const {
-        return pitch_;
-    }
+    float GetPitch() const { return pitch_; }
 
-    float GetFov() const {
-        return fov_;
-    }
+    float GetFov() const { return fov_; }
 
     const glm::mat4& GetViewMatrix() const;
     const glm::mat4& GetProjectionMatrix() const;
+
+    void OnUpdate(Timestep ts);
+    void OnEvent(Event& e);
+
+private:
+    void UpdateCameraVectors();
+
+    bool OnMouseScrolled(MouseScrolledEvent& e);
+    bool OnWindowResized(WindowResizeEvent& e);
+    bool OnMouseMoved(MouseMovedEvent& e);
 
     // WASD for forward, strafe left, backward, strafe right
     void ProcessKeyboard(CameraMovement direction, float deltaTime);
@@ -59,9 +64,6 @@ public:
 
     // Zoom-in/out, only cares about vertical wheel-axis
     void ProcessMouseScroll(float yoffset);
-
-private:
-    void UpdateCameraVectors();
 
 private:
     std::shared_ptr<Camera> camera_ptr_;
@@ -85,6 +87,9 @@ private:
     float translation_speed_;
     float rotation_speed_;
     float mouse_sensitivity_;
+
+    float last_x_;
+    float last_y_;
 };
 
 }  // namespace gdp1

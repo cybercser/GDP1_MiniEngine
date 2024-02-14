@@ -17,6 +17,8 @@ ImGuiLayer::ImGuiLayer()
 void ImGuiLayer::OnAttach() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+
+    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
     ImGuiIO& io = ImGui::GetIO();
@@ -28,8 +30,17 @@ void ImGuiLayer::OnAttach() {
     Application& app = Application::Get();
     GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 460");
+    // Setup Platform/Renderer backends
+    if (!ImGui_ImplGlfw_InitForOpenGL(window, true)) {
+        LOG_ERROR("Failed to initialize ImGui GLFW backend");
+        return;
+    }
+
+    const char* glsl_version = "#version 460";
+    if (!ImGui_ImplOpenGL3_Init(glsl_version)) {
+        LOG_ERROR("Failed to initialize ImGui OpenGL backend");
+        return;
+    }
 }
 
 void ImGuiLayer::OnDetach() {

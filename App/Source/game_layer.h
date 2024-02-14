@@ -1,8 +1,7 @@
 #pragma once
 
-#include <common.h>
-#include <Core/layer.h>
-#include <Core/application.h>
+#include <engine.h>
+#include <engine_utils.h>
 
 class GameLayer : public gdp1::Layer {
 public:
@@ -11,7 +10,12 @@ public:
 
     virtual void OnAttach() override;
     virtual void OnDetach() override;
+    virtual void OnEvent(gdp1::Event& event) override;
     virtual void OnUpdate(gdp1::Timestep ts) override;
     virtual void OnImGuiRender() override;
-    virtual void OnEvent(gdp1::Event& event) override;
+
+private:
+    std::shared_ptr<gdp1::Scene> m_Scene;
+    std::shared_ptr<gdp1::FlyCameraController> m_FlyCamera;
+    std::unique_ptr<gdp1::Renderer> m_Renderer;
 };

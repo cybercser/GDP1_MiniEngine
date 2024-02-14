@@ -6,13 +6,8 @@
 #endif
 
 #include "common.h"
-
-#include <glad/glad.h>
-
-#include <string>
-#include <map>
-#include <glm/glm.hpp>
 #include <stdexcept>
+#include <glad/glad.h>
 
 namespace gdp1 {
 
@@ -22,7 +17,6 @@ public:
         : std::runtime_error(msg) {}
 };
 
-namespace GLSLShader {
 enum GLSLShaderType {
     VERTEX = GL_VERTEX_SHADER,
     FRAGMENT = GL_FRAGMENT_SHADER,
@@ -31,18 +25,17 @@ enum GLSLShaderType {
     TESS_EVALUATION = GL_TESS_EVALUATION_SHADER,
     COMPUTE = GL_COMPUTE_SHADER
 };
-};
 
 class Shader {
 private:
-    GLuint handle;
-    bool linked;
-    std::map<std::string, int> uniformLocations;
+    GLuint m_Handle;
+    bool m_Linked;
+    std::unordered_map<std::string, int> m_UniformLocations;
 
-    inline GLint getUniformLocation(const char* name);
-    void detachAndDeleteShaderObjects();
-    bool fileExists(const std::string& fileName);
-    std::string getExtension(const char* fileName);
+    inline GLint GetUniformLocation(const std::string& name);
+    void DetachAndDeleteShaderObjects();
+    bool FileExists(const std::string& fileName);
+    std::string GetExtension(const std::string& fileName);
 
 public:
     Shader();
@@ -52,49 +45,49 @@ public:
     Shader(const Shader&) = delete;
     Shader& operator=(const Shader&) = delete;
 
-    void compileShader(const char* fileName);
-    void compileShader(const char* fileName, GLSLShader::GLSLShaderType type);
-    void compileShader(const std::string& source, GLSLShader::GLSLShaderType type, const char* fileName = NULL);
+    void CompileShader(const std::string& fileName);
+    void CompileShader(const std::string& fileName, GLSLShaderType type);
+    void CompileShader(const std::string& source, GLSLShaderType type, const std::string& fileName);
 
-    void link();
-    void validate();
-    void use();
+    void Link();
+    void Validate();
+    void Use();
 
-    int getHandle();
-    bool isLinked();
+    int GetHandle();
+    bool IsLinked();
 
-    void bindAttribLocation(GLuint location, const char* name);
-    void bindFragDataLocation(GLuint location, const char* name);
+    void BindAttribLocation(GLuint location, const char* name);
+    void BindFragDataLocation(GLuint location, const char* name);
 
     // std::string version of the following methods
-    void setUniform(const std::string& name, float x, float y, float z);
-    void setUniform(const std::string& name, const glm::vec2& v);
-    void setUniform(const std::string& name, const glm::vec3& v);
-    void setUniform(const std::string& name, const glm::vec4& v);
-    void setUniform(const std::string& name, const glm::mat4& m);
-    void setUniform(const std::string& name, const glm::mat3& m);
-    void setUniform(const std::string& name, float val);
-    void setUniform(const std::string& name, int val);
-    void setUniform(const std::string& name, bool val);
-    void setUniform(const std::string& name, GLuint val);
+    void SetUniform(const std::string& name, float x, float y, float z);
+    void SetUniform(const std::string& name, const glm::vec2& v);
+    void SetUniform(const std::string& name, const glm::vec3& v);
+    void SetUniform(const std::string& name, const glm::vec4& v);
+    void SetUniform(const std::string& name, const glm::mat4& m);
+    void SetUniform(const std::string& name, const glm::mat3& m);
+    void SetUniform(const std::string& name, float val);
+    void SetUniform(const std::string& name, int val);
+    void SetUniform(const std::string& name, bool val);
+    void SetUniform(const std::string& name, GLuint val);
 
-    void setUniform(const char* name, float x, float y, float z);
-    void setUniform(const char* name, const glm::vec2& v);
-    void setUniform(const char* name, const glm::vec3& v);
-    void setUniform(const char* name, const glm::vec4& v);
-    void setUniform(const char* name, const glm::mat4& m);
-    void setUniform(const char* name, const glm::mat3& m);
-    void setUniform(const char* name, float val);
-    void setUniform(const char* name, int val);
-    void setUniform(const char* name, bool val);
-    void setUniform(const char* name, GLuint val);
+    void SetUniform(const char* name, float x, float y, float z);
+    void SetUniform(const char* name, const glm::vec2& v);
+    void SetUniform(const char* name, const glm::vec3& v);
+    void SetUniform(const char* name, const glm::vec4& v);
+    void SetUniform(const char* name, const glm::mat4& m);
+    void SetUniform(const char* name, const glm::mat3& m);
+    void SetUniform(const char* name, float val);
+    void SetUniform(const char* name, int val);
+    void SetUniform(const char* name, bool val);
+    void SetUniform(const char* name, GLuint val);
 
-    void findUniformLocations();
-    void printActiveUniforms();
-    void printActiveUniformBlocks();
-    void printActiveAttribs();
+    void FindUniformLocations();
+    void PrintActiveUniforms();
+    void PrintActiveUniformBlocks();
+    void PrintActiveAttribs();
 
-    const char* getTypeString(GLenum type);
+    const char* GetTypeString(GLenum type);
 };
 
 }  // namespace gdp1

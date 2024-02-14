@@ -14,11 +14,9 @@ public:
     Skybox(const std::vector<std::string>& faces, float size);
     ~Skybox();
 
-    inline unsigned int GetCubemapTextureId() const {
-        return texId_;
-    }
+    inline unsigned int GetCubemapTextureId() const { return texId_; }
 
-    void Draw(std::shared_ptr<Shader> shader, const glm::mat4& viewMat, const glm::mat4 projMat);
+    void Draw(Shader* shader, const glm::mat4& viewMat, const glm::mat4 projMat);
 
 private:
     void LoadCubemap(const std::vector<std::string>& faces);

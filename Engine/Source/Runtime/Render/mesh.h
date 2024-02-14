@@ -47,9 +47,9 @@ public:
          const Bounds& bounds);
 
     // render the mesh
-    void Draw(std::shared_ptr<Shader> shader);
+    void Draw(Shader* shader);
 
-    void DrawDebug(std::shared_ptr<Shader> shader);
+    void DrawDebug(Shader* shader);
 
 private:
     // initializes all the buffer objects/arrays
