@@ -14,6 +14,9 @@ cd Scripts
 ```
 Voila. You will see a Visual Studio solution named `MiniEngine.sln`. Open it with Visual Studio 2022, then press F5 to build and run.
 
+## User Controls
+W, S, A, D - Camera Movement
+
 ## References
 I learned a lot from the professors of GDP1 as well as the following online tutorials:
 

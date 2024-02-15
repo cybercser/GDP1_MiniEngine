@@ -58,6 +58,7 @@ void WindowsWindow::Init(const WindowProps& props) {
 
     utils::DumpGLInfo();
 
+    glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetWindowUserPointer(m_Window, &m_Data);
     SetVSync(true);
 
