@@ -34,6 +34,19 @@ void WindowsWindow::Init(const WindowProps& props) {
         int success = glfwInit();
         GLCORE_ASSERT(success, "Could not initialize GLFW!");
         glfwSetErrorCallback(GLFWErrorCallback);
+
+        // Select OpenGL 4.6
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);  // disable window resize
+        // if (gl_debug_) glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+        // if (multi_samples_ > 0) {
+        //     glfwWindowHint(GLFW_SAMPLES, multi_samples_);
+        // }
+
         s_GLFWInitialized = true;
     }
 
@@ -43,7 +56,9 @@ void WindowsWindow::Init(const WindowProps& props) {
     int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     GLCORE_ASSERT(status, "Failed to initialize Glad!");
 
-    GLUtils::dumpGLInfo();
+    utils::DumpGLInfo();
+
+    glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glfwSetWindowUserPointer(m_Window, &m_Data);
     SetVSync(true);
@@ -143,5 +158,17 @@ void WindowsWindow::SetVSync(bool enabled) {
 }
 
 bool WindowsWindow::IsVSync() const { return m_Data.vSync; }
+
+void WindowsWindow::SetCaptureMouse(bool enabled) {
+    if (enabled) {
+        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    } else {
+        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
+    m_Data.captureMouse = enabled;
+}
+
+bool WindowsWindow::IsMouseCaptured() const { return m_Data.captureMouse; }
 
 }  // namespace gdp1

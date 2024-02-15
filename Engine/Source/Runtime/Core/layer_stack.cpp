@@ -1,4 +1,4 @@
-// Copied from Cherno's [OpenGL-Core template](https://github.com/TheCherno/OpenGL)
+// Adapted from Cherno's [OpenGL-Core template](https://github.com/TheCherno/OpenGL)
 #include "layer_stack.h"
 
 namespace gdp1 {
@@ -38,6 +38,17 @@ void LayerStack::PopOverlay(Layer* overlay) {
         overlay->OnDetach();
         m_Layers.erase(it);
     }
+}
+
+bool LayerStack::IsOverlay(Layer* layer) const {
+    // if the layer is in the second half of the vector, it is an overlay
+    return std::find(m_Layers.begin() + m_LayerInsertIndex, m_Layers.end(), layer) != m_Layers.end();
+}
+
+bool LayerStack::IsLayer(Layer* layer) const {
+    // if the layer is in the first half of the vector, it is a layer
+    return std::find(m_Layers.begin(), m_Layers.begin() + m_LayerInsertIndex, layer) !=
+           m_Layers.begin() + m_LayerInsertIndex;
 }
 
 }  // namespace gdp1

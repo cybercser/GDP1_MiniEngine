@@ -1,21 +1,19 @@
 #include "scene.h"
 
-#include <iostream>
-#include <memory>
-#include <random>
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
-
 #include "model.h"
+#include "shader.h"
+#include "light.h"
+#include "skybox.h"
 #include "Core/game_object.h"
 #include "Animation/animation_system.h"
+
+using namespace glm;
 
 namespace gdp1 {
 
 Scene::Scene(const LevelDesc& levelDesc) {
     CreateRootGameObject();
-    Init(levelDesc);
+    ProcessDesc(levelDesc);
 }
 
 void Scene::CreateRootGameObject() {
@@ -64,36 +62,7 @@ Scene::~Scene() {
     }
 }
 
-void Scene::Init(const LevelDesc& desc) {
-    ProcessDesc(desc);
-}
-
-int Scene::Draw(const std::unordered_map<std::string, std::shared_ptr<Shader>>& shaderMap) {
-    for (std::unordered_map<std::string, GameObject*>::iterator it = m_GameObjectMap.begin();
-         it != m_GameObjectMap.end(); it++) {
-        GameObject* obj = it->second;
-        if (obj != nullptr && obj->visible) {
-            Model* model = obj->model;
-            if (model != nullptr) {
-                // find shader
-                std::unordered_map<std::string, std::shared_ptr<Shader>>::const_iterator shaderIt =
-                    shaderMap.find(model->shaderName);
-                if (shaderIt == shaderMap.end()) {
-                    LOG_ERROR("Cannot find shader: " + model->shaderName);
-                    continue;
-                }
-                std::shared_ptr<Shader> shader = shaderIt->second;
-                shader->use();
-                shader->setUniform("u_Model", obj->transform->WorldMatrix());
-                model->Draw(shader);
-            }
-        }
-    }
-
-    return 0;
-}
-
-int Scene::DrawDebug(std::shared_ptr<Shader> shader) {
+int Scene::DrawDebug(Shader* shader) {
     glDisable(GL_DEPTH_TEST);
 
     // draw debug
@@ -103,8 +72,8 @@ int Scene::DrawDebug(std::shared_ptr<Shader> shader) {
         if (obj != nullptr && obj->visible) {
             Model* model = obj->model;
             if (model != nullptr) {
-                shader->use();
-                shader->setUniform("u_Model", obj->transform->WorldMatrix());
+                shader->Use();
+                shader->SetUniform("u_Model", obj->transform->WorldMatrix());
                 model->DrawDebug(shader);
             }
         }
@@ -123,21 +92,13 @@ void Scene::Update(float deltaTime) {
     }
 }
 
-void Scene::SetAnimationSpeed(float speed) {
-    m_AnimationSystemPtr->SetPlaySpeed(speed);
-}
+void Scene::SetAnimationSpeed(float speed) { m_AnimationSystemPtr->SetPlaySpeed(speed); }
 
-void Scene::SetAnimationPlaying(bool playing) {
-    m_AnimationSystemPtr->SetPlaying(playing);
-}
+void Scene::SetAnimationPlaying(bool playing) { m_AnimationSystemPtr->SetPlaying(playing); }
 
-void Scene::PlayNextAnimationClip() {
-    m_AnimationSystemPtr->PlayNextClip();
-}
+void Scene::PlayNextAnimationClip() { m_AnimationSystemPtr->PlayNextClip(); }
 
-void Scene::PlayPreviousAnimationClip() {
-    m_AnimationSystemPtr->PlayPreviousClip();
-}
+void Scene::PlayPreviousAnimationClip() { m_AnimationSystemPtr->PlayPreviousClip(); }
 
 void Scene::UpdateHierarchy(Transform* xform) {
     if (xform->hasChanged) {
@@ -158,34 +119,133 @@ void Scene::UpdateHierarchy(Transform* xform) {
     xform->hasChanged = false;
 }
 
-void Scene::UpdateAnimation(float deltaTime) {
-    m_AnimationSystemPtr->Update(deltaTime);
-}
+void Scene::UpdateAnimation(float deltaTime) { m_AnimationSystemPtr->Update(deltaTime); }
 
-int Scene::ProcessDesc(const LevelDesc& desc) {
+void Scene::ProcessDesc(const LevelDesc& desc) {
     LOG_INFO(desc.comment);
 
-    LoadModels(desc);
-    CreateGameObjects(desc);
-    CreateLights(desc);
-    CreateAnimations(desc);
-
-    return 0;
+    LoadModels(desc.modelDescs);
+    CreateGameObjects(desc.gameObjectDescs);
+    CreateLights(desc.directionalLights, desc.pointLights, desc.spotLights);
+    CreateSkybox(desc.skyboxDesc);
+    LoadShaders(desc);
+    CreateAnimations(desc.animationRefDesc);
 }
 
-int Scene::LoadModels(const LevelDesc& desc) {
-    for (const ModelDesc& modelDesc : desc.modelDescs) {
+void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
+    for (const ModelDesc& modelDesc : modelDescs) {
         Model* model = new Model(modelDesc.filepath, modelDesc.shader);
         m_ModelMap.insert(std::make_pair(modelDesc.name, model));
 
         m_VertexCount += model->GetVertexCount();
         m_TriangleCount += model->GetTriangleCount();
     }
-    return 0;
 }
 
-void Scene::CreateGameObjects(const LevelDesc& desc) {
-    for (const GameObjectDesc& goDesc : desc.gameObjectDescs) {
+bool Scene::LoadShaders(const LevelDesc& desc) {
+    try {
+        lit_shader_ptr_ = new Shader();
+        lit_shader_ptr_->CompileShader("Assets/Shaders/lit.vert.glsl");
+        lit_shader_ptr_->CompileShader("Assets/shaders/lit.frag.glsl");
+        lit_shader_ptr_->Link();
+        lit_shader_ptr_->Use();
+
+        DirectionalLight* dirLight = FindDirectionalLightByName("Sun");
+        if (dirLight == nullptr) {
+            LOG_ERROR("Cannot find directional light: Sun");
+            return false;
+        }
+
+        // directional light
+        lit_shader_ptr_->SetUniform("u_DirLight.color", dirLight->color);
+        lit_shader_ptr_->SetUniform("u_DirLight.intensity", dirLight->intensity);
+
+        lit_shader_ptr_->SetUniform("u_Material.s", vec3(0.2f, 0.2f, 0.2f));
+        lit_shader_ptr_->SetUniform("u_Material.shininess", 32.0f);
+
+        lit_shader_ptr_->SetUniform("u_UseProjTex", false);
+
+        m_ShaderMap.insert(std::make_pair("lit", lit_shader_ptr_));
+    } catch (GLSLProgramException& e) {
+        LOG_ERROR("GLSLProgramException: {}", e.what());
+        return false;
+    }
+
+    // debug shader
+    try {
+        debug_shader_ptr_ = new Shader();
+        debug_shader_ptr_->CompileShader("Assets/Shaders/debug.vert.glsl");
+        debug_shader_ptr_->CompileShader("Assets/shaders/debug.frag.glsl");
+        debug_shader_ptr_->Link();
+        debug_shader_ptr_->Use();
+
+        debug_shader_ptr_->SetUniform("u_Color", vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+        m_ShaderMap.insert(std::make_pair("debug", debug_shader_ptr_));
+    } catch (GLSLProgramException& e) {
+        LOG_ERROR("GLSLProgramException: {}", e.what());
+        return false;
+    }
+
+    // untextured shader
+    try {
+        untextured_shader_ptr_ = new Shader();
+        untextured_shader_ptr_->CompileShader("Assets/Shaders/untextured.vert.glsl");
+        untextured_shader_ptr_->CompileShader("Assets/shaders/untextured.frag.glsl");
+        untextured_shader_ptr_->Link();
+        untextured_shader_ptr_->Use();
+
+        // directional light
+        untextured_shader_ptr_->SetUniform("u_DirLight.a", vec3(0.05f, 0.05f, 0.05f));
+        untextured_shader_ptr_->SetUniform("u_DirLight.d", vec3(0.6f, 0.6f, 0.6f));
+        untextured_shader_ptr_->SetUniform("u_DirLight.s", vec3(0.5f, 0.5f, 0.5f));
+
+        untextured_shader_ptr_->SetUniform("u_Material.a", vec3(0.2f, 0.2f, 0.2f));
+        untextured_shader_ptr_->SetUniform("u_Material.d", vec3(0.8f, 0.8f, 0.8f));
+        untextured_shader_ptr_->SetUniform("u_Material.s", vec3(0.2f, 0.2f, 0.2f));
+        untextured_shader_ptr_->SetUniform("u_Material.shininess", 32.0f);
+
+        m_ShaderMap.insert(std::make_pair("untextured", untextured_shader_ptr_));
+    } catch (GLSLProgramException& e) {
+        LOG_ERROR("GLSLProgramException: {}", e.what());
+        return false;
+    }
+
+    // unlit shader
+    try {
+        unlit_shader_ptr_ = new Shader();
+        unlit_shader_ptr_->CompileShader("Assets/Shaders/unlit.vert.glsl");
+        unlit_shader_ptr_->CompileShader("Assets/shaders/unlit.frag.glsl");
+        unlit_shader_ptr_->Link();
+        unlit_shader_ptr_->Use();
+
+        m_ShaderMap.insert(std::make_pair("unlit", unlit_shader_ptr_));
+    } catch (GLSLProgramException& e) {
+        LOG_ERROR("GLSLProgramException: {}", e.what());
+        return false;
+    }
+
+    // skybox shader
+    try {
+        skybox_shader_ptr_ = new Shader();
+        skybox_shader_ptr_->CompileShader("Assets/Shaders/skybox.vert.glsl");
+        skybox_shader_ptr_->CompileShader("Assets/Shaders/skybox.frag.glsl");
+        skybox_shader_ptr_->Link();
+        skybox_shader_ptr_->Use();
+
+        skybox_shader_ptr_->SetUniform("u_Skybox", 0);
+
+        m_ShaderMap.insert(std::make_pair("skybox", skybox_shader_ptr_));
+    } catch (GLSLProgramException& e) {
+        LOG_ERROR("GLSLProgramException: {}", e.what());
+        return false;
+    }
+
+    return true;
+}
+
+void Scene::CreateGameObjects(const std::vector<GameObjectDesc>& gameObjectDescs) {
+    for (const GameObjectDesc& goDesc : gameObjectDescs) {
         GameObject* go = new GameObject(this, goDesc);
         Transform* xform = go->transform;
         if (!go->modelName.empty()) {
@@ -230,64 +290,35 @@ void Scene::CreateHierarchy(Transform* xform) {
     }
 }
 
-void Scene::CreateLights(const LevelDesc& desc) {
+void Scene::CreateLights(const std::vector<DirectionalLight>& directionalLights,
+                         const std::vector<PointLight>& pointLights, const std::vector<SpotLight>& spotLights) {
     // create directional lights
-    for (const DirectionalLight& lightDesc : desc.directionalLights) {
-        DirectionalLight* light = new DirectionalLight();
-        light->name = lightDesc.name;
-        light->direction = lightDesc.direction;
-
-        light->color = lightDesc.color;
-        light->intensity = lightDesc.intensity;
-
-        m_DirectionalLightMap.insert(std::make_pair(light->name, light));
+    for (const DirectionalLight& lightDesc : directionalLights) {
+        m_DirectionalLightMap.emplace(lightDesc.name, new DirectionalLight(lightDesc));
     }
 
     // create point lights
-    for (const PointLight& lightDesc : desc.pointLights) {
-        PointLight* light = new PointLight();
-        light->name = lightDesc.name;
-        light->position = lightDesc.position;
-
-        light->color = lightDesc.color;
-        light->intensity = lightDesc.intensity;
-
-        light->constant = lightDesc.constant;
-        light->linear = lightDesc.linear;
-        light->quadratic = lightDesc.quadratic;
-
-        m_PointLightMap.insert(std::make_pair(light->name, light));
+    for (const PointLight& lightDesc : pointLights) {
+        m_PointLightMap.emplace(lightDesc.name, new PointLight(lightDesc));
     }
 
     // create spot lights
-    for (const SpotLight& lightDesc : desc.spotLights) {
-        SpotLight* light = new SpotLight();
-        light->name = lightDesc.name;
-        light->position = lightDesc.position;
-        light->direction = lightDesc.direction;
-        light->cutoff = lightDesc.cutoff;
-        light->outerCutoff = lightDesc.outerCutoff;
-
-        light->ambient = lightDesc.ambient;
-        light->diffuse = lightDesc.diffuse;
-        light->specular = lightDesc.specular;
-
-        light->constant = lightDesc.constant;
-        light->linear = lightDesc.linear;
-        light->quadratic = lightDesc.quadratic;
-
-        light->cookie = lightDesc.cookie;
-
-        m_SpotLightMap.insert(std::make_pair(light->name, light));
+    for (const SpotLight& lightDesc : spotLights) {
+        m_SpotLightMap.emplace(lightDesc.name, new SpotLight(lightDesc));
     }
 }
 
-void Scene::CreateAnimations(const LevelDesc& desc) {
+void Scene::CreateSkybox(const SkyboxDesc& skyboxDesc) {
+    const std::vector<std::string>& faces = skyboxDesc.faces;
+    skybox_ptr_ = std::make_shared<Skybox>(faces, skyboxDesc.size);
+}
+
+void Scene::CreateAnimations(const AnimationRefDesc& animationRefDesc) {
     AnimationLoader animLoader;
-    LOG_INFO("loading animation {}", desc.animationRefDesc.name);
+    LOG_INFO("loading animation {}", animationRefDesc.name);
 
     Animation* anim = new Animation();
-    animLoader.LoadAnimation(desc.animationRefDesc.path, *anim);
+    animLoader.LoadAnimation(animationRefDesc.path, *anim);
 
     // set the GameObject for each keyframe
     for (AnimationClip& clip : anim->clips) {
@@ -334,7 +365,7 @@ GameObject* Scene::FindObjectByName(const std::string& name) {
 }
 
 DirectionalLight* Scene::FindDirectionalLightByName(const std::string& name) {
-    std::unordered_map<std::string, DirectionalLight*>::iterator it = m_DirectionalLightMap.find(name);
+    DirectionalLightMap::iterator it = m_DirectionalLightMap.find(name);
     if (it != m_DirectionalLightMap.end()) {
         return it->second;
     }
@@ -342,7 +373,7 @@ DirectionalLight* Scene::FindDirectionalLightByName(const std::string& name) {
 }
 
 PointLight* Scene::FindPointLightByName(const std::string& name) {
-    std::unordered_map<std::string, PointLight*>::iterator it = m_PointLightMap.find(name);
+    PointLightMap::iterator it = m_PointLightMap.find(name);
     if (it != m_PointLightMap.end()) {
         return it->second;
     }
@@ -350,23 +381,17 @@ PointLight* Scene::FindPointLightByName(const std::string& name) {
 }
 
 SpotLight* Scene::FindSpotLightByName(const std::string& name) {
-    std::unordered_map<std::string, SpotLight*>::iterator it = m_SpotLightMap.find(name);
+    SpotLightMap::iterator it = m_SpotLightMap.find(name);
     if (it != m_SpotLightMap.end()) {
         return it->second;
     }
     return nullptr;
 }
 
-size_t Scene::GetAnimationCurClipIndex() const {
-    return m_AnimationSystemPtr->GetCurrentClipIndex();
-}
+size_t Scene::GetAnimationCurClipIndex() const { return m_AnimationSystemPtr->GetCurrentClipIndex(); }
 
-float Scene::GetAnimationSpeed() const {
-    return m_AnimationSystemPtr->GetSpeed();
-}
+float Scene::GetAnimationSpeed() const { return m_AnimationSystemPtr->GetSpeed(); }
 
-float Scene::GetAnimationElapsedTime() const {
-    return m_AnimationSystemPtr->GetElapsedTime();
-}
+float Scene::GetAnimationElapsedTime() const { return m_AnimationSystemPtr->GetElapsedTime(); }
 
 }  // namespace gdp1

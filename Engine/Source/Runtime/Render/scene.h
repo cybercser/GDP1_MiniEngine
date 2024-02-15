@@ -10,20 +10,19 @@ namespace gdp1 {
 // forward declaration
 class Model;
 class GameObject;
+class Shader;
+class Skybox;
 class Animation;
 class AnimationSystem;
+class Renderer;
 
 class Scene {
 public:
     Scene(const LevelDesc& levelJson);
-
+    ~Scene();
     void CreateRootGameObject();
 
-    ~Scene();
-
-    int Draw(const std::unordered_map<std::string, std::shared_ptr<Shader>>& shaderMap);
-
-    int DrawDebug(std::shared_ptr<Shader> debugShader);
+    int DrawDebug(Shader* debugShader);
 
     void Update(float deltaTime);
 
@@ -41,12 +40,8 @@ public:
     PointLight* FindPointLightByName(const std::string& name);
     SpotLight* FindSpotLightByName(const std::string& name);
 
-    unsigned int GetVertexCount() const {
-        return m_VertexCount;
-    }
-    unsigned int GetTriangleCount() const {
-        return m_TriangleCount;
-    }
+    unsigned int GetVertexCount() const { return m_VertexCount; }
+    unsigned int GetTriangleCount() const { return m_TriangleCount; }
 
     size_t GetAnimationCurClipIndex() const;
     float GetAnimationSpeed() const;
@@ -56,12 +51,14 @@ private:
     void UpdateAnimation(float deltaTime);
     void UpdateHierarchy(Transform* xform);
 
-    void Init(const LevelDesc& desc);
-    int ProcessDesc(const LevelDesc& desc);
-    int LoadModels(const LevelDesc& desc);
-    void CreateGameObjects(const LevelDesc& desc);
-    void CreateLights(const LevelDesc& desc);
-    void CreateAnimations(const LevelDesc& desc);
+    void ProcessDesc(const LevelDesc& desc);
+    void LoadModels(const std::vector<ModelDesc>& desc);
+    bool LoadShaders(const LevelDesc& desc);
+    void CreateGameObjects(const std::vector<GameObjectDesc>& desc);
+    void CreateLights(const std::vector<DirectionalLight>& directionalLights,
+                      const std::vector<PointLight>& pointLights, const std::vector<SpotLight>& spotLights);
+    void CreateSkybox(const SkyboxDesc& skyboxDesc);
+    void CreateAnimations(const AnimationRefDesc& animationRefDesc);
 
     void CreateHierarchy(Transform* xform);
 
@@ -69,9 +66,23 @@ private:
     std::unordered_map<std::string, Model*> m_ModelMap;
     std::unordered_map<std::string, GameObject*> m_GameObjectMap;
 
-    std::unordered_map<std::string, DirectionalLight*> m_DirectionalLightMap;
-    std::unordered_map<std::string, PointLight*> m_PointLightMap;
-    std::unordered_map<std::string, SpotLight*> m_SpotLightMap;
+    // #TODO: we should have a better way (material system) to manage shaders
+    Shader* lit_shader_ptr_;
+    Shader* debug_shader_ptr_;
+    Shader* untextured_shader_ptr_;
+    Shader* unlit_shader_ptr_;
+    Shader* skybox_shader_ptr_;
+    std::unordered_map<std::string, Shader*> m_ShaderMap;
+
+    using DirectionalLightMap = std::unordered_map<std::string, DirectionalLight*>;
+    using PointLightMap = std::unordered_map<std::string, PointLight*>;
+    using SpotLightMap = std::unordered_map<std::string, SpotLight*>;
+
+    DirectionalLightMap m_DirectionalLightMap;
+    PointLightMap m_PointLightMap;
+    SpotLightMap m_SpotLightMap;
+
+    std::shared_ptr<Skybox> skybox_ptr_;
 
     Transform* m_RootTransform;
     GameObject* m_RootGameObject;  // root transform must belong to a game object
@@ -80,6 +91,8 @@ private:
 
     unsigned int m_VertexCount;
     unsigned int m_TriangleCount;
+
+    friend class Renderer;
 };
 
 }  // namespace gdp1

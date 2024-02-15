@@ -22,6 +22,9 @@ public:
     void SetVSync(bool enabled) override;
     bool IsVSync() const override;
 
+    void SetCaptureMouse(bool enabled) override;
+    bool IsMouseCaptured() const override;
+
     inline virtual void* GetNativeWindow() const { return m_Window; }
 
 private:
@@ -35,6 +38,7 @@ private:
         std::string title;
         uint32_t width, height;
         bool vSync;
+        bool captureMouse;
 
         EventCallbackFn EventCallback;
     };

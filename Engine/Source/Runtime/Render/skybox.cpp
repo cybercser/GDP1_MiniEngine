@@ -36,15 +36,15 @@ Skybox::~Skybox() {
     vertices_.clear();
 }
 
-void Skybox::Draw(std::shared_ptr<Shader> shader, const glm::mat4& viewMat, const glm::mat4 projMat) {
+void Skybox::Draw(Shader* shader, const glm::mat4& viewMat, const glm::mat4 projMat) {
     if (VAO_ == 0) return;
 
     glDepthFunc(GL_LEQUAL);
 
-    shader->use();
+    shader->Use();
     glm::mat4 view = glm::mat4(glm::mat3(viewMat));  // remove translation from the view matrix
-    shader->setUniform("u_View", view);
-    shader->setUniform("u_Proj", projMat);
+    shader->SetUniform("u_View", view);
+    shader->SetUniform("u_Proj", projMat);
 
     glBindVertexArray(VAO_);
     glActiveTexture(GL_TEXTURE0);
@@ -69,9 +69,7 @@ void Skybox::Draw(std::shared_ptr<Shader> shader, const glm::mat4& viewMat, cons
 */
 // the order of faces:
 // +X, -X, +Y, -Y, +Z, -Z
-void Skybox::LoadCubemap(const std::vector<std::string>& faces) {
-    texId_ = Texture::LoadCubeMap(faces);
-}
+void Skybox::LoadCubemap(const std::vector<std::string>& faces) { texId_ = Texture::LoadCubeMap(faces); }
 
 /*
    .+------2

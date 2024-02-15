@@ -2,6 +2,8 @@
 
 #include "Core/logger.h"
 #include "Input/input.h"
+#include "Input/key_codes.h"
+#include "Input/mouse_button_codes.h"
 
 #include <GLFW/glfw3.h>
 
@@ -31,11 +33,19 @@ Application::Application(const std::string& name, unsigned int width, unsigned i
 void Application::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
+    dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(OnKeyPressed));
+    dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(OnMouseButtonPressed));
 
     // LOG_TRACE("{0}", e);
 
     for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();) {
-        (*--it)->OnEvent(e);
+        Layer* layer = *--it;
+
+        // if the mouse is not captured and the layer is not an overlay, skip it
+        if (!m_Window->IsMouseCaptured() && !m_LayerStack.IsOverlay(layer)) {
+            continue;
+        }
+        layer->OnEvent(e);
         if (e.handled) {
             break;
         }
@@ -48,7 +58,7 @@ void Application::PushOverlay(Layer* overlay) { m_LayerStack.PushOverlay(overlay
 
 void Application::Run() {
     while (m_Running) {
-        float time = (float)glfwGetTime();  // Platform::GetTime();
+        float time = (float)glfwGetTime();
         Timestep timestep = time - m_LastFrameTime;
         m_LastFrameTime = time;
 
@@ -69,6 +79,20 @@ void Application::Run() {
 bool Application::OnWindowClose(WindowCloseEvent& e) {
     m_Running = false;
     return true;
+}
+
+bool Application::OnKeyPressed(KeyPressedEvent& e) {
+    if (e.GetKeyCode() == HZ_KEY_ESCAPE) {
+        m_Window->SetCaptureMouse(false);
+    }
+    return false;
+}
+
+bool Application::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
+    if (Input::IsMouseButtonPressed(HZ_MOUSE_BUTTON_LEFT)) {
+        m_Window->SetCaptureMouse(true);
+    }
+    return false;
 }
 
 }  // namespace gdp1

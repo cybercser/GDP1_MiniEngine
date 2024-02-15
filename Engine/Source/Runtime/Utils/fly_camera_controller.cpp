@@ -1,118 +1,171 @@
 #include "fly_camera_controller.h"
 
+#include <functional>
+
 #include "camera.h"
+#include "Core/core.h"
+
+#include "Input/input.h"
+#include "Input/key_codes.h"
+#include "Input/mouse_button_codes.h"
 
 namespace gdp1 {
 
 FlyCameraController::FlyCameraController(const glm::vec3& eye, const glm::vec3& up, float yaw, float pitch, float fov,
-                                         float aspect, float nearZ, float farZ, float translationSpeed)
-    : position_(eye)
-    , up_(up)
-    , yaw_(yaw)
-    , pitch_(pitch)
-    , fov_(fov)
-    , translation_speed_(translationSpeed) {
-    mouse_sensitivity_ = 0.1f;
+                                         float aspect, float nearZ, float farZ, float translationSpeed,
+                                         float rotationSpeed)
+    : m_Position(eye)
+    , m_Up(up)
+    , m_Yaw(yaw)
+    , m_Pitch(pitch)
+    , m_Fov(fov)
+    , m_TranslationSpeed(translationSpeed)
+    , m_RotationSpeed(rotationSpeed) {
+    m_MouseSensitivity = 0.1f;
 
     UpdateCameraVectors();
 
-    glm::vec3 center = position_ + forward_;
-    camera_ptr_ = std::make_shared<Camera>(eye, center, up, fov, aspect, nearZ, farZ);
+    glm::vec3 center = m_Position + m_Forward;
+    m_Camera = std::make_shared<Camera>(eye, center, up, fov, aspect, nearZ, farZ);
 }
 
-FlyCameraController::~FlyCameraController() {
-}
+FlyCameraController::~FlyCameraController() {}
 
 void FlyCameraController::SetProperty(const glm::vec3& eye, const glm::vec3& up, float yaw, float pitch, float fov,
                                       float aspect, float nearZ, float farZ) {
-    assert(camera_ptr_ != nullptr);
+    assert(m_Camera != nullptr);
 
-    position_ = eye;
-    up_ = up;
-    yaw_ = yaw;
-    pitch_ = pitch;
-    fov_ = fov;
+    m_Position = eye;
+    m_Up = up;
+    m_Yaw = yaw;
+    m_Pitch = pitch;
+    m_Fov = fov;
 
     UpdateCameraVectors();
 
-    glm::vec3 center = position_ + forward_;
-    camera_ptr_->Set(eye, center, up, fov, aspect, nearZ, farZ);
+    glm::vec3 center = m_Position + m_Forward;
+    m_Camera->Set(eye, center, up, fov, aspect, nearZ, farZ);
 }
 
-void FlyCameraController::SetAspect(float aspect) {
-    camera_ptr_->SetAspect(aspect);
+void FlyCameraController::SetAspect(float aspect) { m_Camera->SetAspect(aspect); }
+
+const glm::mat4& FlyCameraController::GetViewMatrix() const { return m_Camera->GetViewMatrix(); }
+
+const glm::mat4& FlyCameraController::GetProjectionMatrix() const { return m_Camera->GetProjectionMatrix(); }
+
+void FlyCameraController::OnUpdate(Timestep ts) {
+    if (Input::IsKeyPressed(HZ_KEY_W)) {
+        ProcessKeyboard(CameraMovement::kFORWARD, ts);
+    }
+    if (Input::IsKeyPressed(HZ_KEY_S)) {
+        ProcessKeyboard(CameraMovement::kBACKWARD, ts);
+    }
+    if (Input::IsKeyPressed(HZ_KEY_A)) {
+        ProcessKeyboard(CameraMovement::kLEFT, ts);
+    }
+    if (Input::IsKeyPressed(HZ_KEY_D)) {
+        ProcessKeyboard(CameraMovement::kRIGHT, ts);
+    }
 }
 
-const glm::mat4& FlyCameraController::GetViewMatrix() const {
-    return camera_ptr_->GetViewMatrix();
-}
-
-const glm::mat4& FlyCameraController::GetProjectionMatrix() const {
-    return camera_ptr_->GetProjectionMatrix();
+void FlyCameraController::OnEvent(Event& e) {
+    EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<MouseScrolledEvent>(GLCORE_BIND_EVENT_FN(FlyCameraController::OnMouseScrolled));
+    dispatcher.Dispatch<WindowResizeEvent>(GLCORE_BIND_EVENT_FN(FlyCameraController::OnWindowResized));
+    dispatcher.Dispatch<MouseMovedEvent>(GLCORE_BIND_EVENT_FN(FlyCameraController::OnMouseMoved));
 }
 
 void FlyCameraController::ProcessKeyboard(CameraMovement direction, float deltaTime) {
-    float speed = translation_speed_ * deltaTime;
+    float speed = m_TranslationSpeed * deltaTime;
     glm::vec3 translation_{0.0f, 0.0f, 0.0f};
     switch (direction) {
-        case FORWARD:
-            translation_ = forward_ * speed;
+        case CameraMovement::kFORWARD:
+            translation_ = m_Forward * speed;
             break;
-        case BACKWARD:
-            translation_ = -forward_ * speed;
+        case CameraMovement::kBACKWARD:
+            translation_ = -m_Forward * speed;
             break;
-        case LEFT:
-            translation_ = -right_ * speed;
+        case CameraMovement::kLEFT:
+            translation_ = -m_Right * speed;
             break;
-        case RIGHT:
-            translation_ = right_ * speed;
+        case CameraMovement::kRIGHT:
+            translation_ = m_Right * speed;
             break;
     }
-    position_ += translation_;
+    m_Position += translation_;
 
-    glm::vec3 center = position_ + forward_;
-    camera_ptr_->SetEyeCenter(position_, center);
+    glm::vec3 center = m_Position + m_Forward;
+    m_Camera->SetEyeCenter(m_Position, center);
 }
 
 void FlyCameraController::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch) {
-    xoffset *= mouse_sensitivity_;
-    yoffset *= mouse_sensitivity_;
+    xoffset *= m_MouseSensitivity * m_RotationSpeed;
+    yoffset *= m_MouseSensitivity * m_RotationSpeed;
 
-    yaw_ += xoffset;
-    pitch_ += yoffset;
+    m_Yaw += xoffset;
+    m_Pitch += yoffset;
 
     // make sure that when pitch is out of bounds, screen doesn't get flipped
     if (constrainPitch) {
-        if (pitch_ > 89.0f) pitch_ = 89.0f;
-        if (pitch_ < -89.0f) pitch_ = -89.0f;
+        if (m_Pitch > 89.0f) m_Pitch = 89.0f;
+        if (m_Pitch < -89.0f) m_Pitch = -89.0f;
     }
 
     // update Forward, Right and Up Vectors using the updated Euler angles
     UpdateCameraVectors();
 
-    glm::vec3 center = position_ + forward_;
-    camera_ptr_->SetCenterUp(center, up_);
+    glm::vec3 center = m_Position + m_Forward;
+    m_Camera->SetCenterUp(center, m_Up);
 }
 
 void FlyCameraController::ProcessMouseScroll(float yoffset) {
-    fov_ -= (float)yoffset;
-    if (fov_ < 1.0f) fov_ = 1.0f;
-    if (fov_ > 60.0f) fov_ = 60.0f;
+    m_Fov -= (float)yoffset;
+    if (m_Fov < 1.0f) m_Fov = 1.0f;
+    if (m_Fov > 60.0f) m_Fov = 60.0f;
 
-    camera_ptr_->SetFov(fov_);
+    m_Camera->SetFov(m_Fov);
 }
 
 void FlyCameraController::UpdateCameraVectors() {
     // calculate the new forward vector
     glm::vec3 front;
-    front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-    front.y = sin(glm::radians(pitch_));
-    front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-    forward_ = glm::normalize(front);
+    front.x = cos(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
+    front.y = sin(glm::radians(m_Pitch));
+    front.z = sin(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
+    m_Forward = glm::normalize(front);
 
     // also re-calculate the Right and Up vector
-    right_ = glm::normalize(glm::cross(forward_, kWORLD_UP));
-    up_ = glm::normalize(glm::cross(right_, forward_));
+    m_Right = glm::normalize(glm::cross(m_Forward, kWORLD_UP));
+    m_Up = glm::normalize(glm::cross(m_Right, m_Forward));
+}
+
+bool FlyCameraController::OnMouseScrolled(MouseScrolledEvent& e) {
+    ProcessMouseScroll(e.GetYOffset());
+    return false;  // event is not handled
+}
+
+bool FlyCameraController::OnWindowResized(WindowResizeEvent& e) {
+    m_Camera->SetAspect((float)e.GetWidth() / (float)e.GetHeight());
+    return false;  // event is not handled
+}
+
+bool FlyCameraController::OnMouseMoved(MouseMovedEvent& e) {
+    static bool firstMouse = true;
+
+    if (firstMouse) {
+        m_LastX = e.GetX();
+        m_LastY = e.GetY();
+        firstMouse = false;
+    }
+
+    float xoffset = e.GetX() - m_LastX;
+    float yoffset = m_LastY - e.GetY();  // reversed since y-coordinates go from bottom to top
+
+    m_LastX = e.GetX();
+    m_LastY = e.GetY();
+
+    ProcessMouseMovement(xoffset, yoffset, true);
+    return false;  // event is not handled
 }
 
 }  // namespace gdp1
