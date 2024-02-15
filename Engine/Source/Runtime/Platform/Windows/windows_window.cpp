@@ -58,7 +58,6 @@ void WindowsWindow::Init(const WindowProps& props) {
 
     utils::DumpGLInfo();
 
-    // tell GLFW to capture our mouse
     glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glfwSetWindowUserPointer(m_Window, &m_Data);
