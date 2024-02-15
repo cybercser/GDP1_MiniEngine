@@ -23,8 +23,9 @@ void GameLayer::OnAttach() {
 
     // init the camera
     const CameraDesc& camDesc = levelJson.cameraDescs[0];
-    m_FlyCamera = std::make_shared<FlyCameraController>(camDesc.position, camDesc.up, camDesc.yaw, camDesc.pitch,
-                                                        camDesc.fov, 16.0f / 9.0f, camDesc.nearZ, camDesc.farZ, 250.0f);
+    m_FlyCamera =
+        std::make_shared<FlyCameraController>(camDesc.position, camDesc.up, camDesc.yaw, camDesc.pitch, camDesc.fov,
+                                              16.0f / 9.0f, camDesc.nearZ, camDesc.farZ, 10.0f, 2.0f);
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();

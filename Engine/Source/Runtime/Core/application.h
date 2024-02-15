@@ -32,6 +32,8 @@ public:
 
 private:
     bool OnWindowClose(WindowCloseEvent& e);
+    bool OnKeyPressed(KeyPressedEvent& e);
+    bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
 private:
     std::unique_ptr<Window> m_Window;
