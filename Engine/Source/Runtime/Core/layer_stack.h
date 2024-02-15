@@ -1,5 +1,5 @@
 #pragma once
-// Copied from Cherno's [OpenGL-Core template](https://github.com/TheCherno/OpenGL)
+// Adapted from Cherno's [OpenGL-Core template](https://github.com/TheCherno/OpenGL)
 
 #include "core.h"
 #include "layer.h"
@@ -20,6 +20,9 @@ public:
 
     std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
     std::vector<Layer*>::iterator end() { return m_Layers.end(); }
+
+    bool IsOverlay(Layer* layer) const;
+    bool IsLayer(Layer* layer) const;
 
 private:
     std::vector<Layer*> m_Layers;

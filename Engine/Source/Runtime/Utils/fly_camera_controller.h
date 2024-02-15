@@ -4,6 +4,7 @@
 
 #include "Core/timestep.h"
 #include "Events/event.h"
+#include "Events/key_event.h"
 #include "Events/mouse_event.h"
 #include "Events/application_event.h"
 
@@ -12,17 +13,17 @@ namespace gdp1 {
 // Forward declaration
 class Camera;
 
-enum CameraMovement {
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT,
+enum class CameraMovement {
+    kFORWARD,
+    kBACKWARD,
+    kLEFT,
+    kRIGHT,
 };
 
 class FlyCameraController {
 public:
     FlyCameraController(const glm::vec3& eye, const glm::vec3& up, float yaw, float pitch, float fov, float aspect,
-                        float nearZ, float farZ, float translationSpeed);
+                        float nearZ, float farZ, float translationSpeed, float rotationSpeed);
 
     ~FlyCameraController();
 
@@ -31,17 +32,17 @@ public:
 
     void SetAspect(float aspect);
 
-    std::shared_ptr<Camera> GetCamera() const { return camera_ptr_; }
+    std::shared_ptr<Camera> GetCamera() const { return m_Camera; }
 
-    const glm::vec3& GetPosition() const { return position_; }
+    const glm::vec3& GetPosition() const { return m_Position; }
 
-    const glm::vec3& GetUp() const { return up_; }
+    const glm::vec3& GetUp() const { return m_Up; }
 
-    float GetYaw() const { return yaw_; }
+    float GetYaw() const { return m_Yaw; }
 
-    float GetPitch() const { return pitch_; }
+    float GetPitch() const { return m_Pitch; }
 
-    float GetFov() const { return fov_; }
+    float GetFov() const { return m_Fov; }
 
     const glm::mat4& GetViewMatrix() const;
     const glm::mat4& GetProjectionMatrix() const;
@@ -66,30 +67,26 @@ private:
     void ProcessMouseScroll(float yoffset);
 
 private:
-    std::shared_ptr<Camera> camera_ptr_;
+    std::shared_ptr<Camera> m_Camera;
 
-    glm::vec3 position_;
-    glm::vec3 forward_;
-    glm::vec3 up_;
-    glm::vec3 right_;
+    glm::vec3 m_Position;
+    glm::vec3 m_Forward;
+    glm::vec3 m_Up;
+    glm::vec3 m_Right;
 
-    float yaw_;
-    float pitch_;
+    float m_Yaw;
+    float m_Pitch;
 
-    float fov_;
+    float m_Fov;
 
-    // Default camera values
-    const float kSPEED = 300.0f;
-    const float kSENSITIVITY = 0.1f;
-    const float kFOV = 45.0f;
     const glm::vec3 kWORLD_UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
-    float translation_speed_;
-    float rotation_speed_;
-    float mouse_sensitivity_;
+    float m_TranslationSpeed;
+    float m_RotationSpeed;
+    float m_MouseSensitivity;
 
-    float last_x_;
-    float last_y_;
+    float m_LastX;
+    float m_LastY;
 };
 
 }  // namespace gdp1

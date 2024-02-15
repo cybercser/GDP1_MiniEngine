@@ -58,6 +58,9 @@ void WindowsWindow::Init(const WindowProps& props) {
 
     utils::DumpGLInfo();
 
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     glfwSetWindowUserPointer(m_Window, &m_Data);
     SetVSync(true);
 
@@ -156,5 +159,17 @@ void WindowsWindow::SetVSync(bool enabled) {
 }
 
 bool WindowsWindow::IsVSync() const { return m_Data.vSync; }
+
+void WindowsWindow::SetCaptureMouse(bool enabled) {
+    if (enabled) {
+        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    } else {
+        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
+    m_Data.captureMouse = enabled;
+}
+
+bool WindowsWindow::IsMouseCaptured() const { return m_Data.captureMouse; }
 
 }  // namespace gdp1
