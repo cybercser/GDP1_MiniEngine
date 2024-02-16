@@ -1,6 +1,6 @@
 #pragma once
 
-#include "level_object_description.h"
+#include "level_object_descriptor.h"
 #include "Animation/animation_data.h"
 
 namespace gdp1 {
