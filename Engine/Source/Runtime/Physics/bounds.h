@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.h"
+#include <glm/glm.hpp>
 
 namespace gdp1 {
 // comments copied from unity docs: https://docs.unity3d.com/ScriptReference/Bounds.html
@@ -34,8 +34,8 @@ public:
     glm::vec3 GetSize() const;
 
 private:
-    glm::vec3 min_;
-    glm::vec3 max_;
+    glm::vec3 m_Min;
+    glm::vec3 m_Max;
 };
 
 }  // namespace gdp1

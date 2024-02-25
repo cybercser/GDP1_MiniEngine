@@ -5,7 +5,7 @@
 namespace gdp1 {
 
 // Forward declaration
-class Rigidbody;
+class Collider;
 
 struct Contact {
     glm::vec3 ptOnA_WorldSpace;
@@ -17,10 +17,10 @@ struct Contact {
     float separationDist;  // positive when non-penetrating, negative when penetrating
     float timeOfImpact;
 
-    Rigidbody* bodyA;
-    Rigidbody* bodyB;
+    Collider* colliderA;
+    Collider* colliderB;
 };
 
-void ResolveContact(Contact& contact);
+// void ResolveContact(Contact& contact);
 
 }  // namespace gdp1

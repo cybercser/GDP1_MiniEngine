@@ -2,9 +2,9 @@
 
 #include <vector>
 #include <string>
-#include <map>
+#include <unordered_map>
 
-#include "Resource/level_loader.h"
+#include "Resource/level_object_descriptor.h"
 
 namespace gdp1 {
 
@@ -13,7 +13,6 @@ class Rigidbody;
 struct Contact;
 class Scene;
 class Octree;
-class Shader;
 
 class Physics {
 public:
@@ -26,20 +25,18 @@ public:
 
     Rigidbody* FindRigidbodyByName(const std::string& name) const;
 
-    void DrawBVH(std::shared_ptr<Shader> shader) const;
+private:
+    void Init(const std::vector<RigidbodyDesc>& rigidbodyDescs);
+
+    void CreateOctree();
 
 private:
-    void Init(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDescs);
+    Scene* m_Scene;
 
-    void CreateBVH();
+    std::vector<Rigidbody*> m_Rigidbodies;
+    std::unordered_map<std::string, Rigidbody*> m_RigidbodyMap;
 
-private:
-    Scene* scene;
-
-    std::vector<Rigidbody*> bodies_;
-    std::map<std::string, Rigidbody*> body_map_;
-
-    std::unique_ptr<Octree> octree_;
+    std::unique_ptr<Octree> m_Octree;
 };
 
 }  // namespace gdp1
