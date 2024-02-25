@@ -82,7 +82,7 @@ bool Application::OnWindowClose(WindowCloseEvent& e) {
 }
 
 bool Application::OnKeyPressed(KeyPressedEvent& e) {
-    if (e.GetKeyCode() == HZ_KEY_ESCAPE) {
+    if (Input::IsKeyPressed(HZ_KEY_ESCAPE)) {
         m_Window->SetCaptureMouse(false);
     }
     return false;
