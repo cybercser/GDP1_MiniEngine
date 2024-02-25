@@ -16,9 +16,7 @@ void from_json(const json& j, vec3& vec) {
     j.at("z").get_to(vec.z);
 }
 
-void to_json(json& j, const vec3& vec) {
-    j = json{{"x", vec.x}, {"y", vec.y}, {"z", vec.z}};
-}
+void to_json(json& j, const vec3& vec) { j = json{{"x", vec.x}, {"y", vec.y}, {"z", vec.z}}; }
 
 void from_json(const json& j, vec4& vec) {
     j.at("r").get_to(vec.r);
@@ -27,9 +25,7 @@ void from_json(const json& j, vec4& vec) {
     j.at("a").get_to(vec.a);
 }
 
-void to_json(json& j, const vec4& vec) {
-    j = json{{"r", vec.r}, {"g", vec.g}, {"b", vec.b}, {"a", vec.a}};
-}
+void to_json(json& j, const vec4& vec) { j = json{{"r", vec.r}, {"g", vec.g}, {"b", vec.b}, {"a", vec.a}}; }
 
 void from_json(const json& j, quat& q) {
     q.w = j.at("w").get<float>();
@@ -38,9 +34,7 @@ void from_json(const json& j, quat& q) {
     q.z = j.at("z").get<float>();
 }
 
-void to_json(json& j, const quat& q) {
-    j = json{{"w", q.w}, {"x", q.x}, {"y", q.y}, {"z", q.z}};
-}
+void to_json(json& j, const quat& q) { j = json{{"w", q.w}, {"x", q.x}, {"y", q.y}, {"z", q.z}}; }
 
 }  // namespace glm
 
@@ -63,7 +57,7 @@ void to_json(json& j, const TransformDesc& xform) {
 void from_json(const json& j, RigidbodyDesc& rbDesc) {
     j.at("objectName").get_to(rbDesc.objectName);
     j.at("active").get_to(rbDesc.active);
-    j.at("collider").get_to(rbDesc.collider);
+    j.at("colliderName").get_to(rbDesc.colliderName);
     j.at("invMass").get_to(rbDesc.invMass);
     j.at("position").get_to(rbDesc.position);
     j.at("orientation").get_to(rbDesc.orientation);
@@ -71,7 +65,7 @@ void from_json(const json& j, RigidbodyDesc& rbDesc) {
 }
 
 void to_json(json& j, const RigidbodyDesc& rbDesc) {
-    j = json{{"objectName", rbDesc.objectName}, {"active", rbDesc.active},     {"collider", rbDesc.collider},
+    j = json{{"objectName", rbDesc.objectName}, {"active", rbDesc.active},     {"colliderName", rbDesc.colliderName},
              {"invMass", rbDesc.invMass},       {"position", rbDesc.position}, {"orientation", rbDesc.orientation},
              {"velocity", rbDesc.velocity}};
 }
@@ -93,9 +87,7 @@ void from_json(const json& j, AnimationRefDesc& animDesc) {
     j.at("path").get_to(animDesc.path);
 }
 
-void to_json(json& j, const AnimationRefDesc& animDesc) {
-    j = {{"name", animDesc.name}, {"path", animDesc.path}};
-}
+void to_json(json& j, const AnimationRefDesc& animDesc) { j = {{"name", animDesc.name}, {"path", animDesc.path}}; }
 
 // for AudioSourceDesc
 void from_json(const json& j, AudioSourceDesc& asDesc) {
@@ -323,9 +315,7 @@ void from_json(const json& j, Animation& animDesc) {
     j.at("clips").get_to(animDesc.clips);
 }
 
-void to_json(json& j, const Animation& animDesc) {
-    j = {{"name", animDesc.name}, {"clips", animDesc.clips}};
-}
+void to_json(json& j, const Animation& animDesc) { j = {{"name", animDesc.name}, {"clips", animDesc.clips}}; }
 
 #pragma endregion
 
@@ -341,9 +331,7 @@ bool LevelLoader::LoadLevel(const std::string& levelFilePath) {
     return true;
 }
 
-const LevelDesc& LevelLoader::GetLevelDesc() const {
-    return desc_;
-}
+const LevelDesc& LevelLoader::GetLevelDesc() const { return desc_; }
 
 bool AnimationLoader::LoadAnimation(const std::string& animationFilePath, Animation& anim) {
     std::ifstream animFile(animationFilePath);
