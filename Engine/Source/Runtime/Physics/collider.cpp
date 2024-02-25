@@ -93,14 +93,15 @@ Bounds CapsuleCollider::GetBounds() const {
 //******************************************************************************
 #pragma region MeshCollider
 MeshCollider::MeshCollider(GameObject* pObject) {
-    center = glm::vec3(0.0);
+    center = vec3(0.0f);
     gameObject = pObject;
+    GLCORE_ASSERT(gameObject, "GameObject must not be null");
 
     // copy vertices
     Model* model = gameObject->model;
-    if (model == nullptr) {
-        return;  // ignore empty game object
-    }
+    GLCORE_ASSERT(model, "No mesh, no mesh collider.");
+
+    center = model->bounds.GetCenter();
 
     // copy mesh's transform so that the collider coincides with the mesh
     // combine all meshes into one
@@ -109,7 +110,7 @@ MeshCollider::MeshCollider(GameObject* pObject) {
     m_Mesh.vertices.reserve(model->GetVertexCount());
     for (auto& mesh : model->meshes) {
         for (auto& vertex : mesh.vertices) {
-            ColliderVertex cv;
+            PNTVertex cv;
             cv.position = vertex.position;
             cv.texCoords = vertex.texCoords;
             cv.normal = vertex.normal;
@@ -117,7 +118,7 @@ MeshCollider::MeshCollider(GameObject* pObject) {
         }
 
         for (unsigned int i = 0; i < mesh.indices.size(); i += 3) {
-            ColliderTriangle ct;
+            IndexedTriangle ct;
             ct.indices[0] = mesh.indices[i] + indexOffset;
             ct.indices[1] = mesh.indices[i + 1] + indexOffset;
             ct.indices[2] = mesh.indices[i + 2] + indexOffset;
@@ -126,7 +127,7 @@ MeshCollider::MeshCollider(GameObject* pObject) {
         indexOffset += mesh.vertices.size();
     }
 
-    this->m_OriginalBounds = model->bounds;
+    m_OriginalBounds = model->bounds;
 }
 
 Bounds MeshCollider::GetBounds(const glm::vec3& pos, const glm::vec3& scale, const glm::quat& orient) const {

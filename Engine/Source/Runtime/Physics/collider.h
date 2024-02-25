@@ -3,6 +3,8 @@
 #include "common.h"
 #include "bounds.h"
 
+#include "Math/triangle.h"
+
 namespace gdp1 {
 
 // Forward declaration
@@ -12,7 +14,7 @@ class RigidBody;
 
 class Collider {
 public:
-    enum class eShape : int {
+    enum class eShape {
         kUnknown,
         kSphere,
         kPlane,
@@ -21,7 +23,7 @@ public:
         kMesh,
     };
 
-    virtual eShape GetShapeType() const = 0;
+    virtual eShape GetShape() const = 0;
 
     // All the GetBounds() methods return the bounds of the collider in world space.
     virtual Bounds GetBounds(const glm::vec3& pos, const glm::vec3& scale, const glm::quat& orient) const = 0;
@@ -46,7 +48,7 @@ public:
         center = c;
     }
 
-    virtual eShape GetShapeType() const override { return eShape::kSphere; }
+    virtual eShape GetShape() const override { return eShape::kSphere; }
     virtual Bounds GetBounds(const glm::vec3& pos, const glm::vec3& scale, const glm::quat& orient) const override;
     virtual Bounds GetBounds(const glm::mat4& transMat) const override;
     virtual Bounds GetBounds() const override;
@@ -65,7 +67,7 @@ public:
         center = c;
     }
 
-    virtual eShape GetShapeType() const override { return eShape::kBox; }
+    virtual eShape GetShape() const override { return eShape::kBox; }
     virtual Bounds GetBounds(const glm::vec3& pos, const glm::vec3& scale, const glm::quat& orient) const override;
     virtual Bounds GetBounds(const glm::mat4& transMat) const override;
     virtual Bounds GetBounds() const override;
@@ -85,7 +87,7 @@ public:
         center = (start + end) * 0.5f;
     }
 
-    virtual eShape GetShapeType() const override { return eShape::kCapsule; }
+    virtual eShape GetShape() const override { return eShape::kCapsule; }
     virtual Bounds GetBounds(const glm::vec3& pos, const glm::vec3& scale, const glm::quat& orient) const override;
     virtual Bounds GetBounds(const glm::mat4& transMat) const override;
     virtual Bounds GetBounds() const override;
@@ -110,26 +112,17 @@ private:
 //******************************************************************************
 // MESH COLLIDER
 //******************************************************************************
-struct ColliderVertex {
-    glm::vec3 position;
-    glm::vec2 texCoords;
-    glm::vec3 normal;
-};
-
-struct ColliderTriangle {
-    unsigned int indices[3];
-};
 
 struct ColliderMesh {
-    std::vector<ColliderVertex> vertices;
-    std::vector<ColliderTriangle> triangles;
+    std::vector<PNTVertex> vertices;
+    std::vector<IndexedTriangle> triangles;
 };
 
 class MeshCollider : public Collider {
 public:
     MeshCollider(GameObject* pObject);
 
-    virtual eShape GetShapeType() const override { return eShape::kMesh; }
+    virtual eShape GetShape() const override { return eShape::kMesh; }
     virtual Bounds GetBounds(const glm::vec3& pos, const glm::vec3& scale, const glm::quat& orient) const override;
     virtual Bounds GetBounds(const glm::mat4& transMat) const override;
     virtual Bounds GetBounds() const override;

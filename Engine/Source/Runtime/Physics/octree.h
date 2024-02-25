@@ -1,10 +1,10 @@
 #pragma once
 
 #include <vector>
-#include <array>
-#include <memory>
+#include <list>
 
 #include "bounds.h"
+#include "Math/triangle.h"
 
 namespace gdp1 {
 
@@ -13,47 +13,36 @@ class Collider;
 class Shader;
 
 // inspired by this tutorial [Dividing 3D Space into an Octree](https://www.youtube.com/watch?v=JvWdyPf0aGw)
-// remember, the octree node is always a cube
+// but the bounds are not necessarily cubes, just regular AABBs.
+// Also inspired by [three.js octree](https://github.com/mrdoob/three.js/blob/dev/examples/jsm/math/Octree.js)
 struct OctreeNode {
     Bounds bounds;
-    std::array<Bounds, 8> child_bounds;
-    unsigned int level;
+    std::vector<Bounds> child_bounds;
+    uint32_t level;
     std::vector<OctreeNode*> children;
 
-    static unsigned int MAX_LEVEL;
-    static float MIN_SIZE;
+    std::list<PosTriangle> triangles;
 
-    OctreeNode(Bounds bounds, unsigned int level);
+    static uint32_t MIN_TRIANGLES_IN_NODE;
+    static uint32_t MAX_LEVEL;
+
+    OctreeNode(Bounds bounds, uint32_t level);
     ~OctreeNode();
 
-    void AddCollider(Collider* collider);
-
-    void Draw(std::shared_ptr<Shader> shader);
-
-private:
-    void DivideAndAdd(Collider* collider);
-
-    void SetupDebugData();
-
-    // debug drawing stuff
-    std::vector<glm::vec3> vertices;
-    std::vector<unsigned int> indices;
-
-    unsigned int VAO, VBO, EBO;
+    void SplitAndAdd(Collider* collider);
 };
 
 class Octree {
 public:
-    Octree(std::vector<Collider*> colliders, unsigned max_level, float min_size);
+    Octree(const std::vector<Collider*>& colliders, uint32_t minTrianglesInNode, uint32_t maxLevel);
 
     ~Octree();
 
-    void AddColliders(std::vector<Collider*> colliders);
-
-    void Draw(std::shared_ptr<Shader> shader);
+    void AddColliders(const std::vector<Collider*>& colliders);
 
 private:
-    OctreeNode* root;
+    OctreeNode* m_Root;
+    uint32_t m_MaxLevel;
 };
 
 }  // namespace gdp1

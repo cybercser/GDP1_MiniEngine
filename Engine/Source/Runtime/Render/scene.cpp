@@ -87,6 +87,10 @@ int Scene::DrawDebug(Shader* shader) {
 void Scene::Update(float deltaTime) {
     UpdateAnimation(deltaTime);
 
+    UpdateHierarchyWorldMatrix();
+}
+
+void Scene::UpdateHierarchyWorldMatrix() {
     for (Transform* xform : m_RootTransform->children) {
         UpdateHierarchy(xform);
     }
@@ -269,6 +273,9 @@ void Scene::CreateGameObjects(const std::vector<GameObjectDesc>& gameObjectDescs
     for (Transform* xform : m_RootTransform->children) {
         CreateHierarchy(xform);
     }
+
+    // The first time we update all the game objects' world matrices
+    UpdateHierarchyWorldMatrix();
 }
 
 void Scene::CreateHierarchy(Transform* xform) {

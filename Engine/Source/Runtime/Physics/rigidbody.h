@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common.h"
 #include "bounds.h"
+#include <glm/gtc/quaternion.hpp>
 
 namespace gdp1 {
 
@@ -20,7 +20,7 @@ public:
 
     Collider* collider;
 
-    GameObject* object;
+    GameObject* gameObject;
     bool active;
 
     glm::vec3 GetCenterOfMassWorldSpace() const;
