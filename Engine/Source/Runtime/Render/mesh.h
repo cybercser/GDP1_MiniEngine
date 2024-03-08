@@ -11,20 +11,36 @@
 #include "Physics/bounds.h"
 #include "shader.h"
 
+#include "assimp\Importer.hpp"
+
 #define MAX_BONE_INFLUENCE 4
 
 namespace gdp1 {
 
 struct Vertex {
+
+    Vertex() {
+        memset(boneIDs, 0, sizeof(boneIDs));  // init all values in array = 0
+        memset(weights, 0, sizeof(weights));
+    }
+
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoords;
     glm::vec3 tangent;
     glm::vec3 bitangent;
+
     // bone indexes which will influence this vertex
     int boneIDs[MAX_BONE_INFLUENCE];
     // weights from each bone
     float weights[MAX_BONE_INFLUENCE];
+
+    void AddBoneData(unsigned int bone_id, float weight);
+};
+
+struct BoneMatrix {
+    aiMatrix4x4 offset_matrix;
+    aiMatrix4x4 final_world_transform;
 };
 
 struct TextureInfo {
