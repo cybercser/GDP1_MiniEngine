@@ -59,6 +59,12 @@ struct AnimationRefDesc {
     std::string path;
 };
 
+struct CharacterAnimationRefDesc {
+    std::string name;
+    std::string path;
+    std::string model;
+};
+
 // AudioSource description
 struct AudioSourceDesc {
     std::string name;
@@ -95,6 +101,7 @@ struct LevelDesc {
     std::vector<GameObjectDesc> gameObjectDescs;
     std::vector<RigidbodyDesc> rigidbodyDescs;
     std::vector<AudioSourceDesc> audioSourceDescs;
+    std::vector<CharacterAnimationRefDesc> characterAnimationRefDescs;
     AnimationRefDesc animationRefDesc;
     SkyboxDesc skyboxDesc;
 };

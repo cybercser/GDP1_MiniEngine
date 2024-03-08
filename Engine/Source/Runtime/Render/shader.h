@@ -32,7 +32,6 @@ private:
     bool m_Linked;
     std::unordered_map<std::string, int> m_UniformLocations;
 
-    inline GLint GetUniformLocation(const std::string& name);
     void DetachAndDeleteShaderObjects();
     bool FileExists(const std::string& fileName);
     std::string GetExtension(const std::string& fileName);
@@ -76,6 +75,7 @@ public:
     void SetUniform(const char* name, const glm::vec3& v);
     void SetUniform(const char* name, const glm::vec4& v);
     void SetUniform(const char* name, const glm::mat4& m);
+    void SetUniform(const char* name, size_t size, GLboolean transpose, const glm::mat4& m);
     void SetUniform(const char* name, const glm::mat3& m);
     void SetUniform(const char* name, float val);
     void SetUniform(const char* name, int val);
@@ -86,6 +86,8 @@ public:
     void PrintActiveUniforms();
     void PrintActiveUniformBlocks();
     void PrintActiveAttribs();
+
+    inline GLint GetUniformLocation(const std::string& name);
 
     const char* GetTypeString(GLenum type);
 };

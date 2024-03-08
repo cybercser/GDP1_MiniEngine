@@ -49,6 +49,7 @@ public:
 
 private:
     void UpdateAnimation(float deltaTime);
+    void UpdateCharacterAnimations(float deltaTime);
     void UpdateHierarchy(Transform* xform);
 
     void ProcessDesc(const LevelDesc& desc);
@@ -59,6 +60,7 @@ private:
                       const std::vector<PointLight>& pointLights, const std::vector<SpotLight>& spotLights);
     void CreateSkybox(const SkyboxDesc& skyboxDesc);
     void CreateAnimations(const AnimationRefDesc& animationRefDesc);
+    void CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc);
 
     void CreateHierarchy(Transform* xform);
 

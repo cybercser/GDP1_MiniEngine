@@ -249,6 +249,11 @@ void Shader::SetUniform(const char* name, const glm::mat4& m) {
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m));
 }
 
+void Shader::SetUniform(const char* name, size_t size, GLboolean transpose, const glm::mat4& m) {
+    GLint loc = GetUniformLocation(name);
+    glUniformMatrix4fv(loc, size, transpose, glm::value_ptr(m));
+}
+
 void Shader::SetUniform(const char* name, const glm::mat3& m) {
     GLint loc = GetUniformLocation(name);
     glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(m));

@@ -2,6 +2,7 @@
 
 #include "level_object_description.h"
 #include "Animation/animation_data.h"
+#include "Animation/character_animation.h"
 
 namespace gdp1 {
 

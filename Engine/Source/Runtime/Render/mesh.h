@@ -12,6 +12,7 @@
 #include "shader.h"
 
 #define MAX_BONE_INFLUENCE 4
+#define MAX_BONES 150
 
 namespace gdp1 {
 
@@ -21,10 +22,26 @@ struct Vertex {
     glm::vec2 texCoords;
     glm::vec3 tangent;
     glm::vec3 bitangent;
+
     // bone indexes which will influence this vertex
-    int boneIDs[MAX_BONE_INFLUENCE];
+    unsigned int boneIDs[MAX_BONE_INFLUENCE];
     // weights from each bone
     float weights[MAX_BONE_INFLUENCE];
+
+    void AddBoneData(unsigned int boneId, float weight);
+
+    void SetBoneDefaults() {
+        for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
+            boneIDs[i] = -1;
+            weights[i] = 0.0f;
+        }
+    }
+};
+
+struct sBoneInfo {
+    int id = -1;                        // index of the bone
+    glm::mat4 offset = glm::mat4(1.f);  // offset matrix transforms vertex from model space to bone space
+    glm::mat4 finalWorldTransform;
 };
 
 struct TextureInfo {
@@ -43,8 +60,8 @@ public:
     Bounds bounds;
 
     // constructor
-    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<TextureInfo> textures,
-         const Bounds& bounds);
+    Mesh(size_t baseVertex, size_t baseIndex, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+         std::vector<TextureInfo> textures, const Bounds& bounds);
 
     // render the mesh
     void Draw(Shader* shader);
@@ -60,6 +77,9 @@ private:
 private:
     // render data
     unsigned int VBO, EBO;
+
+    size_t baseVertex;
+    size_t baseIndex;
 
     // debug data
     unsigned int debugVAO, debugVBO, debugEBO;

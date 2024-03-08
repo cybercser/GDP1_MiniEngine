@@ -119,7 +119,19 @@ void Scene::UpdateHierarchy(Transform* xform) {
     xform->hasChanged = false;
 }
 
-void Scene::UpdateAnimation(float deltaTime) { m_AnimationSystemPtr->Update(deltaTime); }
+void Scene::UpdateAnimation(float deltaTime) {
+    m_AnimationSystemPtr->Update(deltaTime);
+    UpdateCharacterAnimations(deltaTime);
+}
+
+void Scene::UpdateCharacterAnimations(float deltaTime) {
+    for (std::unordered_map<std::string, GameObject*>::iterator it = m_GameObjectMap.begin();
+         it != m_GameObjectMap.end(); it++) {
+        if (it->second != nullptr && it->second->model != nullptr && it->second->model->GetAnimationsCount() != 0) {
+            it->second->model->UpdateCharacterAnimation(deltaTime);
+        }
+    }
+}
 
 void Scene::ProcessDesc(const LevelDesc& desc) {
     LOG_INFO(desc.comment);
@@ -130,6 +142,7 @@ void Scene::ProcessDesc(const LevelDesc& desc) {
     CreateSkybox(desc.skyboxDesc);
     LoadShaders(desc);
     CreateAnimations(desc.animationRefDesc);
+    CreateCharacterAnimations(desc.characterAnimationRefDescs);
 }
 
 void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
@@ -163,7 +176,7 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
         lit_shader_ptr_->SetUniform("u_Material.s", vec3(0.2f, 0.2f, 0.2f));
         lit_shader_ptr_->SetUniform("u_Material.shininess", 32.0f);
 
-        lit_shader_ptr_->SetUniform("u_UseProjTex", false);
+        lit_shader_ptr_->SetUniform("u_UseProjTex", true);
 
         m_ShaderMap.insert(std::make_pair("lit", lit_shader_ptr_));
     } catch (GLSLProgramException& e) {
@@ -346,6 +359,17 @@ void Scene::CreateAnimations(const AnimationRefDesc& animationRefDesc) {
     }
 
     m_AnimationSystemPtr = std::make_unique<AnimationSystem>(anim);
+}
+
+void Scene::CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc) {
+    for (const CharacterAnimationRefDesc& anim : desc) {
+        std::unordered_map<std::string, Model*>::iterator modelIt = m_ModelMap.find(anim.model);
+        if (modelIt != m_ModelMap.end()) {
+            CharacterAnimation* animation = new CharacterAnimation(anim.path, modelIt->second, anim.name);
+            modelIt->second->AddAnimation(anim.name, animation);
+            modelIt->second->SetCurrentAnimation(anim.name);
+        }
+    }
 }
 
 Model* Scene::FindModelByName(const std::string& name) {
