@@ -27,9 +27,11 @@ GLuint Texture::LoadTexture(const std::string& texPath, bool flipY) {
         glTextureSubImage2D(tex, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
 
         glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glGenerateTextureMipmap(tex);
 
         Texture::DeletePixels(data);
     } else {
