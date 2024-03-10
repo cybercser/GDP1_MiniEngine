@@ -18,4 +18,7 @@ private:
     std::shared_ptr<gdp1::Scene> m_Scene;
     std::shared_ptr<gdp1::FlyCameraController> m_FlyCamera;
     std::unique_ptr<gdp1::Renderer> m_Renderer;
+    std::unique_ptr<gdp1::Physics> m_Physics;
+
+    void AddPlayer();
 };

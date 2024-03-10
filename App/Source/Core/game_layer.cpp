@@ -3,6 +3,8 @@
 using namespace gdp1;
 using namespace gdp1::utils;
 
+#include "GameObjects/player.h"
+
 GameLayer::GameLayer()
     : Layer("Game") {}
 
@@ -18,6 +20,7 @@ void GameLayer::OnAttach() {
         LOG_ERROR("Failed to load scene: {}", levelFile);
         return;
     }
+
     const LevelDesc& levelJson = loader.GetLevelDesc();
     m_Scene = std::make_shared<Scene>(levelJson);
 
@@ -29,6 +32,10 @@ void GameLayer::OnAttach() {
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
+
+    
+    // init physics engine
+    m_Physics = std::make_unique<Physics>(m_Scene.get(), levelJson.rigidbodyDescs);
 
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -49,8 +56,6 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 }
 
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
-    // LOG_INFO("GameLayer::OnUpdate");
-
     m_FlyCamera->OnUpdate(ts);
 
     m_Scene->Update(ts);
@@ -65,6 +70,7 @@ void GameLayer::OnImGuiRender() {
     // add label to show the camera parameters
     const glm::vec3& pos = m_FlyCamera->GetPosition();
     const glm::vec3& up = m_FlyCamera->GetUp();
+
     float yaw = m_FlyCamera->GetYaw();
     float pitch = m_FlyCamera->GetPitch();
     float fov = m_FlyCamera->GetFov();
@@ -72,4 +78,8 @@ void GameLayer::OnImGuiRender() {
     ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)\nUp: (%.1f, %.1f, %.1f)\nYaw: %.1f, Pitch: %.1f, FOV: %.1f", pos.x,
                 pos.y, pos.z, up.x, up.y, up.z, yaw, pitch, fov);
     ImGui::End();
+}
+
+void GameLayer::AddPlayer() {
+
 }

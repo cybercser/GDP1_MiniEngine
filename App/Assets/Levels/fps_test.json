@@ -76,6 +76,7 @@
           "z": 0
         },
         "localEulerAngles": {
+          "w": 0,
           "x": 0,
           "y": 0,
           "z": 0
@@ -90,8 +91,8 @@
       "parent": ""
     },
     {
-      "name": "dancing_vampire",
-      "model": "dancing_vampire",
+      "name": "Strut_Walking",
+      "model": "Strut_Walking",
       "visible": true,
       "transform": {
         "localPosition": {
@@ -100,6 +101,7 @@
           "z": 0
         },
         "localEulerAngles": {
+          "w": 0,
           "x": 0,
           "y": 0,
           "z": 0
@@ -124,6 +126,7 @@
           "z": 0
         },
         "localEulerAngles": {
+          "w": 0,
           "x": 0,
           "y": 0,
           "z": 0
@@ -148,6 +151,7 @@
           "z": 0
         },
         "localEulerAngles": {
+          "w": 0,
           "x": 0,
           "y": 0,
           "z": 0
@@ -162,7 +166,30 @@
       "parent": ""
     }
   ],
-  "rigidbodies": [],
+  "rigidbodies": [
+    {
+      "objectName": "Fall_Flat",
+      "active": true,
+      "collider": "MESH",
+      "invMass": 1.0,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "orientation": {
+        "w": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    }
+  ],
   "animation": {
     "name": "",
     "path": ""

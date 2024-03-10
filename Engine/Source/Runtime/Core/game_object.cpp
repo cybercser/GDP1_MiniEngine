@@ -23,12 +23,15 @@ GameObject::GameObject(Scene* scn, const std::string& name)
     transform = new Transform(this);
 }
 
-GameObject::~GameObject() {
-}
+GameObject::~GameObject() {}
 
 const Bounds& GameObject::GetBounds() {
     assert(model != nullptr);
     return model->bounds;
 }
+
+void GameObject::Update(float dt) {}
+
+void GameObject::OnCollision(CollisionInfo* collisionInfo) {}
 
 }  // namespace gdp1

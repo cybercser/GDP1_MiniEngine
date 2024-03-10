@@ -42,7 +42,7 @@ Model::Model(const std::string const& path, const std::string& shader, bool gamm
 void Model::Draw(Shader* shader) {
     if (m_bone_matrices.size() > 0) {
         std::vector<aiMatrix4x4> transforms;
-        elapsedTime += 0.05f;
+        elapsedTime += 0.01f;
         boneTransform(elapsedTime, transforms);
 
         shader->SetUniform("u_HasBones", true);

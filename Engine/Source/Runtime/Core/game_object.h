@@ -2,6 +2,7 @@
 
 #include "Resource/level_object_description.h"
 #include "transform.h"
+#include "Physics/collision_info.h"
 
 namespace gdp1 {
 
@@ -28,6 +29,9 @@ public:
     GameObject(Scene* scn, const GameObjectDesc& desc);
     GameObject(Scene* scn, const std::string& name);
     ~GameObject();
+
+    virtual void Update(float dt);
+    virtual void OnCollision(CollisionInfo* collisionInfo);
 
     const Bounds& GetBounds();
 };
