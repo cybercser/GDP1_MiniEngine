@@ -12,3 +12,4 @@
 #include "Core/application.h"
 #include "Render/scene.h"
 #include "Render/renderer.h"
+#include "Physics/physics.h"

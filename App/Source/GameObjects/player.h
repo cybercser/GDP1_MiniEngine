@@ -15,6 +15,9 @@ public:
     Player(gdp1::Scene* scn, const gdp1::GameObjectDesc& desc);
     Player(gdp1::Scene* scn, const std::string& name);
 
+    virtual void Update(float dt) override;
+    virtual void OnCollision(gdp1::CollisionInfo* collisionInfo) override;
+
     // Set 
     void SetHealth(int health);
     void TakeDamage(int damage);

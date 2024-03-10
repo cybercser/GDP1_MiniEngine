@@ -41,4 +41,10 @@ void Player::Sprint() {}
 
 void Player::Reload() {}
 
+void Player::Update(float dt) {}
+
+void Player::OnCollision(gdp1::CollisionInfo* collisionInfo) {
+
+}
+
 }  // namespace Game

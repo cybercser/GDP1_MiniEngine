@@ -3,6 +3,7 @@
 #include <engine.h>
 #include <engine_utils.h>
 #include <Render/model.h>
+#include <Physics/physics.h>
 
 class GameLayer : public gdp1::Layer {
 public:
@@ -19,6 +20,7 @@ private:
     std::shared_ptr<gdp1::Scene> m_Scene;
     std::shared_ptr<gdp1::FlyCameraController> m_FlyCamera;
     std::unique_ptr<gdp1::Renderer> m_Renderer;
+    std::unique_ptr<gdp1::Physics> m_Physics;
 
     gdp1::Model* animatedModel = nullptr;
 };
