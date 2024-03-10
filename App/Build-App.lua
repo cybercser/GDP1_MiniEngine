@@ -47,6 +47,7 @@ project "App"
         {
             "{COPYFILE} ../Engine/Vendor/assimp/bin/assimp-vc143-mt.dll %{cfg.targetdir}/",
             "{COPYFILE} ../Engine/Vendor/glfw/lib-vc2022/*.dll %{cfg.targetdir}/",
+			"{COPY} ./Assets %{cfg.targetdir}/Assets"
         }
 
     filter "configurations:Release"
@@ -58,4 +59,5 @@ project "App"
         {
             "{COPYFILE} ../Engine/Vendor/assimp/bin/assimp-vc143-mt.dll %{cfg.targetdir}/",
             "{COPYFILE} ../Engine/Vendor/glfw/lib-vc2022/*.dll %{cfg.targetdir}/",
+			"{COPY} ./Assets %{cfg.targetdir}/Assets"
         }
