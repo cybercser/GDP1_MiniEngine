@@ -246,7 +246,7 @@ void from_json(const json& j, LevelDesc& lvlDesc) {
     j.at("gameObjects").get_to(lvlDesc.gameObjectDescs);
     j.at("rigidbodies").get_to(lvlDesc.rigidbodyDescs);
     j.at("animation").get_to(lvlDesc.animationRefDesc);
-    //j.at("character_animations").get_to(lvlDesc.characterAnimationRefDescs);
+    j.at("character_animations").get_to(lvlDesc.characterAnimationRefDescs);
     j.at("audioSources").get_to(lvlDesc.audioSourceDescs);
     j.at("skybox").get_to(lvlDesc.skyboxDesc);
 }
@@ -263,7 +263,7 @@ void to_json(json& j, const LevelDesc& lvlDesc) {
          {"gameObjects", lvlDesc.gameObjectDescs},
          {"rigidbodies", lvlDesc.rigidbodyDescs},
          {"animation", lvlDesc.animationRefDesc},
-         //{"character_animations", lvlDesc.characterAnimationRefDescs},
+         {"character_animations", lvlDesc.characterAnimationRefDescs},
          {"audioSources", lvlDesc.audioSourceDescs},
          {"skybox", lvlDesc.skyboxDesc}};
 }

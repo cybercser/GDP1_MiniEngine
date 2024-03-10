@@ -49,16 +49,6 @@
       "shader": "untextured"
     },
     {
-      "name": "Strut_Walking",
-      "filepath": "Assets/Models/FPS_Test/Strut_Walking.fbx",
-      "shader": "lit"
-    },
-    {
-      "name": "A_FP_PCH_Aim_Walk_F",
-      "filepath": "Assets/Models/FPS_Test/A_FP_PCH_Aim_Walk_F.fbx",
-      "shader": "lit"
-    },
-    {
       "name": "Fall_Flat",
       "filepath": "Assets/Models/FPS_Test/Fall_Flat.fbx",
       "shader": "lit"
@@ -114,56 +104,38 @@
       },
       "children": [],
       "parent": ""
-    },
+    }
+  ],
+  "rigidbodies": [],
+  "animation": {
+    "name": "",
+    "path": ""
+  },
+  "character_animations": [
     {
       "name": "Fall_Flat",
-      "model": "Fall_Flat",
-      "visible": true,
-      "transform": {
-        "localPosition": {
-          "x": 10,
-          "y": 0,
-          "z": 0
-        },
-        "localEulerAngles": {
-          "w": 0,
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "localScale": {
-          "x": 0.01,
-          "y": 0.01,
-          "z": 0.01
-        }
-      },
-      "children": [],
-      "parent": ""
+      "path": "Assets/Models/FPS_Test/Fall_Flat.fbx",
+      "model": "Fall_Flat"
     },
     {
-      "name": "A_FP_PCH_Aim_Walk_F",
-      "model": "A_FP_PCH_Aim_Walk_F",
-      "visible": true,
-      "transform": {
-        "localPosition": {
-          "x": 20,
-          "y": 5,
-          "z": 0
-        },
-        "localEulerAngles": {
-          "w": 0,
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "localScale": {
-          "x": 0.05,
-          "y": 0.05,
-          "z": 0.05
-        }
-      },
-      "children": [],
-      "parent": ""
+      "name": "Chapa",
+      "path": "Assets/Models/FPS_Test/Chapa.fbx",
+      "model": "Fall_Flat"
+    },
+    {
+      "name": "Standing_Taunt",
+      "path": "Assets/Models/FPS_Test/Standing_Taunt.fbx",
+      "model": "Fall_Flat"
+    },
+    {
+      "name": "Jumping",
+      "path": "Assets/Models/FPS_Test/Jumping.fbx",
+      "model": "Fall_Flat"
+    },
+    {
+      "name": "Jumping_Down",
+      "path": "Assets/Models/FPS_Test/Jumping_Down.fbx",
+      "model": "Fall_Flat"
     }
   ],
   "rigidbodies": [

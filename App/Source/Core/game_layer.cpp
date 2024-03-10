@@ -3,7 +3,9 @@
 using namespace gdp1;
 using namespace gdp1::utils;
 
-#include "GameObjects/player.h"
+#include "Input/input.h"
+#include "Input/key_codes.h"
+#include "Input/mouse_button_codes.h"
 
 GameLayer::GameLayer()
     : Layer("Game") {}
@@ -37,6 +39,9 @@ void GameLayer::OnAttach() {
     // init physics engine
     m_Physics = std::make_unique<Physics>(m_Scene.get(), levelJson.rigidbodyDescs);
 
+   
+    animatedModel = m_Scene->FindModelByName("Fall_Flat");
+
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -58,6 +63,24 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
     m_FlyCamera->OnUpdate(ts);
 
+    if (animatedModel != nullptr) {
+        if (Input::IsKeyPressed(HZ_KEY_1)) {
+            animatedModel->SetCurrentAnimation("Fall_Flat");
+        }
+        if (Input::IsKeyPressed(HZ_KEY_2)) {
+            animatedModel->SetCurrentAnimation("Chapa");
+        }
+        if (Input::IsKeyPressed(HZ_KEY_3)) {
+            animatedModel->SetCurrentAnimation("Standing_Taunt");
+        }
+        if (Input::IsKeyPressed(HZ_KEY_4)) {
+            animatedModel->SetCurrentAnimation("Jumping");
+        }
+        if (Input::IsKeyPressed(HZ_KEY_5)) {
+            animatedModel->SetCurrentAnimation("Jumping_Down");
+        }
+    }
+
     m_Scene->Update(ts);
     glClearColor(0.1f, 1.0f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -70,7 +93,6 @@ void GameLayer::OnImGuiRender() {
     // add label to show the camera parameters
     const glm::vec3& pos = m_FlyCamera->GetPosition();
     const glm::vec3& up = m_FlyCamera->GetUp();
-
     float yaw = m_FlyCamera->GetYaw();
     float pitch = m_FlyCamera->GetPitch();
     float fov = m_FlyCamera->GetFov();
@@ -80,6 +102,4 @@ void GameLayer::OnImGuiRender() {
     ImGui::End();
 }
 
-void GameLayer::AddPlayer() {
 
-}

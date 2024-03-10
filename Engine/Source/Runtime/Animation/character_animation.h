@@ -12,22 +12,24 @@
 
 namespace gdp1 {
 
-class CharacterAnimation {
+class Model;
 
-    public:
+class CharacterAnimation {
+public:
+    CharacterAnimation(const aiScene* scene, const std::string& file, const std::string& name, Model* model);
+    ~CharacterAnimation();
+
+    Assimp::Importer importer;
+    const aiScene* scene;
 
     static const unsigned int MAX_BONES = 100;
 
-	std::map<std::string, unsigned int> m_bone_mapping;  // maps a bone name and their index
-    unsigned int m_num_bones = 0;
-    std::vector<BoneMatrix> m_bone_matrices;
-    aiMatrix4x4 m_global_inverse_transform;
-
-    GLuint m_bone_location[MAX_BONES];
     float ticks_per_second = 0.0f;
     float duration = 0.0f;
 
     float elapsedTime = 0.0f;
+
+    aiNode* mRootNode;
 
     unsigned int findPosition(float p_animation_time, const aiNodeAnim* p_node_anim);
     unsigned int findRotation(float p_animation_time, const aiNodeAnim* p_node_anim);
@@ -45,6 +47,7 @@ class CharacterAnimation {
     glm::mat4 aiToGlm(aiMatrix4x4 ai_matr);
     aiQuaternion nlerp(aiQuaternion a, aiQuaternion b, float blend);
 
+    Model* model;
 };
 
-}
+}  // namespace gdp1

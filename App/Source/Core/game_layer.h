@@ -2,6 +2,8 @@
 
 #include <engine.h>
 #include <engine_utils.h>
+#include <Render/model.h>
+#include <Physics/physics.h>
 
 class GameLayer : public gdp1::Layer {
 public:
@@ -20,5 +22,5 @@ private:
     std::unique_ptr<gdp1::Renderer> m_Renderer;
     std::unique_ptr<gdp1::Physics> m_Physics;
 
-    void AddPlayer();
+    gdp1::Model* animatedModel = nullptr;
 };
