@@ -81,8 +81,8 @@
       "parent": ""
     },
     {
-      "name": "Strut_Walking",
-      "model": "Strut_Walking",
+      "name": "Fall_Flat",
+      "model": "Fall_Flat",
       "visible": true,
       "transform": {
         "localPosition": {
@@ -106,7 +106,9 @@
       "parent": ""
     }
   ],
-  "rigidbodies": [],
+  "rigidbodies": [
+    
+  ],
   "animation": {
     "name": "",
     "path": ""
@@ -136,30 +138,6 @@
       "name": "Jumping_Down",
       "path": "Assets/Models/FPS_Test/Jumping_Down.fbx",
       "model": "Fall_Flat"
-    }
-  ],
-  "rigidbodies": [
-    {
-      "objectName": "Fall_Flat",
-      "active": true,
-      "collider": "MESH",
-      "invMass": 1.0,
-      "position": {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "orientation": {
-        "w": 0,
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "velocity": {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      }
     }
   ],
   "animation": {
