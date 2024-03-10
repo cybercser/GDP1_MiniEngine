@@ -5,7 +5,10 @@ in VS_OUT {
     vec3 Normal;
     vec2 TexCoords;
     vec4 ProjTexCoord;
+    vec4 Weights;
 } fs_in;
+
+flat in ivec4 BoneIDs;
 
 out vec4 o_FragColor;
 
@@ -60,6 +63,7 @@ layout(binding = 4) uniform sampler2D u_ProjectorTex;
 uniform bool u_UsePointLights;
 uniform bool u_UseSpotLights;
 uniform bool u_UseProjTex;
+uniform bool u_HasBones;
 
 // Blinn-Phong shading, the directional light contribution
 // pos is the fragment's position in view space
@@ -191,6 +195,20 @@ void main() {
         for(int i = 0; i < 4; i++) {
             spotColor += shadingSpotLight(u_SpotLights[i], fs_in.Pos, normalize(fs_in.Normal));
         }
+    }
+
+
+    if (u_HasBones) {
+        for (int i = 0 ; i < 4 ; i++) {
+            if (fs_in.Weights[i] >= 0.7) {
+                   o_FragColor = vec4(1.0, 0.0, 0.0, 0.0) * fs_in.Weights[i];
+               } else if (fs_in.Weights[i] >= 0.4 && fs_in.Weights[i] <= 0.6) {
+                   o_FragColor = vec4(0.0, 1.0, 0.0, 0.0) * fs_in.Weights[i];
+               } else if (fs_in.Weights[i] >= 0.1) {
+                   o_FragColor = vec4(1.0, 1.0, 0.0, 0.0) * fs_in.Weights[i];
+               }
+        }
+        return;
     }
 
     o_FragColor = vec4(dirColor + pointColor + spotColor, 1.0);

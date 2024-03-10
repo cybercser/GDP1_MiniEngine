@@ -4,7 +4,6 @@
 #include "shader.h"
 #include "light.h"
 #include "Resource/level_loader.h"
-
 namespace gdp1 {
 
 // forward declaration
@@ -61,6 +60,7 @@ private:
                       const std::vector<PointLight>& pointLights, const std::vector<SpotLight>& spotLights);
     void CreateSkybox(const SkyboxDesc& skyboxDesc);
     void CreateAnimations(const AnimationRefDesc& animationRefDesc);
+    void CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc);
 
     void CreateHierarchy(Transform* xform);
 

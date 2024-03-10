@@ -134,6 +134,7 @@ void Scene::ProcessDesc(const LevelDesc& desc) {
     CreateSkybox(desc.skyboxDesc);
     LoadShaders(desc);
     CreateAnimations(desc.animationRefDesc);
+    CreateCharacterAnimations(desc.characterAnimationRefDescs);
 }
 
 void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
@@ -353,6 +354,16 @@ void Scene::CreateAnimations(const AnimationRefDesc& animationRefDesc) {
     }
 
     m_AnimationSystemPtr = std::make_unique<AnimationSystem>(anim);
+}
+
+void Scene::CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc) {
+    for (const CharacterAnimationRefDesc& anim : desc) {
+        std::unordered_map<std::string, Model*>::iterator modelIt = m_ModelMap.find(anim.model);
+        if (modelIt != m_ModelMap.end()) {
+            modelIt->second->AddCharacterAnimation(anim.name, anim.path);
+            modelIt->second->SetCurrentAnimation(anim.name);
+        }
+    }
 }
 
 Model* Scene::FindModelByName(const std::string& name) {
