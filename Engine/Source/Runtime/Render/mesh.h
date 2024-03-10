@@ -20,7 +20,7 @@ namespace gdp1 {
 struct Vertex {
 
     Vertex() {
-        memset(boneIDs, 0, sizeof(boneIDs));  // init all values in array = 0
+        memset(boneIDs, -1, sizeof(boneIDs));  // init all values in array = 0
         memset(weights, 0, sizeof(weights));
     }
 

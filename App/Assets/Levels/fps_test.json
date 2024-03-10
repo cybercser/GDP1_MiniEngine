@@ -87,7 +87,7 @@
       "transform": {
         "localPosition": {
           "x": 0,
-          "y": 0,
+          "y": 200,
           "z": 0
         },
         "localEulerAngles": {
@@ -97,9 +97,9 @@
           "z": 0
         },
         "localScale": {
-          "x": 0.05,
-          "y": 0.05,
-          "z": 0.05
+          "x": 1,
+          "y": 1,
+          "z": 1
         }
       },
       "children": [],
@@ -107,7 +107,50 @@
     }
   ],
   "rigidbodies": [
-    
+    {
+      "objectName": "Fall_Flat",
+      "active": true,
+      "invMass": 1.0,
+      "collider": "MESH",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "orientation": {
+        "w": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0.005
+      }
+    },
+    {
+      "objectName": "plane",
+      "active": true,
+      "invMass": 0.0,
+      "collider": "MESH",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "orientation": {
+        "w": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0.005
+      }
+    }
   ],
   "animation": {
     "name": "",
@@ -140,10 +183,6 @@
       "model": "Fall_Flat"
     }
   ],
-  "animation": {
-    "name": "",
-    "path": ""
-  },
   "audioSources": [],
   "skybox": {
     "name": "StandardSkybox",

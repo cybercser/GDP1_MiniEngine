@@ -40,6 +40,7 @@ Model::Model(const std::string const& path, const std::string& shader, bool gamm
 }
 
 void Model::Draw(Shader* shader) {
+    shader->SetUniform("u_HasBones", false);
     if (currentAnimation) {
         std::vector<aiMatrix4x4> transforms;
         elapsedTime += 0.01f;

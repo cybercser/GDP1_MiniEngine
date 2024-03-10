@@ -62,6 +62,7 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
     m_FlyCamera->OnUpdate(ts);
+    m_Physics->FixedUpdate(ts);
 
     if (animatedModel != nullptr) {
         if (Input::IsKeyPressed(HZ_KEY_1)) {

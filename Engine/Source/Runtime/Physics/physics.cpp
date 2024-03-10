@@ -71,7 +71,7 @@ void Physics::FixedUpdate(float deltaTime) {
         if (body->invMass == 0.0 || !body->active) continue;
 
         float mass = 1.0f / body->invMass;
-        glm::vec3 impulseGravity = glm::vec3(0.0, -10.0, 0.0) * mass * deltaTime;
+        glm::vec3 impulseGravity = glm::vec3(0.0, -0.01, 0.0) * mass * deltaTime;
         body->ApplyImpulse(impulseGravity);
     }
 
