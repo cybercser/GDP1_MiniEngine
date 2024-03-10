@@ -25,6 +25,8 @@ public:
 
     void Update(float deltaTime);
 
+    void UpdateHierarchyWorldMatrix();
+
     // animation control
     void SetAnimationSpeed(float speed);
     void SetAnimationPlaying(bool playing);

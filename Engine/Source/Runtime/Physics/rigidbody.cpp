@@ -1,20 +1,15 @@
-#include "collider.h"
-
-#include <iostream>
-
 #include "rigidbody.h"
+#include "collider.h"
 
 namespace gdp1 {
 
 glm::vec3 Rigidbody::GetCenterOfMassWorldSpace() const {
-    glm::vec3 centerOfMass = collider->centerOfMass;
+    glm::vec3 centerOfMass = collider->center;
     glm::vec3 pos = position + orientation * centerOfMass;
     return pos;
 }
 
-glm::vec3 Rigidbody::GetCenterOfMassLocalSpace() const {
-    return collider->centerOfMass;
-}
+glm::vec3 Rigidbody::GetCenterOfMassLocalSpace() const { return collider->center; }
 
 glm::vec3 Rigidbody::WorldSpaceToLocalSpace(const glm::vec3& worldPt) const {
     glm::vec3 tmp = worldPt - GetCenterOfMassWorldSpace();

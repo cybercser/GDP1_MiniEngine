@@ -50,7 +50,7 @@ void Mesh::Draw(Shader* shader) {
         }
 
         // and finally bind the texture
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        glBindTextureUnit(0, textures[i].id);
     }
 
     // draw mesh

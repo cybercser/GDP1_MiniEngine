@@ -1,36 +1,35 @@
 #include "physics.h"
 
-#include <iostream>
-
-#include "common.h"
 #include "broadphase.h"
 #include "collider.h"
 #include "contact.h"
 #include "Core/game_object.h"
+
 #include "intersections.h"
 #include "octree.h"
 #include "rigidbody.h"
 #include "Render/scene.h"
-#include "Render/shader.h"
 
 namespace gdp1 {
 
-Physics::Physics(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDescs) {
-    Init(scene, rigidbodyDescs);
+Physics::Physics(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDescs)
+    : m_Scene(scene) {
+    if (scene != nullptr) {
+        Init(rigidbodyDescs);
+    }
 }
 
 Physics::~Physics() {
-    for (int i = 0; i < bodies_.size(); i++) {
-        delete bodies_[i]->collider;
-        delete bodies_[i];
+    for (int i = 0; i < m_Rigidbodies.size(); i++) {
+        delete m_Rigidbodies[i]->collider;
+        delete m_Rigidbodies[i];
     }
-    bodies_.clear();
-    body_map_.clear();
+    m_Rigidbodies.clear();
+    m_RigidbodyMap.clear();
 }
 
-void Physics::Init(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDescs) {
-    this->scene = scene;
-
+void Physics::Init(const std::vector<RigidbodyDesc>& rigidbodyDescs) {
+    glm::vec3 zero{0.0f};
     for (const RigidbodyDesc& bodyDesc : rigidbodyDescs) {
         const std::string& objName = bodyDesc.objectName;
 
@@ -41,33 +40,37 @@ void Physics::Init(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDesc
         body->invMass = bodyDesc.invMass;
         body->velocity = bodyDesc.velocity;
 
-        body->object = scene->FindObjectByName(objName);
+        body->gameObject = m_Scene->FindObjectByName(objName);
 
-        if (bodyDesc.collider == "SPHERE") {
-            body->collider = new SphereCollider(1.0f);
-        } else if (bodyDesc.collider == "MESH") {
-            body->collider = new MeshCollider(body->object);
+        if (bodyDesc.colliderName == "Sphere") {
+            body->collider = new SphereCollider(zero, 1.0f);
+        } else if (bodyDesc.colliderName == "Box") {
+            body->collider = new BoxCollider(zero, glm::vec3(1.0f));
+        } else if (bodyDesc.colliderName == "Capsule") {
+            body->collider = new CapsuleCollider(zero, glm::vec3(0.0f, 2.0f, 0.0f), 0.5f);
+        } else if (bodyDesc.colliderName == "Mesh") {
+            body->collider = new MeshCollider(body->gameObject);
         }
-        bodies_.push_back(body);
+        m_Rigidbodies.push_back(body);
 
-        body_map_.insert({objName, body});
+        m_RigidbodyMap.insert({objName, body});
     }
 
-    CreateBVH();
+    CreateOctree();
 }
 
-void Physics::CreateBVH() {
+void Physics::CreateOctree() {
     std::vector<Collider*> colliders;
-    for (Rigidbody* body : bodies_) {
+    for (Rigidbody* body : m_Rigidbodies) {
         // if (body->invMass == 0.0) continue;
         colliders.push_back(body->collider);
     }
 
-    octree_ = std::make_unique<Octree>(colliders, 7, 0.1f);
+    m_Octree = std::make_unique<Octree>(colliders, 7, 0.1f);
 }
 
 void Physics::FixedUpdate(float deltaTime) {
-    for (Rigidbody* body : bodies_) {
+    for (Rigidbody* body : m_Rigidbodies) {
         if (body->invMass == 0.0 || !body->active) continue;
 
         float mass = 1.0f / body->invMass;
@@ -77,7 +80,7 @@ void Physics::FixedUpdate(float deltaTime) {
 
     // Broad phase
     std::vector<CollisionInfo> collisionInfos;
-    BroadPhase(bodies_, collisionInfos);
+    BroadPhase(m_Rigidbodies, collisionInfos);
 
     // Narrow phase
     // We need sphere-triangle, sphere-sphere intersection test
@@ -96,17 +99,13 @@ void Physics::FixedUpdate(float deltaTime) {
         }
 
         Contact contact;
-        if (Intersect(bodyA, bodyB, contact)) {
-            ResolveContact(contact);
-            //bodyA->object->OnCollision(info);
-            const glm::vec3& pt = contact.ptOnA_WorldSpace;
-            printf("(%s, %s) at (%.3f, %.3f, %.3f)\n", bodyA->object->name.c_str(), bodyB->object->name.c_str(), pt.x,
-                   pt.y, pt.z);
+        if (Intersect(bodyA->collider, bodyB->collider, contact)) {
+            // #TODO ResolveContact(contact);
         }
     }
 
 #if 0
-	// the brute force way
+	// the brute force way without broad phase
 	for (size_t i = 0; i < bodies_.size(); i++) {
 		for (size_t j = i + 1; j < bodies_.size(); j++) {
 			Rigidbody* bodyA = bodies_[i];
@@ -132,12 +131,12 @@ void Physics::FixedUpdate(float deltaTime) {
 #endif
 
     // update position
-    for (Rigidbody* body : bodies_) {
+    for (Rigidbody* body : m_Rigidbodies) {
         if (body->invMass == 0.0) continue;
 
         body->position += body->velocity * deltaTime;
-        body->collider->centerOfMass = body->position;
-        body->object->transform->SetPosition(body->position);
+        body->collider->center = body->position;
+        body->gameObject->transform->SetPosition(body->position);
     }
 }
 
@@ -150,16 +149,10 @@ bool Physics::AddImpulseToObject(const std::string& objectName, const glm::vec3&
 }
 
 Rigidbody* Physics::FindRigidbodyByName(const std::string& name) const {
-    std::map<std::string, Rigidbody*>::const_iterator it = body_map_.find(name);
-    if (it == body_map_.end()) return nullptr;
+    std::unordered_map<std::string, Rigidbody*>::const_iterator it = m_RigidbodyMap.find(name);
+    if (it == m_RigidbodyMap.end()) return nullptr;
 
     return it->second;
-}
-
-void Physics::DrawBVH(std::shared_ptr<Shader> shader) const {
-    if (octree_ == nullptr) return;
-
-    octree_->Draw(shader);
 }
 
 }  // namespace gdp1

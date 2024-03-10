@@ -44,13 +44,14 @@ void GameLayer::OnAttach() {
 
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void GameLayer::OnDetach() {}
 
 void GameLayer::OnEvent(gdp1::Event& event) {
-    LOG_TRACE("{0}", event);
+    // LOG_TRACE("{0}", event);
 
     m_FlyCamera->OnEvent(event);
 

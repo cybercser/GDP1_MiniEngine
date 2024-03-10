@@ -42,10 +42,8 @@ void WindowsWindow::Init(const WindowProps& props) {
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);  // disable window resize
-        // if (gl_debug_) glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-        // if (multi_samples_ > 0) {
-        //     glfwWindowHint(GLFW_SAMPLES, multi_samples_);
-        // }
+                                                   // if (gl_debug_) glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+        glfwWindowHint(GLFW_SAMPLES, 4);
 
         s_GLFWInitialized = true;
     }

@@ -33,31 +33,31 @@
       },
       "color": {
         "r": 1.0,
-        "g": 0.90961653,
-        "b": 0.745283,
+        "g": 1.0,
+        "b": 1.0,
         "a": 1.0
       },
-      "intensity": 2.0
+      "intensity": 1.0
     }
   ],
   "pointLights": [],
   "spotLights": [],
   "models": [
     {
-      "name": "plane",
-      "filepath": "Assets/Models/FPS_Test/plane.obj",
+      "name": "sphere",
+      "filepath": "Assets/Models/FPS_Test/sphere.obj",
       "shader": "untextured"
     },
     {
-      "name": "Fall_Flat",
-      "filepath": "Assets/Models/FPS_Test/Fall_Flat.fbx",
+      "name": "world",
+      "filepath": "Assets/Models/FPS_Test/untitled.gltf",
       "shader": "lit"
     }
   ],
   "gameObjects": [
     {
-      "name": "plane",
-      "model": "plane",
+      "name": "world",
+      "model": "world",
       "visible": true,
       "transform": {
         "localPosition": {
@@ -156,33 +156,6 @@
     "name": "",
     "path": ""
   },
-  "character_animations": [
-    {
-      "name": "Fall_Flat",
-      "path": "Assets/Models/FPS_Test/Fall_Flat.fbx",
-      "model": "Fall_Flat"
-    },
-    {
-      "name": "Chapa",
-      "path": "Assets/Models/FPS_Test/Chapa.fbx",
-      "model": "Fall_Flat"
-    },
-    {
-      "name": "Standing_Taunt",
-      "path": "Assets/Models/FPS_Test/Standing_Taunt.fbx",
-      "model": "Fall_Flat"
-    },
-    {
-      "name": "Jumping",
-      "path": "Assets/Models/FPS_Test/Jumping.fbx",
-      "model": "Fall_Flat"
-    },
-    {
-      "name": "Jumping_Down",
-      "path": "Assets/Models/FPS_Test/Jumping_Down.fbx",
-      "model": "Fall_Flat"
-    }
-  ],
   "audioSources": [],
   "skybox": {
     "name": "StandardSkybox",

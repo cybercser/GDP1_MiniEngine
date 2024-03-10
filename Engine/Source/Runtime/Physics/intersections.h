@@ -5,12 +5,26 @@
 namespace gdp1 {
 
 // forward declaration
-class Rigidbody;
+class Bounds;
+struct PosTriangle;
+class Collider;
+class SphereCollider;
+class BoxCollider;
+class CapsuleCollider;
+class MeshCollider;
 struct Contact;
 
-bool Intersect(Rigidbody* a, Rigidbody* b, Contact& contact);
-bool IntersectSphereSphere(Rigidbody* a, Rigidbody* b, Contact& contact);
-bool IntersectSphereMesh(Rigidbody* a, Rigidbody* b, Contact& contact);
+bool Intersect(Collider* a, Collider* b, Contact& contact);
+bool IntersectSphereSphere(SphereCollider* a, SphereCollider* b, Contact& contact);
+bool IntersectSphereBox(SphereCollider* sphere, BoxCollider* box, Contact& contact);
+bool IntersectSphereCapsule(SphereCollider* sphere, CapsuleCollider* capsule, Contact& contact);
+bool IntersectSphereMesh(SphereCollider* sphere, MeshCollider* mesh, Contact& contact);
+
+bool IntersectBoundsSphere(const Bounds& bounds, SphereCollider* sphere);
+bool IntersectBoundsBox(const glm::vec3& minA, BoxCollider* box);
+bool IntersectBoundsCapsule(const Bounds& bounds, CapsuleCollider* capsule);
+bool IntersectBoundsMesh(const Bounds& bounds, MeshCollider* mesh);
+bool IntersectBoundsTriangle(const Bounds& bounds, const PosTriangle& tri);
 
 bool IntersectSphereTriangle(const glm::vec3& sphereCentre, float sphereRadius, const glm::vec3& vert0,
                              const glm::vec3& vert1, const glm::vec3& vert2, Contact& contact);

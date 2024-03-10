@@ -1,47 +1,37 @@
 #include "octree.h"
 
+#include <glm/glm.hpp>
+
 #include "collider.h"
-#include "Render/shader.h"
+#include "Core/game_object.h"
+#include "Render/model.h"
+#include "Physics/intersections.h"
+
+using namespace glm;
 
 namespace gdp1 {
-unsigned int OctreeNode::MAX_LEVEL = 5;
-float OctreeNode::MIN_SIZE = 0.1f;
+// when the number of triangles in a node is less than this number, we stop splitting the node
+unsigned int OctreeNode::MIN_TRIANGLES_IN_NODE = 8;
 
 OctreeNode::OctreeNode(Bounds bounds, unsigned int level) {
     this->bounds = bounds;
     this->level = level;
 
-    SetupDebugData();
-
     // split the node into 8 children
-    glm::vec3 child_size = bounds.GetSize() / 2.0f;
-    float e = child_size.x / 2.0f;  // child extent
+    vec3 half_size = bounds.GetSize() * 0.5f;
 
-    glm::vec3 c = bounds.GetCenter();
-    /*
-    * the upper 4 children
-    *   +---+---+
-        | 0 | 1 |
-        +---+---+
-        | 2 | 3 |
-        +---+---+
-    */
-    child_bounds[0] = Bounds(c + glm::vec3(-e, e, -e), child_size);
-    child_bounds[1] = Bounds(c + glm::vec3(e, e, -e), child_size);
-    child_bounds[2] = Bounds(c + glm::vec3(-e, e, e), child_size);
-    child_bounds[3] = Bounds(c + glm::vec3(e, e, e), child_size);
-    /*
-    * the lower 4 children
-    *   +---+---+
-        | 5 | 6 |
-        +---+---+
-        | 7 | 8 |
-        +---+---+
-    */
-    child_bounds[4] = Bounds(c + glm::vec3(-e, -e, -e), child_size);
-    child_bounds[5] = Bounds(c + glm::vec3(e, -e, -e), child_size);
-    child_bounds[6] = Bounds(c + glm::vec3(-e, -e, e), child_size);
-    child_bounds[7] = Bounds(c + glm::vec3(e, -e, e), child_size);
+    // learned from three.js octree
+    for (int x = 0; x < 2; x++) {
+        for (int y = 0; y < 2; y++) {
+            for (int z = 0; z < 2; z++) {
+                Bounds box = bounds;
+                vec3 v = vec3(x, y, z);
+                vec3 newMin = bounds.GetMin() + v * half_size;
+                vec3 newMax = newMin + half_size;
+                child_bounds.emplace_back(Bounds(newMin, newMax));
+            }
+        }
+    }
 }
 
 OctreeNode::~OctreeNode() {
@@ -50,166 +40,112 @@ OctreeNode::~OctreeNode() {
     }
 }
 
-void OctreeNode::AddCollider(Collider* collider) { DivideAndAdd(collider); }
+void OctreeNode::SplitAndAdd(Collider* collider) {
+    if (collider == nullptr) return;
 
-void OctreeNode::Draw(std::shared_ptr<Shader> shader) {
-    shader->Use();
-    shader->SetUniform("u_Model", glm::mat4(1.0f));
-    glBindVertexArray(VAO);
-    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-
-    for (auto child : children) {
-        if (child != nullptr) child->Draw(shader);
-    }
-}
-
-void OctreeNode::DivideAndAdd(Collider* collider) {
-    if (level >= MAX_LEVEL || bounds.GetSize().x <= MIN_SIZE) {
-        return;
-    }
-
-    if (children.empty()) {
-        children.resize(8, nullptr);
-    }
-
-    bool dividing = false;
+    Bounds colliderBounds = collider->GetBounds();
     for (int i = 0; i < 8; i++) {
-        if (child_bounds[i].Intersects(
-                collider->GetBounds())) {  // first check if the collider intersects with the child bounds
-            // then check if the mesh intersects with the child bounds
-            // SPHERE COLLIDER
-            // AABB COLLIDER
-            // MESH COLLIDER
-            // #TODO: here we only deal with mesh colliders
-            MeshCollider* meshCollider = dynamic_cast<MeshCollider*>(collider);
-            bool intersects = false;
-            if (meshCollider != nullptr) {
-                const ColliderMesh& hull = meshCollider->GetMesh();
-                for (auto& vertex : hull.vertices) {
-                    if (child_bounds[i].Contains(vertex.position)) {
-                        intersects = true;
-                        break;
-                    }
+        bool intersects = false;
+
+        if (child_bounds[i].Intersects(colliderBounds)) {
+            Collider::eShape shape = collider->GetShape();
+            if (shape == Collider::eShape::kSphere) {
+                SphereCollider* sphereCollider = dynamic_cast<SphereCollider*>(collider);
+                if (sphereCollider != nullptr) {
+                    intersects = IntersectBoundsSphere(child_bounds[i], sphereCollider);
+                }
+            } else if (shape == Collider::eShape::kBox) {
+                BoxCollider* boxCollider = dynamic_cast<BoxCollider*>(collider);
+                if (boxCollider != nullptr) {
+                    intersects = IntersectBoundsBox(child_bounds[i].GetMin(), boxCollider);
+                }
+            } else if (shape == Collider::eShape::kCapsule) {
+                CapsuleCollider* capsuleCollider = dynamic_cast<CapsuleCollider*>(collider);
+                if (capsuleCollider != nullptr) {
+                    intersects = IntersectBoundsCapsule(child_bounds[i], capsuleCollider);
+                }
+            } else if (shape == Collider::eShape::kMesh) {
+                MeshCollider* meshCollider = dynamic_cast<MeshCollider*>(collider);
+                if (meshCollider != nullptr) {
+                    intersects = IntersectBoundsMesh(child_bounds[i], meshCollider);
+                }
+            }
+        }
+
+        if (intersects) {
+            OctreeNode* child = new OctreeNode(child_bounds[i], level + 1);
+            children.push_back(child);
+
+            // move the triangles that intersect with the child bounds to the child
+            while (!triangles.empty()) {
+                PosTriangle tri = triangles.back();
+                triangles.pop_back();
+
+                if (IntersectBoundsTriangle(child_bounds[i], tri)) {
+                    child->triangles.push_back(tri);
                 }
             }
 
-            if (!intersects) continue;
-
-            if (children[i] == nullptr) {
-                children[i] = new OctreeNode(child_bounds[i], level + 1);
-            }
-
-            dividing = true;
-            children[i]->DivideAndAdd(collider);
+            // recursively split the children if:
+            // 1. the number of triangles in the node is greater than MIN_TRIANGLES_IN_NODE
+            // 2. and the level is less than MAX_LEVEL
+            if (children[i]->triangles.size() > MIN_TRIANGLES_IN_NODE && level < MAX_LEVEL)
+                children[i]->SplitAndAdd(collider);
         }
     }
-
-    if (!dividing) {
-        children.clear();
-    }
 }
 
-#define ADD_LINE(a, b)    \
-    indices.push_back(a); \
-    indices.push_back(b);
-
-void OctreeNode::SetupDebugData() {
-    // calculate the 8 vertices of the bounding box
-    // Y-up Z-forward X-right
-    /*
-   .2------6
- .'      .'|
-3------7'  |
-|      |   |
-|      |   4
-|      | .'
- 1------5'
-
-   .2------6
- .' |      |
-3   |      |
-|   |      |
-|  .0------4
-|.'      .'
- 1------5'
-    */
-
-    glm::vec3 c = bounds.GetCenter();
-    glm::vec3 e = bounds.GetExtents();
-    vertices.push_back(c + glm::vec3(-e.x, -e.y, -e.z));  // 0
-    vertices.push_back(c + glm::vec3(-e.x, -e.y, e.z));   // 1
-    vertices.push_back(c + glm::vec3(-e.x, e.y, -e.z));   // 2
-    vertices.push_back(c + glm::vec3(-e.x, e.y, e.z));    // 3
-    vertices.push_back(c + glm::vec3(e.x, -e.y, -e.z));   // 4
-    vertices.push_back(c + glm::vec3(e.x, -e.y, e.z));    // 5
-    vertices.push_back(c + glm::vec3(e.x, e.y, -e.z));    // 6
-    vertices.push_back(c + glm::vec3(e.x, e.y, e.z));     // 7
-
-    // calculate the indices of the bounding box
-    ADD_LINE(0, 1);
-    ADD_LINE(0, 2);
-    ADD_LINE(0, 4);
-    ADD_LINE(1, 3);
-    ADD_LINE(1, 5);
-    ADD_LINE(2, 3);
-    ADD_LINE(2, 6);
-    ADD_LINE(3, 7);
-    ADD_LINE(4, 5);
-    ADD_LINE(4, 6);
-    ADD_LINE(5, 7);
-    ADD_LINE(6, 7);
-
-    // create buffers/arrays
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-
-    glBindVertexArray(0);
-}
-
-Octree::Octree(std::vector<Collider*> colliders, unsigned max_level, float min_size) {
+Octree::Octree(const std::vector<Collider*>& colliders, uint32_t minTrianglesInNode, uint32_t maxLevel) {
     // Calculate a bounding box that contains all the colliders
     Bounds bounds;
     for (auto collider : colliders) {
         Bounds b = collider->GetBounds();
         bounds.Expand(b);
     }
-    // make the bounds a cube
-    glm::vec3 size = bounds.GetSize();
-    float max_size = std::max(size.x, std::max(size.y, size.z));
-    glm::vec3 sizeVec(max_size);
-    bounds.SetMinMax(bounds.GetCenter() - sizeVec / 2.0f, bounds.GetCenter() + sizeVec / 2.0f);
+    // offset the bounds a little bit to account for very thin slate-like objects
+    bounds.Expand(vec3(0.01f));
 
-    root = new OctreeNode(bounds, 1);
-    root->MAX_LEVEL = max_level;
-    root->MIN_SIZE = min_size;
+    m_Root = new OctreeNode(bounds, 0);
+    m_Root->MIN_TRIANGLES_IN_NODE = minTrianglesInNode;
+    m_Root->MAX_LEVEL = maxLevel;
+
+    // gather all the triangles from the colliders
+    std::vector<unsigned int> indices(3);
+    for (auto collider : colliders) {
+        GameObject* go = collider->gameObject;
+        Model* model = go->model;
+        if (model != nullptr) {
+            for (auto& mesh : model->meshes) {
+                for (unsigned int i = 0; i < mesh.indices.size(); i += 3) {
+                    PosTriangle tri;
+                    indices[0] = mesh.indices[i];
+                    indices[1] = mesh.indices[i + 1];
+                    indices[2] = mesh.indices[i + 2];
+                    tri.v0 = mesh.vertices[indices[0]].position;
+                    tri.v1 = mesh.vertices[indices[1]].position;
+                    tri.v2 = mesh.vertices[indices[2]].position;
+                    // transform the triangle to world space
+                    // #TODO: take moving objects into account
+                    mat4 worldMat = go->transform->WorldMatrix();
+                    tri.v0 = worldMat * vec4(tri.v0, 1.0f);
+                    tri.v1 = worldMat * vec4(tri.v1, 1.0f);
+                    tri.v2 = worldMat * vec4(tri.v2, 1.0f);
+
+                    m_Root->triangles.push_back(tri);
+                }
+            }
+        }
+    }
 
     AddColliders(colliders);
 }
 
-Octree::~Octree() { delete root; }
+Octree::~Octree() { delete m_Root; }
 
-void Octree::AddColliders(std::vector<Collider*> colliders) {
+void Octree::AddColliders(const std::vector<Collider*>& colliders) {
     for (auto collider : colliders) {
-        root->AddCollider(collider);
+        m_Root->SplitAndAdd(collider);
     }
 }
 
-void Octree::Draw(std::shared_ptr<Shader> shader) {
-    // glDisable(GL_DEPTH_TEST);
-    root->Draw(shader);
-    glEnable(GL_DEPTH_TEST);
-}
 }  // namespace gdp1

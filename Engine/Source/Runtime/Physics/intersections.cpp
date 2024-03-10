@@ -1,42 +1,72 @@
 
 #include "intersections.h"
 
-#include "rigidbody.h"
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "contact.h"
 #include "collider.h"
 #include "Render/model.h"
+#include "Core/transform.h"
+#include "bounds.h"
+#include "Math/triangle.h"
 
 namespace gdp1 {
 
-bool Intersect(Rigidbody* a, Rigidbody* b, Contact& contact) {
-    contact.bodyA = a;
-    contact.bodyB = b;
+bool Intersect(Collider* a, Collider* b, Contact& contact) {
+    contact.colliderA = a;
+    contact.colliderB = b;
 
-    Collider::eShape shapeA = a->collider->GetShapeType();
-    Collider::eShape shapeB = b->collider->GetShapeType();
+    Collider::eShape shapeA = a->GetShape();
+    Collider::eShape shapeB = b->GetShape();
 
-    if (shapeA == Collider::eShape::SPHERE && shapeB == Collider::eShape::SPHERE) {
-        return IntersectSphereSphere(a, b, contact);
-    } else if (shapeA == Collider::eShape::SPHERE && shapeB == Collider::eShape::MESH) {
-        return IntersectSphereMesh(a, b, contact);
-    } else if (shapeB == Collider::eShape::SPHERE && shapeA == Collider::eShape::MESH) {
-        return IntersectSphereMesh(b, a, contact);
+    // sphere - sphere
+    if (shapeA == Collider::eShape::kSphere && shapeB == Collider::eShape::kSphere) {
+        SphereCollider* sa = dynamic_cast<SphereCollider*>(a);
+        SphereCollider* sb = dynamic_cast<SphereCollider*>(b);
+        if (sa == nullptr || sb == nullptr) return false;
+
+        return IntersectSphereSphere(sa, sb, contact);
+    }
+    // sphere - box
+    else if (shapeA == Collider::eShape::kSphere && shapeB == Collider::eShape::kBox) {
+        SphereCollider* sphere = dynamic_cast<SphereCollider*>(a);
+        BoxCollider* box = dynamic_cast<BoxCollider*>(b);
+        if (sphere == nullptr || box == nullptr) return false;
+        return IntersectSphereBox(sphere, box, contact);
+    }
+    // box - sphere
+    else if (shapeA == Collider::eShape::kBox && shapeB == Collider::eShape::kSphere) {
+        SphereCollider* sphere = dynamic_cast<SphereCollider*>(b);
+        BoxCollider* box = dynamic_cast<BoxCollider*>(a);
+        if (sphere == nullptr || box == nullptr) return false;
+        return IntersectSphereBox(sphere, box, contact);
+    }
+    // sphere - mesh
+    else if (shapeA == Collider::eShape::kSphere && shapeB == Collider::eShape::kMesh) {
+        SphereCollider* sphere = dynamic_cast<SphereCollider*>(a);
+        MeshCollider* mesh = dynamic_cast<MeshCollider*>(b);
+        if (sphere == nullptr || mesh == nullptr) return false;
+        return IntersectSphereMesh(sphere, mesh, contact);
+    }
+    // mesh - sphere
+    else if (shapeB == Collider::eShape::kSphere && shapeA == Collider::eShape::kMesh) {
+        SphereCollider* sphere = dynamic_cast<SphereCollider*>(b);
+        MeshCollider* mesh = dynamic_cast<MeshCollider*>(a);
+        if (sphere == nullptr || mesh == nullptr) return false;
+        return IntersectSphereMesh(sphere, mesh, contact);
     }
 
     return false;
 }
 
-bool IntersectSphereSphere(Rigidbody* a, Rigidbody* b, Contact& contact) {
-    SphereCollider* sphereA = static_cast<SphereCollider*>(a->collider);
-    SphereCollider* sphereB = static_cast<SphereCollider*>(b->collider);
-
-    glm::vec3 ab = b->position - a->position;
+bool IntersectSphereSphere(SphereCollider* a, SphereCollider* b, Contact& contact) {
+    glm::vec3 ab = b->center - a->center;
     contact.normal = glm::normalize(ab);
 
-    contact.ptOnA_WorldSpace = a->position + contact.normal * sphereA->radius;
-    contact.ptOnB_WorldSpace = b->position - contact.normal * sphereB->radius;
+    contact.ptOnA_WorldSpace = a->center + contact.normal * a->radius;
+    contact.ptOnB_WorldSpace = b->center - contact.normal * b->radius;
 
-    float radiusAB = sphereA->radius + sphereB->radius;
+    float radiusAB = a->radius + b->radius;
     float lengthSquare = glm::dot(ab, ab);
     if (lengthSquare <= radiusAB * radiusAB) {
         return true;
@@ -44,25 +74,68 @@ bool IntersectSphereSphere(Rigidbody* a, Rigidbody* b, Contact& contact) {
     return false;
 }
 
-bool IntersectSphereMesh(Rigidbody* a, Rigidbody* b, Contact& contact) {
-    SphereCollider* sphereCollider = static_cast<SphereCollider*>(a->collider);
-    MeshCollider* meshCollider = static_cast<MeshCollider*>(b->collider);
+bool IntersectSphereBox(SphereCollider* sphere, BoxCollider* box, Contact& contact) {
+    // Transform the sphere center to the box's local space
+    glm::vec3 sphereCenterLocal = glm::inverse(box->transform->WorldMatrix()) * glm::vec4(sphere->center, 1.0f);
 
-    const ColliderMesh& hull = meshCollider->GetMesh();
-    const std::vector<ColliderVertex>& vertices = hull.vertices;
-    const std::vector<unsigned int> indices = hull.indices;
-    for (size_t i = 0; i < indices.size(); i += 3) {
-        unsigned int index0 = indices[i];
-        unsigned int index1 = indices[i + 1];
-        unsigned int index2 = indices[i + 2];
+    // Find the point on the box that is closest to the sphere
+    glm::vec3 extents = box->GetBounds().GetExtents();
+    glm::vec3 closestPoint = glm::clamp(sphereCenterLocal, -extents, extents);
 
-        const glm::vec3& p0 = vertices[index0].position;
-        const glm::vec3& p1 = vertices[index1].position;
-        const glm::vec3& p2 = vertices[index2].position;
+    // Transform the closest point back to the world space
+    closestPoint = box->transform->WorldMatrix() * glm::vec4(closestPoint, 1.0f);
 
-        if (IntersectSphereTriangle(sphereCollider->centerOfMass, sphereCollider->radius, p0, p1, p2, contact)) {
+    // Sphere and box intersect if the (squared) distance from sphere center to the closest point
+    // is less than the (squared) sphere radius
+    glm::vec3 v = closestPoint - sphere->center;
+    contact.separationDist = glm::length(v);
+    contact.ptOnA_WorldSpace = contact.ptOnB_WorldSpace = closestPoint;
+    contact.normal = glm::normalize(v);
+
+    if (glm::dot(v, v) <= (sphere->radius * sphere->radius)) {
+        return true;
+    }
+
+    return false;
+}
+
+bool IntersectSphereCapsule(SphereCollider* sphere, CapsuleCollider* capsule, Contact& contact) { return false; }
+
+bool IntersectSphereMesh(SphereCollider* sphere, MeshCollider* mesh, Contact& contact) {
+    const ColliderMesh& hull = mesh->GetMesh();
+    const std::vector<PNTVertex>& vertices = hull.vertices;
+    for (auto& tri : hull.triangles) {
+        const glm::vec3& p0 = vertices[tri.indices[0]].position;
+        const glm::vec3& p1 = vertices[tri.indices[1]].position;
+        const glm::vec3& p2 = vertices[tri.indices[2]].position;
+
+        if (IntersectSphereTriangle(sphere->center, sphere->radius, p0, p1, p2, contact)) {
             return true;
         }
+    }
+
+    return false;
+}
+
+bool IntersectBoundsSphere(const Bounds& bounds, SphereCollider* sphere) { return false; }
+
+bool IntersectBoundsBox(const glm::vec3& minA, BoxCollider* box) { return false; }
+
+bool IntersectBoundsCapsule(const Bounds& bounds, CapsuleCollider* capsule) { return false; }
+
+bool IntersectBoundsMesh(const Bounds& bounds, MeshCollider* mesh) {
+    const ColliderMesh& hull = mesh->GetMesh();
+    for (auto& vertex : hull.vertices) {
+        if (bounds.Contains(vertex.position)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool IntersectBoundsTriangle(const Bounds& bounds, const PosTriangle& tri) {
+    if (bounds.Contains(tri.v0) || bounds.Contains(tri.v1) || bounds.Contains(tri.v2)) {
+        return true;
     }
 
     return false;
@@ -91,8 +164,8 @@ bool IntersectSphereTriangle(const glm::vec3& sphereCentre, float sphereRadius, 
     return isItIntersecting;
 }
 
-// From: Real-Time Collision Detection- Ericson, Christer- 9781558607323- Books - Amazon.ca
-// https://www.amazon.ca/Real-Time-Collision-Detection-Christer-Ericson/dp/1558607323/ref=pd_lpo_sccl_1/137-6663593-0701065?pd_rd_w=YiI8A&content-id=amzn1.sym.687e7c56-2b08-4044-894f-bbad969cf967&pf_rd_p=687e7c56-2b08-4044-894f-bbad969cf967&pf_rd_r=JWS56NJC99QEH56TYFJX&pd_rd_wg=zBE6V&pd_rd_r=d611733e-ec29-4b30-bd70-89f092f1991a&pd_rd_i=1558607323&psc=1
+// From: Real-Time Collision Detection- Ericson, Christer- 9781558607323
+// https://www.amazon.ca/Real-Time-Collision-Detection-Christer-Ericson/dp/1558607323
 // Chapter 5:
 glm::vec3 IntersectRayTriangleRTCD(const glm::vec3& p, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
     glm::vec3 ab = b - a;

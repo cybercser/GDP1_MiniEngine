@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Resource/level_object_description.h"
+#include "Resource/level_object_descriptor.h"
 #include "transform.h"
 #include "Physics/collision_info.h"
 

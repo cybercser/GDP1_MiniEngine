@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "Resource/level_object_description.h"
+#include "Resource/level_object_descriptor.h"
 
 namespace gdp1 {
 

@@ -18,11 +18,19 @@ struct CameraDesc {
     float farZ;
 };
 
+// Collider description
+struct ColliderDesc {
+    std::string name;
+    std::string objectName;
+    std::string shape;
+    bool isTrigger;
+};
+
 // Rigidbody description
 struct RigidbodyDesc {
     std::string objectName;
     bool active;
-    std::string collider;
+    std::string colliderName;
     float invMass;
     glm::vec3 position;
     glm::quat orientation;
