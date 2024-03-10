@@ -22,6 +22,7 @@ void GameLayer::OnAttach() {
         LOG_ERROR("Failed to load scene: {}", levelFile);
         return;
     }
+
     const LevelDesc& levelJson = loader.GetLevelDesc();
     m_Scene = std::make_shared<Scene>(levelJson);
 
@@ -33,6 +34,11 @@ void GameLayer::OnAttach() {
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
+
+    
+    // init physics engine
+    m_Physics = std::make_unique<Physics>(m_Scene.get(), levelJson.rigidbodyDescs);
+
    
     animatedModel = m_Scene->FindModelByName("Fall_Flat");
 
@@ -55,8 +61,6 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 }
 
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
-    // LOG_INFO("GameLayer::OnUpdate");
-
     m_FlyCamera->OnUpdate(ts);
 
     if (animatedModel != nullptr) {

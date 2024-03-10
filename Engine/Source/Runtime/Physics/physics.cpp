@@ -98,6 +98,7 @@ void Physics::FixedUpdate(float deltaTime) {
         Contact contact;
         if (Intersect(bodyA, bodyB, contact)) {
             ResolveContact(contact);
+            //bodyA->object->OnCollision(info);
             const glm::vec3& pt = contact.ptOnA_WorldSpace;
             printf("(%s, %s) at (%.3f, %.3f, %.3f)\n", bodyA->object->name.c_str(), bodyB->object->name.c_str(), pt.x,
                    pt.y, pt.z);

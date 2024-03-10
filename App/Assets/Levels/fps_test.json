@@ -66,6 +66,7 @@
           "z": 0
         },
         "localEulerAngles": {
+          "w": 0,
           "x": 0,
           "y": 0,
           "z": 0
@@ -90,6 +91,7 @@
           "z": 0
         },
         "localEulerAngles": {
+          "w": 0,
           "x": 0,
           "y": 0,
           "z": 0
@@ -104,7 +106,9 @@
       "parent": ""
     }
   ],
-  "rigidbodies": [],
+  "rigidbodies": [
+    
+  ],
   "animation": {
     "name": "",
     "path": ""
@@ -136,6 +140,10 @@
       "model": "Fall_Flat"
     }
   ],
+  "animation": {
+    "name": "",
+    "path": ""
+  },
   "audioSources": [],
   "skybox": {
     "name": "StandardSkybox",
