@@ -3,6 +3,10 @@
 using namespace gdp1;
 using namespace gdp1::utils;
 
+#include "Input/input.h"
+#include "Input/key_codes.h"
+#include "Input/mouse_button_codes.h"
+
 GameLayer::GameLayer()
     : Layer("Game") {}
 
@@ -29,6 +33,8 @@ void GameLayer::OnAttach() {
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
+   
+    animatedModel = m_Scene->FindModelByName("Fall_Flat");
 
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -53,6 +59,24 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
 
     m_FlyCamera->OnUpdate(ts);
 
+    if (animatedModel != nullptr) {
+        if (Input::IsKeyPressed(HZ_KEY_1)) {
+            animatedModel->SetCurrentAnimation("Fall_Flat");
+        }
+        if (Input::IsKeyPressed(HZ_KEY_2)) {
+            animatedModel->SetCurrentAnimation("Chapa");
+        }
+        if (Input::IsKeyPressed(HZ_KEY_3)) {
+            animatedModel->SetCurrentAnimation("Standing_Taunt");
+        }
+        if (Input::IsKeyPressed(HZ_KEY_4)) {
+            animatedModel->SetCurrentAnimation("Jumping");
+        }
+        if (Input::IsKeyPressed(HZ_KEY_5)) {
+            animatedModel->SetCurrentAnimation("Jumping_Down");
+        }
+    }
+
     m_Scene->Update(ts);
     glClearColor(0.1f, 1.0f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -73,3 +97,5 @@ void GameLayer::OnImGuiRender() {
                 pos.y, pos.z, up.x, up.y, up.z, yaw, pitch, fov);
     ImGui::End();
 }
+
+

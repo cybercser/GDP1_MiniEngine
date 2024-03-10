@@ -180,4 +180,14 @@ void Mesh::SetupDebugData() {
     glBindVertexArray(0);
 }
 
+void Vertex::AddBoneData(unsigned int bone_id, float weight) {
+    for (unsigned int i = 0; i < MAX_BONE_INFLUENCE; i++) {
+        if (weights[i] == 0.0) {
+            boneIDs[i] = bone_id;
+            weights[i] = weight;
+            return;
+        }
+    }
+}
+
 }  // namespace gdp1

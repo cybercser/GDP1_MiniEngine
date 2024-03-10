@@ -222,6 +222,17 @@ void to_json(json& j, const GameObjectDesc& goDesc) {
          {"transform", goDesc.transform}, {"children", goDesc.children}, {"parent", goDesc.parentName}};
 }
 
+// for CharacterAnimation Desc
+void from_json(const json& j, CharacterAnimationRefDesc& animDesc) {
+    j.at("name").get_to(animDesc.name);
+    j.at("path").get_to(animDesc.path);
+    j.at("model").get_to(animDesc.model);
+}
+
+void to_json(json& j, const CharacterAnimationRefDesc& animDesc) {
+    j = {{"name", animDesc.name}, {"path", animDesc.path}, {"model", animDesc.model}};
+}
+
 // for LevelDesc
 void from_json(const json& j, LevelDesc& lvlDesc) {
     j.at("name").get_to(lvlDesc.name);
@@ -235,6 +246,7 @@ void from_json(const json& j, LevelDesc& lvlDesc) {
     j.at("gameObjects").get_to(lvlDesc.gameObjectDescs);
     j.at("rigidbodies").get_to(lvlDesc.rigidbodyDescs);
     j.at("animation").get_to(lvlDesc.animationRefDesc);
+    j.at("character_animations").get_to(lvlDesc.characterAnimationRefDescs);
     j.at("audioSources").get_to(lvlDesc.audioSourceDescs);
     j.at("skybox").get_to(lvlDesc.skyboxDesc);
 }
@@ -251,6 +263,7 @@ void to_json(json& j, const LevelDesc& lvlDesc) {
          {"gameObjects", lvlDesc.gameObjectDescs},
          {"rigidbodies", lvlDesc.rigidbodyDescs},
          {"animation", lvlDesc.animationRefDesc},
+         {"character_animations", lvlDesc.characterAnimationRefDescs},
          {"audioSources", lvlDesc.audioSourceDescs},
          {"skybox", lvlDesc.skyboxDesc}};
 }
