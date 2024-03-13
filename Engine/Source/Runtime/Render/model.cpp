@@ -51,6 +51,8 @@ void Model::Draw(Shader* shader) {
             std::string name = "bones[" + std::to_string(i) + "]";
             shader->SetUniform(name, aiMatrix4x4ToGlmMat4(transforms[i]));
         }
+    } else {
+        shader->SetUniform("u_HasBones", false);
     }
 
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
@@ -130,8 +132,9 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     // walk through each of the mesh's vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
-        glm::vec3
-            vector;  // we declare a placeholder vector since assimp uses its own vector class that doesn't directly
+        vertex.SetBoneDefaults();
+
+        glm::vec3 vector;  // we declare a placeholder vector since assimp uses its own vector class that doesn't directly
         // convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
         glm::vec4 color;
         // positions
@@ -206,8 +209,6 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     for (unsigned int i = 0; i < mesh->mNumBones; i++) {
         unsigned int bone_index = 0;
         std::string bone_name(mesh->mBones[i]->mName.data);
-
-        std::cout << mesh->mBones[i]->mName.data << std::endl;
 
         if (m_bone_mapping.find(bone_name) == m_bone_mapping.end()) {
             // Allocate an index for a new bone

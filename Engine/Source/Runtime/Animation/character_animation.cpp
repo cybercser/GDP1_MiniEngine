@@ -177,7 +177,6 @@ void CharacterAnimation::readNodeHierarchy(float p_animation_time, const aiNode*
 void CharacterAnimation::boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms) {
     aiMatrix4x4 identity_matrix;
 
-    std::cout << this->ticks_per_second << std::endl;
     double time_in_ticks = time_in_sec * this->ticks_per_second;
     float animation_time = fmod(time_in_ticks, duration);
 

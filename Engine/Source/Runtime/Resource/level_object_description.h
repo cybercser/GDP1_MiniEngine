@@ -29,6 +29,14 @@ struct RigidbodyDesc {
     glm::vec3 velocity;
 };
 
+// Softbody description
+struct SoftbodyDesc {
+    std::string objectName;
+    float mass;
+    float springStrength;
+    int iterations;
+};
+
 // Transform description
 struct TransformDesc {
     glm::vec3 localPosition;
@@ -100,6 +108,7 @@ struct LevelDesc {
     std::vector<ModelDesc> modelDescs;
     std::vector<GameObjectDesc> gameObjectDescs;
     std::vector<RigidbodyDesc> rigidbodyDescs;
+    std::vector<SoftbodyDesc> softbodyDescs;
     std::vector<AudioSourceDesc> audioSourceDescs;
     std::vector<CharacterAnimationRefDesc> characterAnimationRefDescs;
     AnimationRefDesc animationRefDesc;

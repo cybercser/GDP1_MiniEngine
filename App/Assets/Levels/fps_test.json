@@ -52,6 +52,21 @@
       "name": "Fall_Flat",
       "filepath": "Assets/Models/FPS_Test/Fall_Flat.fbx",
       "shader": "lit"
+    },
+    {
+      "name": "Blaster",
+      "filepath": "Assets/Models/FPS_Test/blasterE.fbx",
+      "shader": "untextured"
+    },
+    {
+      "name": "Cube",
+      "filepath": "Assets/Models/FPS_Test/Cube.ply",
+      "shader": "untextured"
+    },
+    {
+      "name": "Cloth",
+      "filepath": "Assets/Models/FPS_Test/Cloth.ply",
+      "shader": "untextured"
     }
   ],
   "gameObjects": [
@@ -63,6 +78,31 @@
         "localPosition": {
           "x": 0,
           "y": 0,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "w": 0,
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Cube",
+      "model": "Cube",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 10,
+          "y": 5,
           "z": 0
         },
         "localEulerAngles": {
@@ -104,10 +144,76 @@
       },
       "children": [],
       "parent": ""
+    },
+    {
+      "name": "Blaster",
+      "model": "Blaster",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 0,
+          "y": 10,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "w": 0,
+          "x": 45,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Cloth",
+      "model": "Cloth",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 0,
+          "y": 10,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "w": 0,
+          "x": 45,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 0.05,
+          "y": 0.05,
+          "z": 0.05
+        }
+      },
+      "children": [],
+      "parent": ""
     }
   ],
   "rigidbodies": [
-    
+
+  ],
+  "softbodies": [
+    {
+      "objectName": "Blaster",
+      "mass": 1.0,
+      "springStrength": 1.0,
+      "iterations": 10,
+      "bracings": 100
+    },
+    {
+      "objectName": "Cloth",
+      "mass": 1.0,
+      "springStrength": 1.0,
+      "iterations": 10,
+      "bracings": 100
+    }
   ],
   "animation": {
     "name": "",

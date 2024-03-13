@@ -47,7 +47,6 @@ project "App"
         {
             "{COPYFILE} ../Engine/Vendor/assimp/bin/assimp-vc143-mt.dll %{cfg.targetdir}/",
             "{COPYFILE} ../Engine/Vendor/glfw/lib-vc2022/*.dll %{cfg.targetdir}/",
-            "\"$(SolutionDir)Scripts\\Content-Pipeline-Script.bat\" \"$(ProjectDir)\\Assets\\Textures\" \"$(SolutionDir)Bin\"",
             "{COPY} ./Assets %{cfg.targetdir}/Assets"
         }
 
@@ -60,6 +59,5 @@ project "App"
         {
             "{COPYFILE} ../Engine/Vendor/assimp/bin/assimp-vc143-mt.dll %{cfg.targetdir}/",
             "{COPYFILE} ../Engine/Vendor/glfw/lib-vc2022/*.dll %{cfg.targetdir}/",
-			"\"$(SolutionDir)Scripts\\Content-Pipeline-Script.bat\" \"$(ProjectDir)\\Assets\\Textures\" \"$(SolutionDir)Bin\"",
 			"{COPY} ./Assets %{cfg.targetdir}/Assets"
         }

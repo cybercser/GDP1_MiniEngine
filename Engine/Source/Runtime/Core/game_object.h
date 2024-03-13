@@ -10,6 +10,7 @@ class Scene;
 class Model;
 class Bounds;
 class Animation;
+class SoftBody;
 
 class GameObject {
 public:
@@ -18,7 +19,9 @@ public:
     Transform* transform;
     Model* model;
     Scene* scene;
+    SoftBody* softBody;
     bool visible;
+    bool hasSoftBody = false;
 
     // temp variables for establishing hierarchy
     std::vector<std::string> childrenNames;

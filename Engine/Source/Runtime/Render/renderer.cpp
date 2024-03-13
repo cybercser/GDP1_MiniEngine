@@ -6,6 +6,7 @@
 #include "Render/skybox.h"
 #include "Utils/camera.h"
 #include "Core/game_object.h"
+#include "Physics/softbody.h"
 
 using namespace glm;
 
@@ -73,10 +74,16 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
                     LOG_ERROR("Cannot find shader: " + model->shaderName);
                     continue;
                 }
+
                 Shader* shader = shaderIt->second;
                 shader->Use();
                 shader->SetUniform("u_Model", go->transform->WorldMatrix());
-                model->Draw(shader);
+
+                if (!go->hasSoftBody)
+                    model->Draw(shader);
+                else {
+                    if (go->softBody) go->softBody->Draw(shader);
+                }
             }
         }
     }

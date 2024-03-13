@@ -38,6 +38,8 @@ public:
     // draws the model, and thus all its meshes
     void Draw(Shader* shader);
 
+    void DrawBuffer(Shader* shader);
+
     void DrawDebug(Shader* shader);
 
     unsigned int GetVertexCount() const;

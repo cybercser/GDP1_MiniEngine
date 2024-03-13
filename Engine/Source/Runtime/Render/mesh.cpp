@@ -7,12 +7,13 @@
 namespace gdp1 {
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<TextureInfo> textures,
-           const Bounds& bounds) {
+           const Bounds& bounds, bool isDynamicBuffer) {
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
 
     this->bounds = bounds;
+    this->isDynamicBuffer = isDynamicBuffer;
 
     // now that we have all the required data, set the vertex buffers and its attribute pointers.
     SetupMesh();
@@ -60,6 +61,13 @@ void Mesh::Draw(Shader* shader) {
 
     // always good practice to set everything back to defaults once configured.
     glActiveTexture(GL_TEXTURE0);
+}
+
+void Mesh::UpdateVertexBuffers() {
+    // Draw
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * vertices.size(), (GLvoid*)&vertices[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Mesh::DrawDebug(Shader* shader) {
@@ -178,6 +186,13 @@ void Mesh::SetupDebugData() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
 
     glBindVertexArray(0);
+}
+
+void Vertex::SetBoneDefaults() {
+    for (unsigned int i = 0; i < MAX_BONE_INFLUENCE; i++) {
+        boneIDs[i] = -1;
+        weights[i] = 0.f;
+    }
 }
 
 void Vertex::AddBoneData(unsigned int bone_id, float weight) {

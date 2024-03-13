@@ -10,28 +10,29 @@
 #include "intersections.h"
 #include "octree.h"
 #include "rigidbody.h"
+#include "softbody.h"
 #include "Render/scene.h"
 #include "Render/shader.h"
 
 namespace gdp1 {
 
-Physics::Physics(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDescs) {
-    Init(scene, rigidbodyDescs);
+Physics::Physics(Scene* scene, const LevelDesc& levelDesc) {
+    Init(scene, levelDesc);
 }
 
 Physics::~Physics() {
-    for (int i = 0; i < bodies_.size(); i++) {
-        delete bodies_[i]->collider;
-        delete bodies_[i];
+    for (int i = 0; i < rigidbodies_.size(); i++) {
+        delete rigidbodies_[i]->collider;
+        delete rigidbodies_[i];
     }
-    bodies_.clear();
+    rigidbodies_.clear();
     body_map_.clear();
 }
 
-void Physics::Init(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDescs) {
+void Physics::Init(Scene* scene, const LevelDesc& levelDesc) {
     this->scene = scene;
 
-    for (const RigidbodyDesc& bodyDesc : rigidbodyDescs) {
+    for (const RigidbodyDesc& bodyDesc : levelDesc.rigidbodyDescs) {
         const std::string& objName = bodyDesc.objectName;
 
         Rigidbody* body = new Rigidbody{};
@@ -48,9 +49,27 @@ void Physics::Init(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDesc
         } else if (bodyDesc.collider == "MESH") {
             body->collider = new MeshCollider(body->object);
         }
-        bodies_.push_back(body);
+        rigidbodies_.push_back(body);
 
         body_map_.insert({objName, body});
+    }
+
+    for (const SoftbodyDesc& bodyDesc : levelDesc.softbodyDescs) {
+        const std::string& objName = bodyDesc.objectName;
+
+        GameObject* gameObject = scene->FindObjectByName(objName);
+        gameObject->hasSoftBody = true;
+        Model* model = gameObject->model;
+
+        SoftBody* body = new SoftBody(gameObject->model, gameObject->transform);
+        body->particleMass = bodyDesc.mass;
+        body->springStrength = bodyDesc.springStrength;
+        body->iterations = bodyDesc.iterations;
+
+        gameObject->softBody = body;
+        softbodies_.push_back(body);
+
+        soft_body_map_.insert({objName, body});
     }
 
     CreateBVH();
@@ -58,7 +77,7 @@ void Physics::Init(Scene* scene, const std::vector<RigidbodyDesc>& rigidbodyDesc
 
 void Physics::CreateBVH() {
     std::vector<Collider*> colliders;
-    for (Rigidbody* body : bodies_) {
+    for (Rigidbody* body : rigidbodies_) {
         // if (body->invMass == 0.0) continue;
         colliders.push_back(body->collider);
     }
@@ -67,17 +86,24 @@ void Physics::CreateBVH() {
 }
 
 void Physics::FixedUpdate(float deltaTime) {
-    for (Rigidbody* body : bodies_) {
+    for (Rigidbody* body : rigidbodies_) {
         if (body->invMass == 0.0 || !body->active) continue;
 
         float mass = 1.0f / body->invMass;
-        glm::vec3 impulseGravity = glm::vec3(0.0, -10.0, 0.0) * mass * deltaTime;
+        glm::vec3 impulseGravity = glm::vec3(0.0, -9.8, 0.0) * mass * deltaTime;
         body->ApplyImpulse(impulseGravity);
+    }
+
+    for (SoftBody* body : softbodies_) {
+        float mass = 1.0f / body->particleMass;
+        glm::vec3 impulseGravity = glm::vec3(0.0, -9.8, 0.0) * mass * deltaTime;
+        body->ApplyForce(impulseGravity);
+        body->Update(deltaTime);
     }
 
     // Broad phase
     std::vector<CollisionInfo> collisionInfos;
-    BroadPhase(bodies_, collisionInfos);
+    BroadPhase(rigidbodies_, collisionInfos);
 
     // Narrow phase
     // We need sphere-triangle, sphere-sphere intersection test
@@ -132,7 +158,7 @@ void Physics::FixedUpdate(float deltaTime) {
 #endif
 
     // update position
-    for (Rigidbody* body : bodies_) {
+    for (Rigidbody* body : rigidbodies_) {
         if (body->invMass == 0.0) continue;
 
         body->position += body->velocity * deltaTime;
@@ -142,16 +168,23 @@ void Physics::FixedUpdate(float deltaTime) {
 }
 
 bool Physics::AddImpulseToObject(const std::string& objectName, const glm::vec3& impulse) {
-    Rigidbody* body = FindRigidbodyByName(objectName);
+    Rigidbody* body = FindRigidBodyByName(objectName);
     if (body == nullptr) return false;
 
     body->ApplyImpulse(impulse);
     return true;
 }
 
-Rigidbody* Physics::FindRigidbodyByName(const std::string& name) const {
+Rigidbody* Physics::FindRigidBodyByName(const std::string& name) const {
     std::map<std::string, Rigidbody*>::const_iterator it = body_map_.find(name);
     if (it == body_map_.end()) return nullptr;
+
+    return it->second;
+}
+
+SoftBody* Physics::FindSoftBodyByName(const std::string& name) const {
+    std::map<std::string, SoftBody*>::const_iterator it = soft_body_map_.find(name);
+    if (it == soft_body_map_.end()) return nullptr;
 
     return it->second;
 }

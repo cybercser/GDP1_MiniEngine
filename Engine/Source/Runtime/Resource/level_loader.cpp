@@ -8,7 +8,7 @@ using json = nlohmann::json;
 
 #pragma region Json Arbitrary Type Conversion
 
-// for glm::vec3, glm::vecc4 and glm::quat
+// for glm::vec3, glm::vec4 and glm::quat
 namespace glm {
 void from_json(const json& j, vec3& vec) {
     j.at("x").get_to(vec.x);
@@ -74,6 +74,19 @@ void to_json(json& j, const RigidbodyDesc& rbDesc) {
     j = json{{"objectName", rbDesc.objectName}, {"active", rbDesc.active},     {"collider", rbDesc.collider},
              {"invMass", rbDesc.invMass},       {"position", rbDesc.position}, {"orientation", rbDesc.orientation},
              {"velocity", rbDesc.velocity}};
+}
+
+// for SoftbodyDesc
+void from_json(const json& j, SoftbodyDesc& sbDesc) {
+    j.at("objectName").get_to(sbDesc.objectName);
+    j.at("mass").get_to(sbDesc.mass);
+    j.at("iterations").get_to(sbDesc.iterations);
+    j.at("springStrength").get_to(sbDesc.springStrength);
+}
+
+void to_json(json& j, const SoftbodyDesc& sbDesc) {
+    j = json{{"objectName", sbDesc.objectName}, {"mass", sbDesc.mass},
+             {"iterations", sbDesc.iterations}, {"springStrength", sbDesc.springStrength}};
 }
 
 // for ModelDesc
@@ -245,6 +258,7 @@ void from_json(const json& j, LevelDesc& lvlDesc) {
     j.at("models").get_to(lvlDesc.modelDescs);
     j.at("gameObjects").get_to(lvlDesc.gameObjectDescs);
     j.at("rigidbodies").get_to(lvlDesc.rigidbodyDescs);
+    j.at("softbodies").get_to(lvlDesc.softbodyDescs);
     j.at("animation").get_to(lvlDesc.animationRefDesc);
     j.at("character_animations").get_to(lvlDesc.characterAnimationRefDescs);
     j.at("audioSources").get_to(lvlDesc.audioSourceDescs);

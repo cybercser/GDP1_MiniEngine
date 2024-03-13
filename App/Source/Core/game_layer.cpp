@@ -34,11 +34,9 @@ void GameLayer::OnAttach() {
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
-
     
     // init physics engine
-    m_Physics = std::make_unique<Physics>(m_Scene.get(), levelJson.rigidbodyDescs);
-
+    m_Physics = std::make_unique<Physics>(m_Scene.get(), levelJson);
    
     animatedModel = m_Scene->FindModelByName("Fall_Flat");
 
@@ -50,8 +48,6 @@ void GameLayer::OnAttach() {
 void GameLayer::OnDetach() {}
 
 void GameLayer::OnEvent(gdp1::Event& event) {
-    LOG_TRACE("{0}", event);
-
     m_FlyCamera->OnEvent(event);
 
     EventDispatcher dispatcher(event);
@@ -81,6 +77,7 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
         }
     }
 
+    m_Physics->FixedUpdate(ts);
     m_Scene->Update(ts);
     glClearColor(0.1f, 1.0f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
