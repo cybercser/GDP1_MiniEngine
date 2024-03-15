@@ -197,19 +197,5 @@ void main() {
         }
     }
 
-
-    if (u_HasBones) {
-        for (int i = 0 ; i < 4 ; i++) {
-            if (fs_in.Weights[i] >= 0.7) {
-                   o_FragColor = vec4(1.0, 0.0, 0.0, 0.0) * fs_in.Weights[i];
-               } else if (fs_in.Weights[i] >= 0.4 && fs_in.Weights[i] <= 0.6) {
-                   o_FragColor = vec4(0.0, 1.0, 0.0, 0.0) * fs_in.Weights[i];
-               } else if (fs_in.Weights[i] >= 0.1) {
-                   o_FragColor = vec4(1.0, 1.0, 0.0, 0.0) * fs_in.Weights[i];
-               }
-        }
-        return;
-    }
-
     o_FragColor = vec4(dirColor + pointColor + spotColor, 1.0);
 }

@@ -65,6 +65,8 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
     std::unordered_map<std::string, Shader*>& shaderMap = scene->m_ShaderMap;
     for (std::unordered_map<std::string, GameObject*>::iterator it = goMap.begin(); it != goMap.end(); it++) {
         GameObject* go = it->second;
+        //glm::vec3 newPosition = go->transform->Position() + glm::vec3(0.1f, 0.0f, 0.0f);
+        //go->transform->SetPosition(newPosition);
         if (go != nullptr && go->visible) {
             Model* model = go->model;
             if (model != nullptr) {

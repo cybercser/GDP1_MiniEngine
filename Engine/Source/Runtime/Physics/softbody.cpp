@@ -2,13 +2,30 @@
 
 #include "Render/mesh.h"
 #include "Utils/transform_utils.h"
+#include "Core/game_object.h"
+
+#include <iostream>
 
 #define MIN_FLOAT 1.192092896e-07f
 
 namespace gdp1 {
 
-SoftBody::SoftBody(Model* model, Transform* transform) {
-    // this->transform = transform;
+SoftBodyParticle::SoftBodyParticle() {
+    position = glm::vec3(0.0f);
+    oldPosition = glm::vec3(0.0f);
+    worldPosition = glm::vec3(0.0f);
+    velocity = glm::vec3(0.0f);
+
+    mass = 1.0;
+    isPinned = false;
+    model = nullptr;
+    go = nullptr;
+}
+
+SoftBody::SoftBody() {}
+
+void SoftBody::CreateParticles(Model* model, Transform* transform) {
+    this->transform = transform;
 
     if (model == nullptr) {
         LOG_ERROR("ERROR: Expected model should not be null.");
@@ -32,18 +49,28 @@ SoftBody::SoftBody(Model* model, Transform* transform) {
 
     vertices.resize(meshToCopy.vertices.size());
     indices.resize(meshToCopy.indices.size());
+    textures.resize(meshToCopy.textures.size());
     bounds = meshToCopy.bounds;
 
     for (unsigned int i = 0; i < meshToCopy.vertices.size(); i++) {
         Vertex& vertex = vertices[i];
         vertex.SetBoneDefaults();
 
-        glm::vec4 _vertex = glm::vec4(meshToCopy.vertices[i].position.x, meshToCopy.vertices[i].position.y,
+        /*glm::vec4 _vertex = glm::vec4(meshToCopy.vertices[i].position.x, meshToCopy.vertices[i].position.y,
                                       meshToCopy.vertices[i].position.z, 1.0f);
 
-        _vertex = transform->WorldMatrix() * _vertex;
+        std::cout << i << ": " << _vertex.x << ", " << _vertex.y << ", " << _vertex.z << std::endl;
 
-        vertex.position = glm::vec3(_vertex.x, _vertex.y, _vertex.z);
+        glm::mat4 matTransform = glm::mat4(1.0f);
+
+        matTransform = glm::translate(matTransform, transform->localPosition);
+        matTransform *= glm::mat4_cast(transform->localRotation);
+        matTransform = glm::scale(matTransform, transform->localScale);*/
+
+        //_vertex = transform->WorldToLocalMatrix() * _vertex;
+        //_vertex = matTransform * _vertex;
+
+        vertex.position = meshToCopy.vertices[i].position;  // glm::vec3(_vertex.x, _vertex.y, _vertex.z);
         vertex.normal = meshToCopy.vertices[i].normal;
         vertex.texCoords = meshToCopy.vertices[i].texCoords;
         vertex.tangent = meshToCopy.vertices[i].tangent;
@@ -75,15 +102,33 @@ SoftBody::SoftBody(Model* model, Transform* transform) {
     // Create particles
     for (const Vertex& vertex : mesh.vertices) {
         SoftBodyParticle* pParticle = new SoftBodyParticle();
-        pParticle->position = vertex.position;
+        glm::vec4 _vertex = glm::vec4(vertex.position.x, vertex.position.y, vertex.position.z, 1.0f);
+
+        glm::mat4 matTransform = glm::mat4(1.0f);
+
+        matTransform = glm::translate(matTransform, transform->localPosition);
+        matTransform *= glm::mat4_cast(transform->localRotation);
+        matTransform = glm::scale(matTransform, transform->localScale);
+
+        _vertex = matTransform * _vertex;
+
+        pParticle->position = _vertex;
         pParticle->oldPosition = pParticle->position;
         pParticle->worldPosition = pParticle->position;
         particles.push_back(pParticle);
     }
 
-    particles[0]->isPinned = true;
+    for (unsigned int i = 0; i < particles.size(); i++) {
+        SoftBodyParticle* particle = particles[i];
+        particle->position = TransformUtils::LocalToWorldPoint(particle->position, transform->localPosition,
+                                                               transform->localRotation, transform->localScale.x);
+        particle->oldPosition = particle->position;
+        particle->worldPosition = particle->position;
+    }
 
-    // Create constraints
+    //particles[0]->isPinned = true;
+
+    // Create springs
     for (unsigned int i = 0; i < mesh.indices.size(); i += 3) {
         SoftBodyParticle* particleA = particles[mesh.indices[i]];
         SoftBodyParticle* particleB = particles[mesh.indices[i + 1]];
@@ -94,7 +139,22 @@ SoftBody::SoftBody(Model* model, Transform* transform) {
         CreateSpring(particleC, particleA);
     }
 
-    CreateRandomSprings(3000);
+    for (unsigned int i = 0; i < particles.size() - 1; i++) {
+        SoftBodyParticle* particleA = particles[i];
+        SoftBodyParticle* particleB = particles[i + 1];
+
+        CreateSpring(particleA, particleB);
+    }
+
+    //for (unsigned int i = 0; i < springs.size(); i += 3) {
+    //    if (i + 3 < springs.size()) {
+    //        SoftBodySpring* springA = springs[i];
+    //        SoftBodySpring* springB = springs[i + 3];
+
+    //        CreateSpring(springA->particleA, springB->particleA);
+    //        CreateSpring(springA->particleB, springB->particleB);
+    //    }
+    //}
 }
 
 SoftBody::~SoftBody() {
@@ -142,7 +202,7 @@ void SoftBody::CreateRandomSprings(int numOfSprings) {
             float distBetween = glm::distance(pParticle1->position, pParticle2->position);
 
             // Distance OK?
-            if (distBetween < 1.0f) {
+            if (distBetween < 0.5f) {
                 bKeepLookingForParticles = true;
             } else {
                 CreateSpring(pParticle1, pParticle2);
@@ -171,27 +231,20 @@ void SoftBodySpring::Update(const float& springStrength, int iterations) {
 }
 
 void SoftBodyParticle::Update(float deltaTime) {
+    if (deltaTime > 1.0f) deltaTime = 0.01f;
+
     if (!isPinned) {
         glm::vec3 currentPos = this->position;
         glm::vec3 oldPos = this->oldPosition;
 
-        //position += (currentPos - oldPos) + (velocity * static_cast<float>(deltaTime * deltaTime));
-        //oldPosition = currentPos;
+        float deltaTimeSq = static_cast<float>(deltaTime * deltaTime);
 
-        // float deltaTimeSq = static_cast<float>(deltaTime * deltaTime);
-        // glm::vec3 accelerationTerm = glm::vec3(0.f, -2.0f, 0.f) * deltaTimeSq;
-        glm::vec3 newPos = currentPos;
-        newPos.y -= 0.1;
+        position += (currentPos - oldPos) + (velocity * deltaTimeSq);
+        oldPosition = currentPos;
 
-        this->oldPosition = currentPos;
-        this->position = newPos;
-
-        /*glm::vec3 vel = this->position - this->oldPosition;
-        this->oldPosition = this->position;
-
-        glm::vec3 acc = glm::vec3(0.f, -0.5f, 0.f) / this->mass;
-
-        this->position = vel + acc * deltaTime * deltaTime;*/
+        if (go != nullptr) {
+            go->transform->SetPosition(position);
+        }
     }
 }
 
@@ -224,13 +277,15 @@ void SoftBody::Update(float deltaTime) {
 }
 
 void SoftBody::UpdatePositions(float deltaTime) {
-    size_t vecSize = this->particles.size();
-    for (size_t i = 0; i < vecSize; i++) {
-        mesh.vertices[i].position = this->particles[i]->position;
+    for (size_t i = 0; i < mesh.vertices.size(); i++) {
+        glm::vec3 localPosition = TransformUtils::WorldToLocalPoint(
+            this->particles[i]->position, transform->localPosition, transform->localRotation, transform->localScale.x);
 
-        /*if (this->particles[i]->position.y < 0.0f) {
+        mesh.vertices[i].position = localPosition;
+
+        if (this->particles[i]->position.y < 0.0f) {
             this->particles[i]->position.y = 0.0f;
-        }*/
+        }
     }
 
     return;

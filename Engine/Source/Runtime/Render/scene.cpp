@@ -135,7 +135,7 @@ void Scene::ProcessDesc(const LevelDesc& desc) {
 
 void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
     for (const ModelDesc& modelDesc : modelDescs) {
-        Model* model = new Model(modelDesc.filepath, modelDesc.shader);
+        Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
         m_ModelMap.insert(std::make_pair(modelDesc.name, model));
 
         m_VertexCount += model->GetVertexCount();
@@ -373,6 +373,26 @@ GameObject* Scene::FindObjectByName(const std::string& name) {
         return it->second;
     }
     return nullptr;
+}
+
+void Scene::AddGameObject(GameObject* go) {
+    Transform* xform = go->transform;
+    if (!go->modelName.empty()) {
+        go->model = FindModelByName(go->modelName);
+    }
+
+    go->scene = this;
+
+    m_GameObjectMap.insert(std::make_pair(go->name, go));
+
+    // top level game object is a child of the root game object
+    if (go->parentName.empty()) {
+        xform->parent = xform->root = m_RootTransform;
+        xform->SetWorldMatrix(xform->LocalMatrix());
+        m_RootTransform->children.push_back(xform);
+    }
+
+    UpdateHierarchy(xform);
 }
 
 DirectionalLight* Scene::FindDirectionalLightByName(const std::string& name) {

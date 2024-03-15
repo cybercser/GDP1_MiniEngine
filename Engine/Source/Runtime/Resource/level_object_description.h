@@ -54,11 +54,18 @@ struct GameObjectDesc {
     std::string parentName;
 };
 
+// Textures description
+struct TexturesDesc {
+    std::string name;
+    std::string type;
+};
+
 // Model description
 struct ModelDesc {
     std::string name;
     std::string filepath;
     std::string shader;
+    std::vector<TexturesDesc> textures;
 };
 
 // AnimationReference description

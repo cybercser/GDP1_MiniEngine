@@ -6,8 +6,8 @@ in VS_OUT{
 
 out vec4 o_FragColor;
 
-uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_diffuse;
 
 void main() {
-	o_FragColor = texture(texture_diffuse1, fs_in.TexCoords);
+	o_FragColor = texture(texture_diffuse, fs_in.TexCoords);
 }

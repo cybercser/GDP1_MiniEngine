@@ -30,12 +30,14 @@ glm::mat4 aiMatrix4x4ToGlmMat4(const aiMatrix4x4& matrix) {
     return result;
 }
 
-Model::Model(const std::string const& path, const std::string& shader, bool gamma /*= false*/)
+Model::Model(const std::string const& path, const std::string& shader, const std::vector<TexturesDesc> textures,
+             bool gamma /*= false*/)
     : gammaCorrection(gamma)
     , shaderName(shader)
     , num_vertices_(0)
     , num_triangles_(0)
-    , currentAnimation(nullptr) {
+    , currentAnimation(nullptr)
+    , texturesToLoad(textures) {
     LoadModel(path);
 }
 
@@ -71,7 +73,6 @@ void Model::AddCharacterAnimation(std::string animationName, std::string animati
     character_animations[animationName] = animation;
 }
 
-
 void Model::SetCurrentAnimation(std::string name) {
     auto it = character_animations.find(name);
     if (it != character_animations.end()) {
@@ -82,7 +83,6 @@ void Model::SetCurrentAnimation(std::string name) {
 }
 
 void Model::LoadModel(std::string const& path) {
-
     // read file via ASSIMP
     scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
                                         aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
@@ -134,7 +134,8 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
         Vertex vertex;
         vertex.SetBoneDefaults();
 
-        glm::vec3 vector;  // we declare a placeholder vector since assimp uses its own vector class that doesn't directly
+        glm::vec3
+            vector;  // we declare a placeholder vector since assimp uses its own vector class that doesn't directly
         // convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
         glm::vec4 color;
         // positions
@@ -192,9 +193,9 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     // 1. diffuse maps
     std::vector<TextureInfo> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-    //// 2. specular maps
-    // std::vector<Texture> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    // 2. specular maps
+    std::vector<TextureInfo> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     //  3. normal maps
     std::vector<TextureInfo> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
@@ -204,6 +205,11 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     // 5. opacity maps
     std::vector<TextureInfo> opacityMaps = LoadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity");
     textures.insert(textures.end(), opacityMaps.begin(), opacityMaps.end());
+
+    for (TexturesDesc textureDesc : texturesToLoad) {
+        TextureInfo* texture = LoadTexture(textureDesc.name, textureDesc.type);
+        if (texture != nullptr) textures.push_back(*texture);
+    }
 
     // load bones
     for (unsigned int i = 0; i < mesh->mNumBones; i++) {
@@ -270,6 +276,29 @@ std::vector<TextureInfo> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureT
         }
     }
     return textures;
+}
+
+TextureInfo* Model::LoadTexture(std::string textureName, std::string textureType) {
+    TextureInfo* texture = nullptr;
+
+    bool skip = false;
+    for (unsigned int j = 0; j < textures_loaded.size(); j++) {
+        if (textures_loaded[j].path == textureName) {
+            skip = true;
+            break;
+        }
+    }
+
+    if (!skip) {
+        TextureInfo* texture = new TextureInfo();
+        texture->id = Texture::LoadTexture(textureName);
+        texture->type = textureType;
+        texture->path = textureName;
+
+        textures_loaded.push_back(*texture);
+    }
+
+    return texture;
 }
 
 std::map<std::string, unsigned int>& Model::GetBoneMap() { return m_bone_mapping; }

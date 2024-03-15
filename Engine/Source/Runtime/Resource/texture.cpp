@@ -23,9 +23,9 @@ GLuint Texture::LoadTexture(const std::string& texPath, bool flipY) {
     std::string texturePath;
     size_t lastSlashPosition = texPath.find_last_of("/\\");
 
-    // If no directory separator found, return the whole string
+    // If no directory separator found, add path to the whole string
     if (lastSlashPosition == std::string::npos) {
-        texturePath = texPath;
+        texturePath = ws_to_string(GetPath()) + "/Assets/Textures/" + texPath;
     } else {
         texturePath = ws_to_string(GetPath()) + "/Assets/Textures/" + texPath.substr(lastSlashPosition + 1);
     }

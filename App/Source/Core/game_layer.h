@@ -6,6 +6,9 @@
 #include <Physics/physics.h>
 
 class GameLayer : public gdp1::Layer {
+
+class SoftBody;
+
 public:
     GameLayer();
     virtual ~GameLayer() = default;
@@ -23,4 +26,10 @@ private:
     std::unique_ptr<gdp1::Physics> m_Physics;
 
     gdp1::Model* animatedModel = nullptr;
+
+    gdp1::GameObject* movableObject;
+
+    // GameUtils
+
+    void AddChainToSoftBody(gdp1::GameObject* gameObject, int chainSize, float chainSpacing);
 };

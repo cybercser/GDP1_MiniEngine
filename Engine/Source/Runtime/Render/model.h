@@ -3,6 +3,7 @@
 #include "mesh.h"
 #include "shader.h"
 #include "Animation/character_animation.h"
+#include "Resource/level_object_description.h"
 
 #include <string>
 #include <vector>
@@ -33,7 +34,7 @@ public:
     Bounds bounds;
 
     // constructor, expects a filepath to a 3D model.
-    Model(const std::string& path, const std::string& shaderName, bool gamma = false);
+    Model(const std::string& path, const std::string& shaderName, const std::vector<TexturesDesc> textures, bool gamma = false);
 
     // draws the model, and thus all its meshes
     void Draw(Shader* shader);
@@ -71,6 +72,8 @@ private:
     // the required info is returned as a Texture struct.
     std::vector<TextureInfo> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 
+    TextureInfo* LoadTexture(std::string textureName, std::string textureType);
+
 
 private:
     unsigned int num_vertices_;
@@ -85,6 +88,8 @@ private:
     std::vector<BoneMatrix> m_bone_matrices;
 
     double elapsedTime = 0.0f;
+
+    std::vector<TexturesDesc> texturesToLoad;
 
     Assimp::Importer importer;
     const aiScene* scene;

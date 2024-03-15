@@ -89,15 +89,24 @@ void to_json(json& j, const SoftbodyDesc& sbDesc) {
              {"iterations", sbDesc.iterations}, {"springStrength", sbDesc.springStrength}};
 }
 
+// for TextureDesc
+void from_json(const json& j, TexturesDesc& textureDesc) {
+    j.at("name").get_to(textureDesc.name);
+    j.at("type").get_to(textureDesc.type);
+}
+
+void to_json(json& j, const TexturesDesc& textureDesc) { j = {{"name", textureDesc.name}, {"type", textureDesc.type}}; }
+
 // for ModelDesc
 void from_json(const json& j, ModelDesc& modelDesc) {
     j.at("name").get_to(modelDesc.name);
     j.at("filepath").get_to(modelDesc.filepath);
     j.at("shader").get_to(modelDesc.shader);
+    j.at("textures").get_to(modelDesc.textures);
 }
 
 void to_json(json& j, const ModelDesc& modelDesc) {
-    j = {{"name", modelDesc.name}, {"filepath", modelDesc.filepath}, {"shader", modelDesc.shader}};
+    j = {{"name", modelDesc.name}, {"filepath", modelDesc.filepath}, {"shader", modelDesc.shader}, {"textures", modelDesc.textures}};
 }
 
 // for AnimationDesc

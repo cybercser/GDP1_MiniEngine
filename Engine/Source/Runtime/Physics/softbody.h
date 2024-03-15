@@ -7,16 +7,11 @@
 
 namespace gdp1 {
 
-struct SoftBodyParticle {
-    SoftBodyParticle() {
-        position = glm::vec3(0.0f);
-        oldPosition = glm::vec3(0.0f);
-        worldPosition = glm::vec3(0.0f);
-        velocity = glm::vec3(0.0f);
+class GameObject;
 
-        mass = 1.0;
-        isPinned = false;
-    }
+struct SoftBodyParticle {
+
+    SoftBodyParticle();
 
     glm::vec3 position;
     glm::vec3 oldPosition;
@@ -24,10 +19,13 @@ struct SoftBodyParticle {
 
     glm::vec3 velocity;
 
+    glm::vec3 acceleration = glm::vec3(0.f, -9.8f, 0.f);
+
     float mass;
     bool isPinned;
 
-    Vertex* vertex;
+    Model* model;
+    GameObject* go;
 
     void Update(float deltaTime);
     void ApplyForce(glm::vec3 force);
@@ -50,13 +48,15 @@ struct SoftBodySpring {
 
 class SoftBody {
 public:
-    SoftBody(Model* model, Transform* transform);
+    SoftBody();
     ~SoftBody();
 
     float springStrength = 1.0f;
     float particleMass = 1.0f;
 
     int iterations = 1;
+
+    void CreateParticles(Model* model, Transform* transform);
 
     void CreateSpring(SoftBodyParticle* particleA, SoftBodyParticle* particleB);
 
@@ -70,11 +70,12 @@ public:
 
     void Draw(Shader* shader);
 
-private:
     Mesh mesh;
 
     std::vector<SoftBodyParticle*> particles{};
     std::vector<SoftBodySpring*> springs{};
+
+    Transform* transform;
 
 };
 

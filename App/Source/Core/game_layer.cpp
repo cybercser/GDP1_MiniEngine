@@ -7,6 +7,10 @@ using namespace gdp1::utils;
 #include "Input/key_codes.h"
 #include "Input/mouse_button_codes.h"
 
+#include "Physics/softbody.h"
+#include "Core/game_object.h"
+#include "Utils/softbody_utils.h"
+
 GameLayer::GameLayer()
     : Layer("Game") {}
 
@@ -34,11 +38,42 @@ void GameLayer::OnAttach() {
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
-    
+
     // init physics engine
     m_Physics = std::make_unique<Physics>(m_Scene.get(), levelJson);
-   
+
     animatedModel = m_Scene->FindModelByName("Fall_Flat");
+
+    GameObject* cloth = m_Scene->FindObjectByName("Cloth");
+    if (cloth) {
+        cloth->transform->localPosition = (glm::vec3(0.f, 50.f, 0.0f));
+        // cloth->softBody->CreateRandomSprings(0);
+        cloth->softBody->particles[0]->isPinned = true;
+        cloth->softBody->particles[0]->position.z -= 1.0;
+        cloth->softBody->particles[271]->isPinned = true;
+        cloth->softBody->particles[271]->position.z += 1.0;
+    }
+
+    GameObject* cube = m_Scene->FindObjectByName("Cube");
+    if (cube && cube->hasSoftBody) {
+        cube->softBody->CreateRandomSprings(10);
+    }
+
+    GameObject* cube1 = m_Scene->FindObjectByName("Cube1");
+    if (cube1 && cube1->hasSoftBody) {
+        cube1->softBody->CreateRandomSprings(10);
+        AddChainToSoftBody(cube1, 5, 1.5f);
+    }
+
+    GameObject* blaster = m_Scene->FindObjectByName("Blaster");
+    if (blaster && blaster->hasSoftBody) {
+        blaster->transform->SetPosition(glm::vec3(30.f, 10.f, 0.0f));
+        //blaster->softBody = SoftBodyUtils::CreateChain(blaster->transform, 4, 1.0f);
+        blaster->softBody->CreateRandomSprings(30000);
+    }
+
+    movableObject = m_Scene->FindObjectByName("Cube1_chain_4");
+    
 
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -77,6 +112,29 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
         }
     }
 
+    if (movableObject != nullptr) {
+        if (Input::IsKeyPressed(HZ_KEY_UP)) {
+            glm::vec3 newPos(movableObject->transform->localPosition);
+            newPos.z += 2.0f;
+            movableObject->transform->SetPosition(newPos);
+        }
+        if (Input::IsKeyPressed(HZ_KEY_LEFT)) {
+            glm::vec3 newPos(movableObject->transform->localPosition);
+            newPos.x += 0.1f;
+            movableObject->transform->SetPosition(newPos);
+        }
+        if (Input::IsKeyPressed(HZ_KEY_RIGHT)) {
+            glm::vec3 newPos(movableObject->transform->localPosition);
+            newPos.x -= 0.1f;
+            movableObject->transform->SetPosition(newPos);
+        }
+        if (Input::IsKeyPressed(HZ_KEY_DOWN)) {
+            glm::vec3 newPos(movableObject->transform->localPosition);
+            newPos.z -= 0.1f;
+            movableObject->transform->SetPosition(newPos);
+        }
+    }
+
     m_Physics->FixedUpdate(ts);
     m_Scene->Update(ts);
     glClearColor(0.1f, 1.0f, 0.1f, 1.0f);
@@ -99,4 +157,27 @@ void GameLayer::OnImGuiRender() {
     ImGui::End();
 }
 
+void GameLayer::AddChainToSoftBody(gdp1::GameObject* gameObject, int chainSize, float chainSpacing) {
+    std::vector<GameObject*> chainObjects;
+    Model* sphere_model = m_Scene->FindModelByName("sphere");
+    for (int i = 0; i <= chainSize; i++) {
+        TransformDesc transformDesc;
+        transformDesc.localPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+        transformDesc.localEulerAngles = glm::vec3(0.0f, 0.0f, 0.0f);
+        transformDesc.localScale = glm::vec3(1.0f, 1.0f, 1.0f);
 
+        GameObjectDesc newObjectDesc;
+        newObjectDesc.name = gameObject->name + "_chain_" + std::to_string(i);
+        newObjectDesc.modelName = "sphere"; 
+        newObjectDesc.transform = transformDesc;
+
+        GameObject* go = new GameObject(m_Scene.get(), newObjectDesc);
+        go->model = sphere_model;
+        go->visible = true;
+
+        m_Scene->AddGameObject(go);
+        chainObjects.push_back(go);
+    }
+
+    SoftBodyUtils::AddChain(gameObject, chainObjects, chainSize, chainSpacing);
+}

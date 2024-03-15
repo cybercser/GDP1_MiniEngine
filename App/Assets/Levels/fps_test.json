@@ -37,7 +37,7 @@
         "b": 0.745283,
         "a": 1.0
       },
-      "intensity": 2.0
+      "intensity": 0.5
     }
   ],
   "pointLights": [],
@@ -46,27 +46,43 @@
     {
       "name": "plane",
       "filepath": "Assets/Models/FPS_Test/plane.obj",
-      "shader": "untextured"
+      "shader": "untextured",
+      "textures": []
     },
     {
       "name": "Fall_Flat",
       "filepath": "Assets/Models/FPS_Test/Fall_Flat.fbx",
-      "shader": "lit"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "Blaster",
-      "filepath": "Assets/Models/FPS_Test/blasterE.fbx",
-      "shader": "untextured"
+      "filepath": "Assets/Models/FPS_Test/blasterE.ply",
+      "shader": "untextured",
+      "textures": []
     },
     {
       "name": "Cube",
       "filepath": "Assets/Models/FPS_Test/Cube.ply",
-      "shader": "untextured"
+      "shader": "untextured",
+      "textures": []
     },
     {
       "name": "Cloth",
       "filepath": "Assets/Models/FPS_Test/Cloth.ply",
-      "shader": "untextured"
+      "shader": "untextured",
+      "textures": []
+    },
+    {
+      "name": "sphere",
+      "filepath": "Assets/Models/FPS_Test/sphere.ply",
+      "shader": "unlit",
+      "textures": [
+        {
+          "name": "yellow_color.png",
+          "type": "texture_diffuse"
+        }
+      ]
     }
   ],
   "gameObjects": [
@@ -96,7 +112,7 @@
       "parent": ""
     },
     {
-      "name": "Cube",
+      "name": "Cube1",
       "model": "Cube",
       "visible": true,
       "transform": {
@@ -112,9 +128,34 @@
           "z": 0
         },
         "localScale": {
-          "x": 1,
-          "y": 1,
-          "z": 1
+          "x": 2,
+          "y": 2,
+          "z": 2
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Cube",
+      "model": "Cube",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 0,
+          "y": 50,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "w": 0,
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 2,
+          "y": 2,
+          "z": 4
         }
       },
       "children": [],
@@ -126,8 +167,33 @@
       "visible": true,
       "transform": {
         "localPosition": {
+          "x": 30,
+          "y": 0,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "w": 0,
           "x": 0,
           "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 0.05,
+          "y": 0.05,
+          "z": 0.05
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Cloth",
+      "model": "Cloth",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 0,
+          "y": 20,
           "z": 0
         },
         "localEulerAngles": {
@@ -151,13 +217,13 @@
       "visible": true,
       "transform": {
         "localPosition": {
-          "x": 0,
-          "y": 10,
+          "x": -20,
+          "y": 50,
           "z": 0
         },
         "localEulerAngles": {
           "w": 0,
-          "x": 45,
+          "x": 0,
           "y": 0,
           "z": 0
         },
@@ -169,31 +235,6 @@
       },
       "children": [],
       "parent": ""
-    },
-    {
-      "name": "Cloth",
-      "model": "Cloth",
-      "visible": true,
-      "transform": {
-        "localPosition": {
-          "x": 0,
-          "y": 10,
-          "z": 0
-        },
-        "localEulerAngles": {
-          "w": 0,
-          "x": 45,
-          "y": 0,
-          "z": 0
-        },
-        "localScale": {
-          "x": 0.05,
-          "y": 0.05,
-          "z": 0.05
-        }
-      },
-      "children": [],
-      "parent": ""
     }
   ],
   "rigidbodies": [
@@ -201,18 +242,28 @@
   ],
   "softbodies": [
     {
-      "objectName": "Blaster",
-      "mass": 1.0,
-      "springStrength": 1.0,
-      "iterations": 10,
-      "bracings": 100
-    },
-    {
       "objectName": "Cloth",
       "mass": 1.0,
       "springStrength": 1.0,
-      "iterations": 10,
-      "bracings": 100
+      "iterations": 5
+    },
+    {
+      "objectName": "Cube",
+      "mass": 1.0,
+      "springStrength": 1.0,
+      "iterations": 5
+    },
+    {
+      "objectName": "Cube1",
+      "mass": 1.0,
+      "springStrength": 1.0,
+      "iterations": 5
+    },
+    {
+      "objectName": "Blaster",
+      "mass": 1.0,
+      "springStrength": 1.0,
+      "iterations": 10
     }
   ],
   "animation": {
@@ -220,31 +271,7 @@
     "path": ""
   },
   "character_animations": [
-    {
-      "name": "Fall_Flat",
-      "path": "Assets/Models/FPS_Test/Fall_Flat.fbx",
-      "model": "Fall_Flat"
-    },
-    {
-      "name": "Chapa",
-      "path": "Assets/Models/FPS_Test/Chapa.fbx",
-      "model": "Fall_Flat"
-    },
-    {
-      "name": "Standing_Taunt",
-      "path": "Assets/Models/FPS_Test/Standing_Taunt.fbx",
-      "model": "Fall_Flat"
-    },
-    {
-      "name": "Jumping",
-      "path": "Assets/Models/FPS_Test/Jumping.fbx",
-      "model": "Fall_Flat"
-    },
-    {
-      "name": "Jumping_Down",
-      "path": "Assets/Models/FPS_Test/Jumping_Down.fbx",
-      "model": "Fall_Flat"
-    }
+
   ],
   "animation": {
     "name": "",

@@ -61,10 +61,16 @@ void Physics::Init(Scene* scene, const LevelDesc& levelDesc) {
         gameObject->hasSoftBody = true;
         Model* model = gameObject->model;
 
-        SoftBody* body = new SoftBody(gameObject->model, gameObject->transform);
+        SoftBody* body = new SoftBody();
+
+        body->CreateParticles(gameObject->model, gameObject->transform);
         body->particleMass = bodyDesc.mass;
         body->springStrength = bodyDesc.springStrength;
         body->iterations = bodyDesc.iterations;
+
+        float mass = 1.0f / body->particleMass;
+        glm::vec3 gravity = glm::vec3(0.0, -9.8, 0.0);
+        body->ApplyForce(gravity);
 
         gameObject->softBody = body;
         softbodies_.push_back(body);
@@ -96,8 +102,8 @@ void Physics::FixedUpdate(float deltaTime) {
 
     for (SoftBody* body : softbodies_) {
         float mass = 1.0f / body->particleMass;
-        glm::vec3 impulseGravity = glm::vec3(0.0, -9.8, 0.0) * mass * deltaTime;
-        body->ApplyForce(impulseGravity);
+        //glm::vec3 windForce = glm::vec3(0.0, 0.0, 0.05) * mass * deltaTime;
+        //body->ApplyForce(windForce);
         body->Update(deltaTime);
     }
 

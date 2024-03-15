@@ -35,6 +35,8 @@ public:
     Model* FindModelByName(const std::string& name);
     GameObject* FindObjectByName(const std::string& name);
 
+    void AddGameObject(GameObject* gameObject);
+
     DirectionalLight* FindDirectionalLightByName(const std::string& name);
     PointLight* FindPointLightByName(const std::string& name);
     SpotLight* FindSpotLightByName(const std::string& name);
