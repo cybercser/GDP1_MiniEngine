@@ -14,6 +14,8 @@
 #include "Render/scene.h"
 #include "Render/shader.h"
 
+DWORD WINAPI UpdateSoftBodyThread(LPVOID lpParameter);
+
 namespace gdp1 {
 
 Physics::Physics(Scene* scene, const LevelDesc& levelDesc) {
@@ -49,11 +51,13 @@ void Physics::Init(Scene* scene, const LevelDesc& levelDesc) {
         } else if (bodyDesc.collider == "MESH") {
             body->collider = new MeshCollider(body->object);
         }
+
         rigidbodies_.push_back(body);
 
         body_map_.insert({objName, body});
     }
 
+    // Init Soft bodies
     for (const SoftbodyDesc& bodyDesc : levelDesc.softbodyDescs) {
         const std::string& objName = bodyDesc.objectName;
 
@@ -62,23 +66,24 @@ void Physics::Init(Scene* scene, const LevelDesc& levelDesc) {
         Model* model = gameObject->model;
 
         SoftBody* body = new SoftBody();
-
-        body->CreateParticles(gameObject->model, gameObject->transform);
         body->particleMass = bodyDesc.mass;
         body->springStrength = bodyDesc.springStrength;
         body->iterations = bodyDesc.iterations;
+        body->collider = new SphereCollider(0.1f);
+        body->CreateParticles(gameObject->model, gameObject->transform);
 
-        float mass = 1.0f / body->particleMass;
         glm::vec3 gravity = glm::vec3(0.0, -9.8, 0.0);
         body->ApplyForce(gravity);
 
         gameObject->softBody = body;
+
         softbodies_.push_back(body);
 
         soft_body_map_.insert({objName, body});
     }
 
-    CreateBVH();
+
+    //CreateBVH();
 }
 
 void Physics::CreateBVH() {
@@ -98,13 +103,6 @@ void Physics::FixedUpdate(float deltaTime) {
         float mass = 1.0f / body->invMass;
         glm::vec3 impulseGravity = glm::vec3(0.0, -9.8, 0.0) * mass * deltaTime;
         body->ApplyImpulse(impulseGravity);
-    }
-
-    for (SoftBody* body : softbodies_) {
-        float mass = 1.0f / body->particleMass;
-        //glm::vec3 windForce = glm::vec3(0.0, 0.0, 0.05) * mass * deltaTime;
-        //body->ApplyForce(windForce);
-        body->Update(deltaTime);
     }
 
     // Broad phase
@@ -131,11 +129,29 @@ void Physics::FixedUpdate(float deltaTime) {
         if (Intersect(bodyA, bodyB, contact)) {
             ResolveContact(contact);
             //bodyA->object->OnCollision(info);
-            const glm::vec3& pt = contact.ptOnA_WorldSpace;
+            /*const glm::vec3& pt = contact.ptOnA_WorldSpace;
             printf("(%s, %s) at (%.3f, %.3f, %.3f)\n", bodyA->object->name.c_str(), bodyB->object->name.c_str(), pt.x,
-                   pt.y, pt.z);
+                   pt.y, pt.z);*/
         }
     }
+
+    // Broad phase
+    //std::vector<SoftBodyCollisionInfo> softBodycollisionInfos;
+    //BroadPhaseSoftBodies(softbodies_, rigidbodies_, softBodycollisionInfos);
+
+    //for (size_t i = 0; i < softBodycollisionInfos.size(); i++) {
+    //    const SoftBodyCollisionInfo& info = softBodycollisionInfos[i];
+    //    SoftBody* bodyA = info.body1;
+    //    Rigidbody* bodyB = info.body2;
+
+    //    SoftBodyContact contact;
+    //    if (Intersect(bodyA, bodyB, contact)) {
+    //        //ResolveContact(contact);
+    //        // bodyA->object->OnCollision(info);
+    //        const glm::vec3& pt = contact.ptOnA_WorldSpace;
+    //        printf("(%s, %s) at (%.3f, %.3f, %.3f)\n", "Softbody", bodyB->object->name.c_str(), pt.x, pt.y, pt.z);
+    //    }
+    //}
 
 #if 0
 	// the brute force way
@@ -170,6 +186,26 @@ void Physics::FixedUpdate(float deltaTime) {
         body->position += body->velocity * deltaTime;
         body->collider->centerOfMass = body->position;
         body->object->transform->SetPosition(body->position);
+    }
+}
+
+void Physics::StartSoftBodyThreads() {
+    // Init Softbodies
+
+    for (SoftBody* softBody : softbodies_) {
+        //softBody->Simulate();
+
+        SoftBodyThreadInfo* params = new SoftBodyThreadInfo();
+        params->body = softBody;
+        params->isAlive = true;
+        params->keepRunning = true;
+        params->timeStep = 0.01;
+        params->sleepTime = 1;
+
+        void* pParams = (void*)params;
+
+        DWORD threadId;
+        HANDLE handle = CreateThread(NULL, 0, UpdateSoftBodyThread, pParams, 0, &(threadId));
     }
 }
 

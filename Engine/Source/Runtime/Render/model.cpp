@@ -290,7 +290,7 @@ TextureInfo* Model::LoadTexture(std::string textureName, std::string textureType
     }
 
     if (!skip) {
-        TextureInfo* texture = new TextureInfo();
+        texture = new TextureInfo();
         texture->id = Texture::LoadTexture(textureName);
         texture->type = textureType;
         texture->path = textureName;

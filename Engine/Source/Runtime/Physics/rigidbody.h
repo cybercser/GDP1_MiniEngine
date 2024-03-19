@@ -8,6 +8,7 @@ namespace gdp1 {
 // forward declaration
 class Collider;
 class GameObject;
+class SoftBody;
 
 class Rigidbody {
 public:

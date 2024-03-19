@@ -7,7 +7,6 @@ using namespace gdp1::utils;
 #include "Input/key_codes.h"
 #include "Input/mouse_button_codes.h"
 
-#include "Physics/softbody.h"
 #include "Core/game_object.h"
 #include "Utils/softbody_utils.h"
 
@@ -45,35 +44,41 @@ void GameLayer::OnAttach() {
     animatedModel = m_Scene->FindModelByName("Fall_Flat");
 
     GameObject* cloth = m_Scene->FindObjectByName("Cloth");
-    if (cloth) {
-        cloth->transform->localPosition = (glm::vec3(0.f, 50.f, 0.0f));
+    if (cloth && cloth->hasSoftBody) {
+        cloth->softBody->ApplyForce(glm::vec3(0.0f, 5.0f, 0.0f));
+        cloth->transform->localPosition = (glm::vec3(0.f, 40.f, 0.0f));
+
         // cloth->softBody->CreateRandomSprings(0);
         cloth->softBody->particles[0]->isPinned = true;
-        cloth->softBody->particles[0]->position.z -= 1.0;
+        //cloth->softBody->particles[0]->position.z -= 2.0;
+
         cloth->softBody->particles[271]->isPinned = true;
-        cloth->softBody->particles[271]->position.z += 1.0;
+        //cloth->softBody->particles[271]->position.z += 2.0;
     }
 
-    GameObject* cube = m_Scene->FindObjectByName("Cube");
-    if (cube && cube->hasSoftBody) {
-        cube->softBody->CreateRandomSprings(10);
-    }
-
-    GameObject* cube1 = m_Scene->FindObjectByName("Cube1");
+    GameObject* cube1 = m_Scene->FindObjectByName("Chomp");
     if (cube1 && cube1->hasSoftBody) {
-        cube1->softBody->CreateRandomSprings(10);
-        AddChainToSoftBody(cube1, 5, 1.5f);
+        cube1->transform->SetPosition(glm::vec3(10.f, 10.f, 10.f));
+        cube1->softBody->CreateRandomSprings(1000, 1.0f);
+        AddChainToSoftBody(cube1, 10, 1.0f, 108);
+
+        movableParticle = cube1->softBody->particles[cube1->softBody->particles.size() - 1];
     }
 
     GameObject* blaster = m_Scene->FindObjectByName("Blaster");
     if (blaster && blaster->hasSoftBody) {
         blaster->transform->SetPosition(glm::vec3(30.f, 10.f, 0.0f));
-        //blaster->softBody = SoftBodyUtils::CreateChain(blaster->transform, 4, 1.0f);
-        blaster->softBody->CreateRandomSprings(30000);
+        blaster->softBody->CreateRandomSprings(30000, 1.0f);
     }
 
-    movableObject = m_Scene->FindObjectByName("Cube1_chain_4");
-    
+    GameObject* ball = m_Scene->FindObjectByName("Ball");
+    if (ball && ball->hasSoftBody) {
+        ball->softBody->CreateRandomSprings(10000, 1.5f);
+    }
+
+    CreateSoftBodyBridge(20, glm::vec3(10.0f, 5.0f, 11.0f), 0.3f, "bridge_left");
+
+    m_Physics->StartSoftBodyThreads();
 
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -113,26 +118,78 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
     }
 
     if (movableObject != nullptr) {
-        if (Input::IsKeyPressed(HZ_KEY_UP)) {
+        if (Input::IsKeyPressed(HZ_KEY_UP) && !Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT)) {
             glm::vec3 newPos(movableObject->transform->localPosition);
-            newPos.z += 2.0f;
+            newPos.z += 0.1f;
             movableObject->transform->SetPosition(newPos);
+
+            movableParticle->oldPosition = movableParticle->position;
+            movableParticle->position = newPos;
         }
         if (Input::IsKeyPressed(HZ_KEY_LEFT)) {
             glm::vec3 newPos(movableObject->transform->localPosition);
             newPos.x += 0.1f;
             movableObject->transform->SetPosition(newPos);
+            movableParticle->oldPosition = movableParticle->position;
+            movableParticle->position = newPos;
         }
         if (Input::IsKeyPressed(HZ_KEY_RIGHT)) {
             glm::vec3 newPos(movableObject->transform->localPosition);
             newPos.x -= 0.1f;
             movableObject->transform->SetPosition(newPos);
+            movableParticle->oldPosition = movableParticle->position;
+            movableParticle->position = newPos;
         }
-        if (Input::IsKeyPressed(HZ_KEY_DOWN)) {
+        if (Input::IsKeyPressed(HZ_KEY_DOWN) && !Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT)) {
             glm::vec3 newPos(movableObject->transform->localPosition);
             newPos.z -= 0.1f;
             movableObject->transform->SetPosition(newPos);
+            movableParticle->oldPosition = movableParticle->position;
+            movableParticle->position = newPos;
         }
+        if (Input::IsKeyPressed(HZ_KEY_UP) && Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT)) {
+            glm::vec3 newPos(movableObject->transform->localPosition);
+            newPos.y += 0.1f;
+            movableObject->transform->SetPosition(newPos);
+            movableParticle->oldPosition = movableParticle->position;
+            movableParticle->position = newPos;
+        }
+        if (Input::IsKeyPressed(HZ_KEY_DOWN) && Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT)) {
+            glm::vec3 newPos(movableObject->transform->localPosition);
+            newPos.y -= 0.1f;
+            movableObject->transform->SetPosition(newPos);
+            movableParticle->oldPosition = movableParticle->position;
+            movableParticle->position = newPos;
+        }
+        if (Input::IsKeyPressed(HZ_KEY_F)) {
+            bridgeRopeLeft->springs[7]->isActive = false;
+            bridgeRopeRight->springs[7]->isActive = false;
+
+            bridgeRopeLeft->springs[3]->isActive = false;
+            bridgeRopeRight->springs[3]->isActive = false;
+        }
+        if (Input::IsKeyPressed(HZ_KEY_G)) {
+            bridgeRopeLeft->springs[7]->isActive = true;
+            bridgeRopeRight->springs[7]->isActive = true;
+            bridgeRopeLeft->springs[3]->isActive = true;
+            bridgeRopeRight->springs[3]->isActive = true;
+        }
+    }
+
+    bridgeRopeLeft->Update(ts);
+    bridgeRopeRight->Update(ts);
+    // platform->Update(ts);
+
+    for (unsigned int i = 0; i < bridgePlatforms.size(); i++) {
+        GameObject* go = bridgePlatforms[i];
+        
+        go->softBody->particles[2]->position = bridgeRopeLeft->particles[i * 2]->position;
+        go->softBody->particles[4]->position = bridgeRopeLeft->particles[(i * 2) + 1]->position;
+
+        go->softBody->particles[1]->position = bridgeRopeRight->particles[i * 2]->position;
+        go->softBody->particles[6]->position = bridgeRopeRight->particles[(i * 2) + 1]->position;
+
+        go->softBody->Update(ts);
     }
 
     m_Physics->FixedUpdate(ts);
@@ -157,9 +214,37 @@ void GameLayer::OnImGuiRender() {
     ImGui::End();
 }
 
-void GameLayer::AddChainToSoftBody(gdp1::GameObject* gameObject, int chainSize, float chainSpacing) {
+gdp1::SoftBody* GameLayer::CreateChain(glm::vec3 startPos, int chainSize, float chainSpacing, std::string name) {
+    gdp1::SoftBody* chain = SoftBodyUtils::CreateChain(startPos, chainSize, chainSpacing);
+    Model* sphere_model = m_Scene->FindModelByName("ChainSphere");
+
+    for (int i = 0; i <= chainSize; i++) {
+        TransformDesc transformDesc;
+        transformDesc.localPosition = startPos;
+        transformDesc.localEulerAngles = glm::vec3(0.0f);
+        transformDesc.localScale = glm::vec3(0.5f);
+
+        GameObjectDesc newObjectDesc;
+        newObjectDesc.name = name + "_chain_" + std::to_string(i);
+        newObjectDesc.modelName = "ChainSphere";
+        newObjectDesc.transform = transformDesc;
+
+        GameObject* go = new GameObject(m_Scene.get(), newObjectDesc);
+        go->model = sphere_model;
+        go->visible = true;
+
+        chain->particles[i]->go = go;
+
+        m_Scene->AddGameObject(go);
+    }
+
+    return chain;
+}
+
+void GameLayer::AddChainToSoftBody(gdp1::GameObject* gameObject, int chainSize, float chainSpacing,
+                                   int attachVertexIndex) {
     std::vector<GameObject*> chainObjects;
-    Model* sphere_model = m_Scene->FindModelByName("sphere");
+    Model* sphere_model = m_Scene->FindModelByName("ChainSphere");
     for (int i = 0; i <= chainSize; i++) {
         TransformDesc transformDesc;
         transformDesc.localPosition = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -168,7 +253,7 @@ void GameLayer::AddChainToSoftBody(gdp1::GameObject* gameObject, int chainSize, 
 
         GameObjectDesc newObjectDesc;
         newObjectDesc.name = gameObject->name + "_chain_" + std::to_string(i);
-        newObjectDesc.modelName = "sphere"; 
+        newObjectDesc.modelName = "ChainSphere";
         newObjectDesc.transform = transformDesc;
 
         GameObject* go = new GameObject(m_Scene.get(), newObjectDesc);
@@ -177,7 +262,49 @@ void GameLayer::AddChainToSoftBody(gdp1::GameObject* gameObject, int chainSize, 
 
         m_Scene->AddGameObject(go);
         chainObjects.push_back(go);
+
+        if (i == chainSize) {
+            movableObject = go;
+        }
     }
 
-    SoftBodyUtils::AddChain(gameObject, chainObjects, chainSize, chainSpacing);
+    SoftBodyUtils::AddChain(gameObject, chainObjects, chainSize, chainSpacing, attachVertexIndex);
+}
+
+void GameLayer::CreateSoftBodyBridge(int chainSize, glm::vec3 startPos, float chainSpacing, std::string name) {
+    Model* woodModel = m_Scene->FindModelByName("Wood");
+
+    glm::vec3 startLeftPos = startPos;
+    startLeftPos.z += 2.0f;
+
+    bridgeRopeLeft = CreateChain(startLeftPos, chainSize, chainSpacing, "bridge_left");
+    bridgeRopeRight = CreateChain(startPos, chainSize, chainSpacing, "bridge_right");
+
+    for (unsigned int i = 0; i < chainSize; i += 2) {
+        TransformDesc transformDesc;
+        transformDesc.localPosition = glm::vec3(startPos.x - (i * chainSpacing), startPos.y, startPos.z);
+        transformDesc.localEulerAngles = glm::vec3(90.0f, 0.0f, 0.0f);
+        transformDesc.localScale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        GameObjectDesc bodyDesc;
+        bodyDesc.name = "platform_" + std::to_string(i);
+        bodyDesc.modelName = "Wood";
+        bodyDesc.transform = transformDesc;
+
+        GameObject* go = new GameObject(m_Scene.get(), bodyDesc);
+        go->model = woodModel;
+        go->visible = true;
+
+        SoftbodyDesc softBodyDesc;
+        softBodyDesc.iterations = 5;
+        softBodyDesc.mass = 1.0f;
+        softBodyDesc.objectName = bodyDesc.name;
+        softBodyDesc.springStrength = 1.0f;
+
+        go->softBody = SoftBodyUtils::CreateSoftBody(softBodyDesc, go);
+        go->hasSoftBody = true;
+
+        m_Scene->AddGameObject(go);
+        bridgePlatforms.push_back(go);
+    }
 }

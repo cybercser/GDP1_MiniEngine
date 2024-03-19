@@ -31,6 +31,8 @@ public:
 
     void DrawBVH(std::shared_ptr<Shader> shader) const;
 
+    void StartSoftBodyThreads();
+
 private:
     void Init(Scene* scene, const LevelDesc& levelDesc);
 

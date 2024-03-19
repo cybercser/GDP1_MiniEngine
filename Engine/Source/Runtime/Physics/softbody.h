@@ -4,10 +4,20 @@
 #include "Render/model.h"
 #include "Render/shader.h"
 #include "Core/transform.h"
+#include "collider.h"
 
 namespace gdp1 {
 
 class GameObject;
+class SoftBody;
+
+struct SoftBodyThreadInfo {
+    SoftBody* body;
+    double timeStep = 0.0;
+    DWORD sleepTime;
+    bool isAlive = true;
+    bool keepRunning = true;
+};
 
 struct SoftBodyParticle {
 
@@ -24,8 +34,9 @@ struct SoftBodyParticle {
     float mass;
     bool isPinned;
 
-    Model* model;
     GameObject* go;
+
+    Vertex* pVertex;
 
     void Update(float deltaTime);
     void ApplyForce(glm::vec3 force);
@@ -43,6 +54,8 @@ struct SoftBodySpring {
     SoftBodyParticle* particleA;
     SoftBodyParticle* particleB;
 
+    bool isActive = true;
+
     void Update(const float& springStregth, int iterations);
 };
 
@@ -51,16 +64,16 @@ public:
     SoftBody();
     ~SoftBody();
 
-    float springStrength = 1.0f;
-    float particleMass = 1.0f;
+    float springStrength = 0.f;
+    float particleMass = 0.f;
 
-    int iterations = 1;
+    int iterations = 0;
 
     void CreateParticles(Model* model, Transform* transform);
 
     void CreateSpring(SoftBodyParticle* particleA, SoftBodyParticle* particleB);
 
-    void CreateRandomSprings(int numOfSprings);
+    void CreateRandomSprings(int numOfSprings, float minDistance);
 
     void ApplyForce(const glm::vec3& force);
     void Update(float deltaTime);
@@ -68,9 +81,18 @@ public:
     void UpdatePositions(float deltaTime);
     void UpdateNormals();
 
+    void Simulate();
+
     void Draw(Shader* shader);
 
-    Mesh mesh;
+    Model* model;
+    Collider* collider;
+
+    std::vector<Mesh> meshes;
+
+    //DWORD threadId;
+    //HANDLE handle;
+    //void* params;
 
     std::vector<SoftBodyParticle*> particles{};
     std::vector<SoftBodySpring*> springs{};

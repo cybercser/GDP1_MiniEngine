@@ -60,7 +60,7 @@ void Mesh::Draw(Shader* shader) {
     glBindVertexArray(0);
 
     // always good practice to set everything back to defaults once configured.
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
 }
 
 void Mesh::UpdateVertexBuffers() {

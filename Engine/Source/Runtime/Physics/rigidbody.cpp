@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "rigidbody.h"
+#include "Core/game_object.h"
 
 namespace gdp1 {
 
@@ -32,6 +33,10 @@ void Rigidbody::ApplyImpulse(const glm::vec3& impulse) {
     if (0.0f == invMass || !active) return;
 
     velocity += impulse * invMass;
+
+    if (object->hasSoftBody && object->softBody) {
+        object->softBody->ApplyForce(velocity);
+    }
 }
 
 Bounds Rigidbody::GetBounds() const {
