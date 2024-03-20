@@ -35,14 +35,16 @@ GLuint Texture::LoadTexture(const std::string& texPath, bool flipY) {
     if (data != nullptr) {
         GLenum format = GL_RGBA, internalFormat = GL_RGBA8;
         if (numChannels == 1) {
-            format = GL_R8;
-            internalFormat = GL_RED;
+            format = GL_RED;
+            internalFormat = GL_R8;
         } else if (numChannels == 3) {
             format = GL_RGB;
             internalFormat = GL_RGB8;
         } else if (numChannels == 4) {
             format = GL_RGBA;
             internalFormat = GL_RGBA8;
+        } else {
+            LOG_ERROR("Invalid numChannels value!");
         }
 
         glCreateTextures(GL_TEXTURE_2D, 1, &tex);

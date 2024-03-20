@@ -45,22 +45,22 @@ void GameLayer::OnAttach() {
 
     GameObject* cloth = m_Scene->FindObjectByName("Cloth");
     if (cloth && cloth->hasSoftBody) {
-        cloth->softBody->ApplyForce(glm::vec3(0.0f, 5.0f, 0.0f));
-        cloth->transform->localPosition = (glm::vec3(0.f, 40.f, 0.0f));
+        //cloth->softBody->ApplyForce(glm::vec3(0.0f, 0.f, 0.5f));
+        cloth->transform->localPosition = (glm::vec3(0.f, 20.f, 0.0f));
 
-        // cloth->softBody->CreateRandomSprings(0);
+        cloth->softBody->CreateRandomSprings(100, 1.0f);
         cloth->softBody->particles[0]->isPinned = true;
         //cloth->softBody->particles[0]->position.z -= 2.0;
 
-        cloth->softBody->particles[271]->isPinned = true;
+        cloth->softBody->particles[525]->isPinned = true;
         //cloth->softBody->particles[271]->position.z += 2.0;
     }
 
     GameObject* cube1 = m_Scene->FindObjectByName("Chomp");
     if (cube1 && cube1->hasSoftBody) {
         cube1->transform->SetPosition(glm::vec3(10.f, 10.f, 10.f));
-        cube1->softBody->CreateRandomSprings(1000, 1.0f);
-        AddChainToSoftBody(cube1, 10, 1.0f, 108);
+        cube1->softBody->CreateRandomSprings(2000, 1.0f);
+        AddChainToSoftBody(cube1, 5, 0.2f, 108);
 
         movableParticle = cube1->softBody->particles[cube1->softBody->particles.size() - 1];
     }
@@ -68,12 +68,17 @@ void GameLayer::OnAttach() {
     GameObject* blaster = m_Scene->FindObjectByName("Blaster");
     if (blaster && blaster->hasSoftBody) {
         blaster->transform->SetPosition(glm::vec3(30.f, 10.f, 0.0f));
-        blaster->softBody->CreateRandomSprings(30000, 1.0f);
+        blaster->softBody->CreateRandomSprings(50000, 0.5f);
     }
 
     GameObject* ball = m_Scene->FindObjectByName("Ball");
     if (ball && ball->hasSoftBody) {
-        ball->softBody->CreateRandomSprings(10000, 1.5f);
+        ball->softBody->CreateRandomSprings(10000, 0.1f);
+    }
+
+    GameObject* ball1 = m_Scene->FindObjectByName("Ball1");
+    if (ball1 && ball1->hasSoftBody) {
+        ball1->softBody->CreateRandomSprings(8000, 0.05f);
     }
 
     CreateSoftBodyBridge(20, glm::vec3(10.0f, 5.0f, 11.0f), 0.3f, "bridge_left");
@@ -194,7 +199,7 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
 
     m_Physics->FixedUpdate(ts);
     m_Scene->Update(ts);
-    glClearColor(0.1f, 1.0f, 0.1f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_Renderer->Render(m_Scene, m_FlyCamera->GetCamera());
 }
@@ -202,6 +207,7 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
 void GameLayer::OnImGuiRender() {
     ImGui::Begin("Controls");
     ImGui::Text("WASD to move, mouse to look around");
+    ImGui::Text("F - Destroy Bridge, G - Rebuild Bridge");
     // add label to show the camera parameters
     const glm::vec3& pos = m_FlyCamera->GetPosition();
     const glm::vec3& up = m_FlyCamera->GetUp();

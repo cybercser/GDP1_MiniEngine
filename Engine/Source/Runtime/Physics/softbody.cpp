@@ -5,6 +5,7 @@
 #include "Core/game_object.h"
 
 #include <iostream>
+#include <omp.h>
 
 #define MIN_FLOAT 1.192092896e-07f
 
@@ -17,6 +18,7 @@ SoftBodyParticle::SoftBodyParticle() {
     oldPosition = glm::vec3(0.0f);
     worldPosition = glm::vec3(0.0f);
     velocity = glm::vec3(0.0f);
+    acceleration = glm::vec3(0.0f);
 
     mass = 1.0;
     isPinned = false;
@@ -24,17 +26,7 @@ SoftBodyParticle::SoftBodyParticle() {
     pVertex = nullptr;
 }
 
-SoftBody::SoftBody() {
-    SoftBodyThreadInfo* tInfo = new SoftBodyThreadInfo();
-    tInfo->body = this;
-    tInfo->isAlive = true;
-    tInfo->keepRunning = false;
-    tInfo->timeStep = 0.02;
-    tInfo->sleepTime = 0.1;
-
-    // params = (void*)tInfo;
-    // handle = CreateThread(NULL, 0, UpdateSoftBodyThread, params, 0, &(threadId));
-}
+SoftBody::SoftBody() : CSRunner() {}
 
 void SoftBody::CreateParticles(Model* model, Transform* transform) {
     this->transform = transform;
@@ -220,23 +212,23 @@ void SoftBody::CreateRandomSprings(int numOfSprings, float minDistance) {
 }
 
 void SoftBodySpring::Update(const float& springStrength, int iterations) {
-    if (isActive) {
-        for (int i = 0; i < iterations; i++) {
-            if (particleB != nullptr && particleA != nullptr) {
-                glm::vec3 delta = particleB->position - particleA->position;
-                float deltaLength = glm::length(delta);
-                if (deltaLength <= MIN_FLOAT) {
-                    return;
-                }
+    if (!isActive) return;
 
-                float diffA = (deltaLength - restLength);
-                float diff = diffA / deltaLength;
+        // Batch processing springs
+#pragma omp parallel for
+    for (int i = 0; i < iterations; i++) {
+        if (particleB != nullptr && particleA != nullptr) {
+            glm::vec3 delta = particleB->position - particleA->position;
+            float deltaLength = glm::length(delta);
+            if (deltaLength <= MIN_FLOAT) continue;
 
-                glm::vec3 deltaPos = delta * 0.5f * diff * springStrength;
+            float diffA = (deltaLength - restLength);
+            float diff = diffA / deltaLength;
 
-                if (!particleA->isPinned) particleA->position += deltaPos;
-                if (!particleB->isPinned) particleB->position -= deltaPos;
-            }
+            glm::vec3 deltaPos = delta * 0.5f * diff * springStrength;
+
+            if (!particleA->isPinned) particleA->position += deltaPos;
+            if (!particleB->isPinned) particleB->position -= deltaPos;
         }
     }
 }
@@ -275,13 +267,15 @@ void SoftBody::Draw(Shader* shader) {
 }
 
 void SoftBody::Update(float deltaTime) {
-    for (SoftBodyParticle* particle : particles) {
-        particle->Update(deltaTime);
+    this->StartWriteLock();
+    for (size_t i = 0; i < particles.size(); i++) {
+        particles[i]->Update(deltaTime);
     }
 
-    for (SoftBodySpring* spring : springs) {
-        spring->Update(springStrength, iterations);
+    for (size_t i = 0; i < springs.size(); i++) {
+        springs[i]->Update(springStrength, iterations);
     }
+    this->EndWriteLock();
 
     UpdatePositions(deltaTime);
     UpdateNormals();
@@ -290,24 +284,28 @@ void SoftBody::Update(float deltaTime) {
 }
 
 void SoftBody::UpdatePositions(float deltaTime) {
+    this->StartWriteLock();
+    // #pragma omp parallel for
     for (unsigned int index = 0; index < meshes.size(); index++) {
         for (size_t i = 0; i < meshes[index].vertices.size(); i++) {
-            glm::vec3 localPosition =
-                TransformUtils::WorldToLocalPoint(this->particles[i]->position, transform->localPosition,
-                                                  transform->localRotation, transform->localScale.x);
+            glm::vec3 localPosition = TransformUtils::WorldToLocalPoint(
+                particles[i]->position, transform->localPosition, transform->localRotation, transform->localScale.x);
 
             meshes[index].vertices[i].position = localPosition;
 
-            if (this->particles[i]->position.y < 0.0f) {
-                this->particles[i]->position.y = 0.0f;
+            if (particles[i]->position.y < 0.0f) {
+                particles[i]->position.y = 0.0f;
             }
         }
     }
+    this->EndWriteLock();
 
     return;
 }
 
 void SoftBody::UpdateNormals() {
+    this->StartWriteLock();
+#pragma omp parallel for
     for (unsigned int index = 0; index < meshes.size(); index++) {
         for (Vertex& vertex : meshes[index].vertices) {
             vertex.normal = glm::vec3(0.f);
@@ -335,12 +333,9 @@ void SoftBody::UpdateNormals() {
         }
     }
 
-    return;
-}
+    this->EndWriteLock();
 
-void SoftBody::Simulate() {
-    // SoftBodyThreadInfo* tInfo = (SoftBodyThreadInfo*) params;
-    // tInfo->keepRunning = true;
+    return;
 }
 
 }  // namespace gdp1

@@ -4,6 +4,10 @@
 #include "shader.h"
 #include "light.h"
 #include "Resource/level_loader.h"
+
+#include <Windows.h>
+#define WIN32_LEAN_AND_MEAN
+
 namespace gdp1 {
 
 // forward declaration
@@ -15,8 +19,16 @@ class Animation;
 class AnimationSystem;
 class Renderer;
 
+struct LoadModelThreadParams {
+    ModelDesc modelDesc;
+    std::unordered_map<std::string, Model*>& modelMap;
+    int& vertexCount;
+    int& triangleCount;
+};
+
 class Scene {
 public:
+
     Scene(const LevelDesc& levelJson);
     ~Scene();
     void CreateRootGameObject();
@@ -65,6 +77,8 @@ private:
     void CreateHierarchy(Transform* xform);
 
 private:
+    std::vector<HANDLE> modelThreadHandles;
+
     std::unordered_map<std::string, Model*> m_ModelMap;
     std::unordered_map<std::string, GameObject*> m_GameObjectMap;
 

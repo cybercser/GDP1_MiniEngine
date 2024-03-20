@@ -14,7 +14,7 @@ struct WindowProps {
     uint32_t width;
     uint32_t height;
 
-    WindowProps(const std::string& title = "GDP1 MiniEngine", uint32_t width = 1280, uint32_t height = 720)
+    WindowProps(const std::string& title = "GDP1 MiniEngine", uint32_t width = 0, uint32_t height = 0)
         : title(title)
         , width(width)
         , height(height) {}
@@ -39,6 +39,7 @@ public:
     virtual bool IsMouseCaptured() const = 0;
 
     virtual void* GetNativeWindow() const = 0;
+    virtual void ToggleFullscreen() = 0;
 
     static Window* Create(const WindowProps& props = WindowProps());
 };

@@ -98,18 +98,6 @@ SoftBody* SoftBodyUtils::CreatePlatform(Scene* scene, std::vector<GameObject*>& 
         softBody->particles.push_back(body->particles[1]);
         softBody->particles.push_back(body->particles[4]);
         softBody->particles.push_back(body->particles[6]);
-
-        /*body->particles[2]->position = softBody->particles[i * 2]->position;
-        body->particles[2]->oldPosition = body->particles[2]->position;
-
-        body->particles[1]->position = softBody->particles[(i * 2) + 1]->position;
-        body->particles[1]->oldPosition = body->particles[1]->position;
-
-        body->particles[4]->position = softBody->particles[(i * 2) + 2]->position;
-        body->particles[4]->oldPosition = body->particles[4]->position;
-
-        body->particles[6]->position = softBody->particles[(i * 2) + 3]->position;
-        body->particles[6]->oldPosition = body->particles[6]->position;*/
     }
 
     SoftBodyParticle* edge1 = new SoftBodyParticle();
@@ -157,27 +145,6 @@ SoftBody* SoftBodyUtils::CreatePlatform(Scene* scene, std::vector<GameObject*>& 
         scene->AddGameObject(go);
         platformObjects.push_back(go);
     }
-
-    // Chains
-    /*for (unsigned int i = 0; i < 1; i++) {
-        SoftBodyParticle* pParticle = new SoftBodyParticle();
-
-        pParticle->position = glm::vec3(startPos.x - (i * spacing), startPos.y, startPos.z);
-        pParticle->oldPosition = pParticle->position;
-        pParticle->position = pParticle->position;
-
-        SoftBodyParticle* pParticle1 = new SoftBodyParticle();
-
-        pParticle1->position = glm::vec3(startPos.x - (i * spacing), startPos.y, startPos.z + 2.0f);
-        pParticle1->oldPosition = pParticle1->position;
-        pParticle1->position = pParticle1->position;
-
-        if (i == 0 || i == chainSize) pParticle->isPinned = true;
-        if (i == 0 || i == chainSize) pParticle1->isPinned = true;
-
-        softBody->particles.push_back(pParticle);
-        softBody->particles.push_back(pParticle1);
-    }*/
 
     for (int i = 0; i < softBody->particles.size() - 1; i++) {
         softBody->CreateSpring(softBody->particles[i], softBody->particles[i + 1]);

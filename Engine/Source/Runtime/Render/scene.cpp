@@ -9,9 +9,13 @@
 
 using namespace glm;
 
+CRITICAL_SECTION g_CriticalSection;
+DWORD WINAPI LoadModelThread(LPVOID lpParameter);
+
 namespace gdp1 {
 
 Scene::Scene(const LevelDesc& levelDesc) {
+    InitializeCriticalSection(&g_CriticalSection);
     CreateRootGameObject();
     ProcessDesc(levelDesc);
 }
@@ -60,6 +64,8 @@ Scene::~Scene() {
             delete it->second;
         }
     }
+
+    DeleteCriticalSection(&g_CriticalSection);
 }
 
 int Scene::DrawDebug(Shader* shader) {
@@ -141,6 +147,33 @@ void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
         m_VertexCount += model->GetVertexCount();
         m_TriangleCount += model->GetTriangleCount();
     }
+
+    //// Initialize counters for vertex and triangle counts
+    //int vertexCount = 0;
+    //int triangleCount = 0;
+
+    //for (const ModelDesc& modelDesc : modelDescs) {
+    //    // Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
+
+    //    LoadModelThreadParams* params = new LoadModelThreadParams{modelDesc, m_ModelMap, vertexCount, triangleCount};
+    //    
+    //    DWORD threadId;
+    //    HANDLE hThread = CreateThread(NULL, 0, LoadModelThread, (LPVOID)params, 0, &(threadId));
+    //    if (hThread != NULL)  {
+    //        // Add the thread handle to the vector
+    //        modelThreadHandles.push_back(hThread);
+    //    }
+    //}
+
+    //WaitForMultipleObjects(modelThreadHandles.size(), modelThreadHandles.data(), TRUE, INFINITE);
+
+    //// Close the thread handles
+    //for (HANDLE hThread : modelThreadHandles) {
+    //    CloseHandle(hThread);
+    //}
+
+    //m_VertexCount = vertexCount;
+    //m_TriangleCount = triangleCount;
 }
 
 bool Scene::LoadShaders(const LevelDesc& desc) {

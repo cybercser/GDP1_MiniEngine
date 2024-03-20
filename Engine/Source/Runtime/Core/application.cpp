@@ -15,15 +15,17 @@ namespace gdp1 {
 
 Application* Application::s_Instance = nullptr;
 
-Application::Application(const std::string& name, unsigned int width, unsigned int height) {
+Application::Application(const std::string& name, unsigned int width, unsigned int height, bool startFullScreen) {
     if (!s_Instance) {
         Logger::Init();
-    }
+    } 
 
     GLCORE_ASSERT(!s_Instance, "Application already exists!");
     s_Instance = this;
 
     m_Window = std::unique_ptr<Window>(Window::Create(WindowProps(name, width, height)));
+    //if (startFullScreen) m_Window->ToggleFullscreen();
+
     m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
     m_ImGuiLayer = new ImGuiLayer();

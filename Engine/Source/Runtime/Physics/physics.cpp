@@ -82,8 +82,7 @@ void Physics::Init(Scene* scene, const LevelDesc& levelDesc) {
         soft_body_map_.insert({objName, body});
     }
 
-
-    //CreateBVH();
+    // CreateBVH();
 }
 
 void Physics::CreateBVH() {
@@ -128,7 +127,7 @@ void Physics::FixedUpdate(float deltaTime) {
         Contact contact;
         if (Intersect(bodyA, bodyB, contact)) {
             ResolveContact(contact);
-            //bodyA->object->OnCollision(info);
+            // bodyA->object->OnCollision(info);
             /*const glm::vec3& pt = contact.ptOnA_WorldSpace;
             printf("(%s, %s) at (%.3f, %.3f, %.3f)\n", bodyA->object->name.c_str(), bodyB->object->name.c_str(), pt.x,
                    pt.y, pt.z);*/
@@ -136,13 +135,13 @@ void Physics::FixedUpdate(float deltaTime) {
     }
 
     // Broad phase
-    //std::vector<SoftBodyCollisionInfo> softBodycollisionInfos;
-    //BroadPhaseSoftBodies(softbodies_, rigidbodies_, softBodycollisionInfos);
+    // std::vector<SoftBodyCollisionInfo> softBodycollisionInfos;
+    // BroadPhaseSoftBodies(softbodies_, rigidbodies_, softBodycollisionInfos);
 
-    //for (size_t i = 0; i < softBodycollisionInfos.size(); i++) {
-    //    const SoftBodyCollisionInfo& info = softBodycollisionInfos[i];
-    //    SoftBody* bodyA = info.body1;
-    //    Rigidbody* bodyB = info.body2;
+    // for (size_t i = 0; i < softBodycollisionInfos.size(); i++) {
+    //     const SoftBodyCollisionInfo& info = softBodycollisionInfos[i];
+    //     SoftBody* bodyA = info.body1;
+    //     Rigidbody* bodyB = info.body2;
 
     //    SoftBodyContact contact;
     //    if (Intersect(bodyA, bodyB, contact)) {
@@ -193,14 +192,14 @@ void Physics::StartSoftBodyThreads() {
     // Init Softbodies
 
     for (SoftBody* softBody : softbodies_) {
-        //softBody->Simulate();
+        // softBody->Simulate();
 
         SoftBodyThreadInfo* params = new SoftBodyThreadInfo();
         params->body = softBody;
         params->isAlive = true;
         params->keepRunning = true;
         params->timeStep = 0.01;
-        params->sleepTime = 1;
+        params->sleepTime = 0;
 
         void* pParams = (void*)params;
 

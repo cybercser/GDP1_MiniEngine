@@ -4,6 +4,7 @@
 #include "Render/model.h"
 #include "Render/shader.h"
 #include "Core/transform.h"
+#include "Core/cs_runner.h"
 #include "collider.h"
 
 namespace gdp1 {
@@ -12,9 +13,9 @@ class GameObject;
 class SoftBody;
 
 struct SoftBodyThreadInfo {
-    SoftBody* body;
+    SoftBody* body = nullptr;
     double timeStep = 0.0;
-    DWORD sleepTime;
+    DWORD sleepTime = 0;
     bool isAlive = true;
     bool keepRunning = true;
 };
@@ -28,8 +29,7 @@ struct SoftBodyParticle {
     glm::vec3 worldPosition;
 
     glm::vec3 velocity;
-
-    glm::vec3 acceleration = glm::vec3(0.f, -9.8f, 0.f);
+    glm::vec3 acceleration;
 
     float mass;
     bool isPinned;
@@ -56,10 +56,10 @@ struct SoftBodySpring {
 
     bool isActive = true;
 
-    void Update(const float& springStregth, int iterations);
+    void Update(const float& springStrength, int iterations);
 };
 
-class SoftBody {
+class SoftBody: public CSRunner {
 public:
     SoftBody();
     ~SoftBody();
@@ -81,18 +81,12 @@ public:
     void UpdatePositions(float deltaTime);
     void UpdateNormals();
 
-    void Simulate();
-
     void Draw(Shader* shader);
 
     Model* model;
     Collider* collider;
 
     std::vector<Mesh> meshes;
-
-    //DWORD threadId;
-    //HANDLE handle;
-    //void* params;
 
     std::vector<SoftBodyParticle*> particles{};
     std::vector<SoftBodySpring*> springs{};
