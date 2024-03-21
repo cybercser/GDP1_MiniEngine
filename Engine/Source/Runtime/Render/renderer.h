@@ -11,7 +11,7 @@ class Camera;
 class Renderer {
 public:
     Renderer() = default;
-    void Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera);
+    void Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, int fboTextureId = 0);
 
 private:
 };

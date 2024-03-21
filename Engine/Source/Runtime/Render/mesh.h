@@ -51,6 +51,7 @@ struct TextureInfo {
     unsigned int id;
     std::string type;
     std::string path;
+    bool hasFBO;
 };
 
 class Mesh {

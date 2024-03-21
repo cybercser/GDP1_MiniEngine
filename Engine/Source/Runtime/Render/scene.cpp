@@ -15,9 +15,28 @@ DWORD WINAPI LoadModelThread(LPVOID lpParameter);
 namespace gdp1 {
 
 Scene::Scene(const LevelDesc& levelDesc) {
+    this->levelDesc = levelDesc;
     InitializeCriticalSection(&g_CriticalSection);
     CreateRootGameObject();
     ProcessDesc(levelDesc);
+}
+
+Scene::Scene(std::string levelFilePath) {
+    LevelLoader loader;
+    if (loader.LoadLevel(levelFilePath)) {
+        LOG_INFO("Load scene successfully");
+    } else {
+        LOG_ERROR("Failed to load scene: {}", levelFilePath);
+        return;
+    }
+
+    levelDesc = loader.GetLevelDesc();
+    CreateRootGameObject();
+    ProcessDesc(levelDesc);
+}
+
+LevelDesc& Scene::GetLevelDesc() {
+    return levelDesc;
 }
 
 void Scene::CreateRootGameObject() {
@@ -149,14 +168,14 @@ void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
     }
 
     //// Initialize counters for vertex and triangle counts
-    //int vertexCount = 0;
-    //int triangleCount = 0;
+    // int vertexCount = 0;
+    // int triangleCount = 0;
 
-    //for (const ModelDesc& modelDesc : modelDescs) {
-    //    // Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
+    // for (const ModelDesc& modelDesc : modelDescs) {
+    //     // Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
 
     //    LoadModelThreadParams* params = new LoadModelThreadParams{modelDesc, m_ModelMap, vertexCount, triangleCount};
-    //    
+    //
     //    DWORD threadId;
     //    HANDLE hThread = CreateThread(NULL, 0, LoadModelThread, (LPVOID)params, 0, &(threadId));
     //    if (hThread != NULL)  {
@@ -165,15 +184,15 @@ void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
     //    }
     //}
 
-    //WaitForMultipleObjects(modelThreadHandles.size(), modelThreadHandles.data(), TRUE, INFINITE);
+    // WaitForMultipleObjects(modelThreadHandles.size(), modelThreadHandles.data(), TRUE, INFINITE);
 
     //// Close the thread handles
-    //for (HANDLE hThread : modelThreadHandles) {
-    //    CloseHandle(hThread);
-    //}
+    // for (HANDLE hThread : modelThreadHandles) {
+    //     CloseHandle(hThread);
+    // }
 
-    //m_VertexCount = vertexCount;
-    //m_TriangleCount = triangleCount;
+    // m_VertexCount = vertexCount;
+    // m_TriangleCount = triangleCount;
 }
 
 bool Scene::LoadShaders(const LevelDesc& desc) {
@@ -193,11 +212,24 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
         // directional light
         lit_shader_ptr_->SetUniform("u_DirLight.color", dirLight->color);
         lit_shader_ptr_->SetUniform("u_DirLight.intensity", dirLight->intensity);
-
         lit_shader_ptr_->SetUniform("u_Material.s", vec3(0.2f, 0.2f, 0.2f));
         lit_shader_ptr_->SetUniform("u_Material.shininess", 32.0f);
-
         lit_shader_ptr_->SetUniform("u_UseProjTex", false);
+
+        lit_shader_ptr_->SetUniform("u_UsePointLights", true);
+
+        int lightIndex = 0;
+        for (std::unordered_map<std::string, PointLight*>::iterator it = m_PointLightMap.begin();
+             it != m_PointLightMap.end(); it++, lightIndex++) {
+            PointLight* pointLight = it->second;
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].color", pointLight->color);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].intensity",
+                                        pointLight->intensity);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos", pointLight->position);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].c", pointLight->constant);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].l", pointLight->linear);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].q", pointLight->quadratic);
+        }
 
         m_ShaderMap.insert(std::make_pair("lit", lit_shader_ptr_));
     } catch (GLSLProgramException& e) {
@@ -457,5 +489,15 @@ size_t Scene::GetAnimationCurClipIndex() const { return m_AnimationSystemPtr->Ge
 float Scene::GetAnimationSpeed() const { return m_AnimationSystemPtr->GetSpeed(); }
 
 float Scene::GetAnimationElapsedTime() const { return m_AnimationSystemPtr->GetElapsedTime(); }
+
+void Scene::CreateFBO() { fbo_ptr_ = std::make_shared<FBO>(1920, 1080); }
+
+void Scene::UseFBO() { fbo_ptr_.get()->Bind(); }
+
+bool Scene::HasFBO() { return fbo_ptr_.get() != nullptr; }
+
+FBO* Scene::GetFBO() { 
+    return fbo_ptr_.get();
+}
 
 }  // namespace gdp1

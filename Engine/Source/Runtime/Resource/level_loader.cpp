@@ -48,9 +48,9 @@ namespace gdp1 {
 
 // for TransformDesc
 void from_json(const json& j, TransformDesc& xform) {
-    j.at("localPosition").get_to(xform.localPosition);
-    j.at("localEulerAngles").get_to(xform.localEulerAngles);
-    j.at("localScale").get_to(xform.localScale);
+    xform.localPosition = j.value("localPosition", glm::vec3(0.0f));
+    xform.localEulerAngles = j.value("localEulerAngles", glm::vec3(0.0f));
+    xform.localScale = j.value("localScale", glm::vec3(1.0f));
 }
 
 void to_json(json& j, const TransformDesc& xform) {
@@ -91,11 +91,16 @@ void to_json(json& j, const SoftbodyDesc& sbDesc) {
 
 // for TextureDesc
 void from_json(const json& j, TexturesDesc& textureDesc) {
-    j.at("name").get_to(textureDesc.name);
-    j.at("type").get_to(textureDesc.type);
+    textureDesc.name = j.value("name", "DefaultName");
+    textureDesc.type = j.value("type", "DefaultType");
+    textureDesc.hasFBO = j.value("hasFBO", false);
 }
 
-void to_json(json& j, const TexturesDesc& textureDesc) { j = {{"name", textureDesc.name}, {"type", textureDesc.type}}; }
+void to_json(json& j, const TexturesDesc& textureDesc) {
+    j = {{"name", textureDesc.name},
+         {"type", textureDesc.type},
+         {"hasFBO", textureDesc.hasFBO}};
+}
 
 // for ModelDesc
 void from_json(const json& j, ModelDesc& modelDesc) {
@@ -231,17 +236,23 @@ void to_json(json& j, const SkyboxDesc& sbDesc) {
 
 // for GameObjectDesc
 void from_json(const json& j, GameObjectDesc& goDesc) {
-    j.at("name").get_to(goDesc.name);
-    j.at("model").get_to(goDesc.modelName);
-    j.at("visible").get_to(goDesc.visible);
-    j.at("transform").get_to(goDesc.transform);
-    j.at("children").get_to(goDesc.children);
-    j.at("parent").get_to(goDesc.parentName);
+    goDesc.name = j.value("name", "");
+    goDesc.modelName = j.value("model", "");
+    goDesc.visible = j.value("visible", true);
+    goDesc.transform = j.value("transform", TransformDesc{});  // Initialize with default TransformDesc
+    goDesc.children = j.value("children", std::vector<std::string>{});
+    goDesc.parentName = j.value("parent", "");
+    goDesc.hasFBO = j.value("hasFBO", false);
 }
 
 void to_json(json& j, const GameObjectDesc& goDesc) {
-    j = {{"name", goDesc.name},           {"model", goDesc.modelName},   {"visible", goDesc.visible},
-         {"transform", goDesc.transform}, {"children", goDesc.children}, {"parent", goDesc.parentName}};
+    j = {{"name", goDesc.name},
+         {"model", goDesc.modelName},
+         {"visible", goDesc.visible},
+         {"transform", goDesc.transform},
+         {"children", goDesc.children},
+         {"parent", goDesc.parentName},
+         {"hasFBO", goDesc.hasFBO}};
 }
 
 // for CharacterAnimation Desc

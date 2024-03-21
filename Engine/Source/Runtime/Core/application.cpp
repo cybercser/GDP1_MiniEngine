@@ -64,6 +64,8 @@ void Application::Run() {
         Timestep timestep = time - m_LastFrameTime;
         m_LastFrameTime = time;
 
+        m_Window->OnUpdate();
+
         for (Layer* layer : m_LayerStack) {
             layer->OnUpdate(timestep);
         }
@@ -73,8 +75,6 @@ void Application::Run() {
             layer->OnImGuiRender();
         }
         m_ImGuiLayer->End();
-
-        m_Window->OnUpdate();
     }
 }
 

@@ -6,13 +6,29 @@
 #include "Render/skybox.h"
 #include "Utils/camera.h"
 #include "Core/game_object.h"
+#include "Core/application.h"
 #include "Physics/softbody.h"
+
+#include <GLFW/glfw3.h>
 
 using namespace glm;
 
 namespace gdp1 {
 
-void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera) {
+void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, int fboTextureId) {
+    if (scene->HasFBO()) {
+        scene->UseFBO();
+    } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
+        glViewport(0, 0, width, height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
     if (scene == nullptr || camera == nullptr) {
         LOG_ERROR("Scene or camera is null");
         return;
@@ -40,11 +56,20 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
         // directional light
         scene->lit_shader_ptr_->SetUniform("u_DirLight.dir", lightDirViewSpace);
 
-        //// update uniforms for debug shader
-        // scene->debug_shader_ptr_->Use();
-        // scene->debug_shader_ptr_->SetUniform("u_Model", model);
-        // scene->debug_shader_ptr_->SetUniform("u_View", view);
-        // scene->debug_shader_ptr_->SetUniform("u_Proj", projection);
+        int lightIndex = 0;
+        for (std::unordered_map<std::string, PointLight*>::iterator it = scene->m_PointLightMap.begin();
+             it != scene->m_PointLightMap.end(); it++, lightIndex++) {
+            PointLight* pointLight = it->second;
+            vec4 lightPosInViewSpace = glm::vec4(view * glm::vec4(pointLight->position, 1.0f));
+            scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos",
+                                               glm::vec3(lightPosInViewSpace));
+        }
+
+        // update uniforms for debug shader
+        scene->debug_shader_ptr_->Use();
+        scene->debug_shader_ptr_->SetUniform("u_Model", model);
+        scene->debug_shader_ptr_->SetUniform("u_View", view);
+        scene->debug_shader_ptr_->SetUniform("u_Proj", projection);
 
         // update uniforms for untextured shader
         scene->untextured_shader_ptr_->Use();
@@ -65,8 +90,6 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
     std::unordered_map<std::string, Shader*>& shaderMap = scene->m_ShaderMap;
     for (std::unordered_map<std::string, GameObject*>::iterator it = goMap.begin(); it != goMap.end(); it++) {
         GameObject* go = it->second;
-        //glm::vec3 newPosition = go->transform->Position() + glm::vec3(0.1f, 0.0f, 0.0f);
-        //go->transform->SetPosition(newPosition);
         if (go != nullptr && go->visible) {
             Model* model = go->model;
             if (model != nullptr) {
@@ -80,6 +103,11 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
                 Shader* shader = shaderIt->second;
                 shader->Use();
                 shader->SetUniform("u_Model", go->transform->WorldMatrix());
+
+                if (go->hasFBO) {
+                    model->meshes[0].textures[0].hasFBO = true;
+                    model->meshes[0].textures[0].id = fboTextureId;
+                }
 
                 if (!go->hasSoftBody)
                     model->Draw(shader);

@@ -52,12 +52,14 @@ struct GameObjectDesc {
     TransformDesc transform;
     std::vector<std::string> children;
     std::string parentName;
+    bool hasFBO = false;
 };
 
 // Textures description
 struct TexturesDesc {
     std::string name;
     std::string type;
+    bool hasFBO;
 };
 
 // Model description

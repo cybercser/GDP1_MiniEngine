@@ -55,9 +55,11 @@ struct Material {
     float shininess;  // Specular shininess factor
 };
 
+const int NUM_LIGHTS = 1;
+
 uniform DirectionalLight u_DirLight;
-uniform PointLight u_PointLights[4];
-uniform SpotLight u_SpotLights[4];
+uniform PointLight u_PointLights[NUM_LIGHTS];
+uniform SpotLight u_SpotLights[NUM_LIGHTS];
 uniform Material u_Material;
 layout(binding = 4) uniform sampler2D u_ProjectorTex;
 uniform bool u_UsePointLights;
@@ -184,7 +186,7 @@ void main() {
     // Shading for the point lights
     vec3 pointColor = vec3(0.0);
     if(u_UsePointLights) {
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < NUM_LIGHTS; i++) {
             pointColor += shadingPointLight(u_PointLights[i], fs_in.Pos, normalize(fs_in.Normal));
         }
     }

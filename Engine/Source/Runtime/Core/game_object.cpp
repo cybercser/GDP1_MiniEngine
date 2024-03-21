@@ -10,7 +10,8 @@ GameObject::GameObject(Scene* scn, const GameObjectDesc& desc)
     , model(nullptr)
     , name(desc.name)
     , modelName(desc.modelName)
-    , visible(desc.visible) {
+    , visible(desc.visible)
+    , hasFBO(desc.hasFBO) {
     transform = new Transform(this, desc.transform);
 }
 
@@ -19,7 +20,8 @@ GameObject::GameObject(Scene* scn, const std::string& name)
     , model(nullptr)
     , name(name)
     , modelName("")
-    , visible(false) {
+    , visible(false)
+    , hasFBO(false) {
     transform = new Transform(this);
 }
 

@@ -50,6 +50,12 @@ void Mesh::Draw(Shader* shader) {
             shader->SetUniform(uniformName.c_str(), i);
         }
 
+        /*if (textures[i].hasFBO) {
+            number = "0";
+            std::string uniformName = "u_Material." + name + number;
+            shader->SetUniform(uniformName.c_str(), i);
+        }*/
+
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }

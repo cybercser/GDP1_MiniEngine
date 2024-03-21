@@ -22,6 +22,7 @@ public:
     SoftBody* softBody;
     bool visible;
     bool hasSoftBody = false;
+    bool hasFBO = false;
 
     // temp variables for establishing hierarchy
     std::vector<std::string> childrenNames;

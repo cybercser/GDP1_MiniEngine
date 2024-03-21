@@ -3,6 +3,7 @@
 #include "common.h"
 #include "shader.h"
 #include "light.h"
+#include "fbo.h"
 #include "Resource/level_loader.h"
 
 #include <Windows.h>
@@ -30,6 +31,7 @@ class Scene {
 public:
 
     Scene(const LevelDesc& levelJson);
+    Scene(std::string levelFilePath);
     ~Scene();
     void CreateRootGameObject();
 
@@ -59,6 +61,13 @@ public:
     size_t GetAnimationCurClipIndex() const;
     float GetAnimationSpeed() const;
     float GetAnimationElapsedTime() const;
+
+    LevelDesc& GetLevelDesc();
+
+    void CreateFBO();
+    void UseFBO();
+    bool HasFBO();
+    FBO* GetFBO();
 
 private:
     void UpdateAnimation(float deltaTime);
@@ -99,11 +108,14 @@ private:
     SpotLightMap m_SpotLightMap;
 
     std::shared_ptr<Skybox> skybox_ptr_;
+    std::shared_ptr<FBO> fbo_ptr_;
 
     Transform* m_RootTransform;
     GameObject* m_RootGameObject;  // root transform must belong to a game object
 
     std::unique_ptr<AnimationSystem> m_AnimationSystemPtr;
+
+    LevelDesc levelDesc;
 
     unsigned int m_VertexCount;
     unsigned int m_TriangleCount;
