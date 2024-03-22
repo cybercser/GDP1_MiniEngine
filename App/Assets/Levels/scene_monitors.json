@@ -1,0 +1,195 @@
+{
+  "name": "fps_test",
+  "comment": "FPS Test Scene",
+  "version": "1.0",
+  "cameras": [
+    {
+      "name": "MainCamera",
+      "main": true,
+      "position": {
+        "x": 0,
+        "y": -4,
+        "z": -15
+      },
+      "up": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": -0.1
+      },
+      "yaw": 88.4,
+      "pitch": 4.4,
+      "fov": 70.0,
+      "nearZ": 0.1,
+      "farZ": 1000.0
+    }
+  ],
+  "directionalLights": [
+    {
+      "name": "Sun",
+      "direction": {
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.707
+      },
+      "color": {
+        "r": 0.8,
+        "g": 0.85,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "intensity": 0.5
+    }
+  ],
+  "pointLights": [],
+  "spotLights": [],
+  "models": [
+    {
+      "name": "RetroTVBody",
+      "filepath": "Assets/Models/FPS_Test/RetroTV.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "yellow_color.png",
+          "type": "texture_diffuse"
+        }
+      ]
+    },
+    {
+      "name": "RetroTVScreen",
+      "filepath": "Assets/Models/FPS_Test/RetroTVScreen.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "black_color.png",
+          "type": "texture_diffuse"
+        }
+      ]
+    }
+  ],
+  "gameObjects": [
+    {
+      "name": "RetroTVBody_1",
+      "model": "RetroTVBody",
+      "visible": true,
+      "hasFBO": false,
+      "transform": {
+        "localPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "x": 90,
+          "y": 0,
+          "z": 180
+        },
+        "localScale": {
+          "x": 0.1,
+          "y": 0.1,
+          "z": 0.1
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "RetroTVScreen_1",
+      "model": "RetroTVScreen",
+      "visible": true,
+      "hasFBO": true,
+      "transform": {
+        "localPosition": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "x": 90,
+          "y": 0,
+          "z": 180
+        },
+        "localScale": {
+          "x": 0.1,
+          "y": 0.1,
+          "z": 0.1
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "RetroTVBody_2",
+      "model": "RetroTVBody",
+      "visible": true,
+      "hasFBO": false,
+      "transform": {
+        "localPosition": {
+          "x": 12,
+          "y": 0,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "x": 90,
+          "y": 0,
+          "z": 180
+        },
+        "localScale": {
+          "x": 0.1,
+          "y": 0.1,
+          "z": 0.1
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "RetroTVScreen_2",
+      "model": "RetroTVScreen",
+      "visible": true,
+      "hasFBO": true,
+      "transform": {
+        "localPosition": {
+          "x": 12,
+          "y": 0,
+          "z": 0
+        },
+        "localEulerAngles": {
+          "x": 90,
+          "y": 0,
+          "z": 180
+        },
+        "localScale": {
+          "x": 0.1,
+          "y": 0.1,
+          "z": 0.1
+        }
+      },
+      "children": [],
+      "parent": ""
+    }
+  ],
+  "rigidbodies": [],
+  "softbodies": [
+    
+  ],
+  "animation": {
+    "name": "",
+    "path": ""
+  },
+  "character_animations": [
+
+  ],
+  "audioSources": [],
+  "skybox": {
+    "name": "StandardSkybox",
+    "size": 2.0,
+    "faces": [
+      "Assets/Textures/Standard-Cube-Map/px.png",
+      "Assets/Textures/Standard-Cube-Map/nx.png",
+      "Assets/Textures/Standard-Cube-Map/py.png",
+      "Assets/Textures/Standard-Cube-Map/ny.png",
+      "Assets/Textures/Standard-Cube-Map/pz.png",
+      "Assets/Textures/Standard-Cube-Map/nz.png"
+    ]
+  }
+}

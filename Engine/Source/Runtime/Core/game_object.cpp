@@ -11,7 +11,8 @@ GameObject::GameObject(Scene* scn, const GameObjectDesc& desc)
     , name(desc.name)
     , modelName(desc.modelName)
     , visible(desc.visible)
-    , hasFBO(desc.hasFBO) {
+    , hasFBO(desc.hasFBO)
+    , setLit(desc.setLit) {
     transform = new Transform(this, desc.transform);
 }
 
@@ -21,7 +22,8 @@ GameObject::GameObject(Scene* scn, const std::string& name)
     , name(name)
     , modelName("")
     , visible(false)
-    , hasFBO(false) {
+    , hasFBO(false)
+    , setLit(false) {
     transform = new Transform(this);
 }
 

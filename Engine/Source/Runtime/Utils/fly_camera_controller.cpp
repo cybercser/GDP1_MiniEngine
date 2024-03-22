@@ -168,7 +168,6 @@ bool FlyCameraController::OnWindowResized(WindowResizeEvent& e) {
 }
 
 bool FlyCameraController::OnMouseMoved(MouseMovedEvent& e) {
-    static bool firstMouse = true;
 
     if (firstMouse) {
         m_LastX = e.GetX();

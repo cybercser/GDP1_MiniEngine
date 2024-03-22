@@ -53,6 +53,7 @@ struct GameObjectDesc {
     std::vector<std::string> children;
     std::string parentName;
     bool hasFBO = false;
+    bool setLit = false;
 };
 
 // Textures description

@@ -3,6 +3,7 @@
 #include "Resource/level_object_description.h"
 #include "transform.h"
 #include "Physics/collision_info.h"
+#include "Utils/camera.h"
 
 namespace gdp1 {
 
@@ -23,6 +24,12 @@ public:
     bool visible;
     bool hasSoftBody = false;
     bool hasFBO = false;
+    bool setLit = false;
+    bool UseChromaticAberration = false;
+    bool UseNightVision = false;
+    int fboTextureId = 0;
+
+    Camera* fboCamera = nullptr;
 
     // temp variables for establishing hierarchy
     std::vector<std::string> childrenNames;

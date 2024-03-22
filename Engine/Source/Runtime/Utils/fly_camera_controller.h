@@ -90,6 +90,8 @@ private:
 
     float m_LastX;
     float m_LastY;
+
+    bool firstMouse = true;
 };
 
 }  // namespace gdp1

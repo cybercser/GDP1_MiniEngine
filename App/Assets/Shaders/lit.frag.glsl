@@ -55,17 +55,23 @@ struct Material {
     float shininess;  // Specular shininess factor
 };
 
-const int NUM_LIGHTS = 1;
+const int NUM_LIGHTS = 100;
 
 uniform DirectionalLight u_DirLight;
 uniform PointLight u_PointLights[NUM_LIGHTS];
 uniform SpotLight u_SpotLights[NUM_LIGHTS];
 uniform Material u_Material;
 layout(binding = 4) uniform sampler2D u_ProjectorTex;
+uniform bool u_UseLights;
 uniform bool u_UsePointLights;
 uniform bool u_UseSpotLights;
 uniform bool u_UseProjTex;
 uniform bool u_HasBones;
+uniform bool u_SetLit;
+uniform bool u_ApplyChromaticAbberation;
+uniform bool u_ApplyNightVision;
+
+uniform int u_NumPointLights;
 
 // Blinn-Phong shading, the directional light contribution
 // pos is the fragment's position in view space
@@ -180,24 +186,65 @@ void main() {
     if(texture(u_Material.texture_opacity1, fs_in.TexCoords).a < 0.1)
         discard;
 
-    // Only one directional light
-    vec3 dirColor = shadingDirectionalLight(u_DirLight, fs_in.Pos, normalize(fs_in.Normal));
+    vec4 finalColor = vec4(1.0);
 
-    // Shading for the point lights
-    vec3 pointColor = vec3(0.0);
-    if(u_UsePointLights) {
-        for(int i = 0; i < NUM_LIGHTS; i++) {
-            pointColor += shadingPointLight(u_PointLights[i], fs_in.Pos, normalize(fs_in.Normal));
+    if (u_UseLights) {
+        // Only one directional light
+        vec3 dirColor = shadingDirectionalLight(u_DirLight, fs_in.Pos, normalize(fs_in.Normal));
+
+        // Shading for the point lights
+        vec3 pointColor = vec3(0.0);
+        if(u_UsePointLights) {
+            for(int i = 0; i < u_NumPointLights; i++) {
+                pointColor += shadingPointLight(u_PointLights[i], fs_in.Pos, normalize(fs_in.Normal));
+            }
         }
+
+        // Shading for the spot lights
+        vec3 spotColor = vec3(0.0);
+        if(u_UseSpotLights) {
+            for(int i = 0; i < 4; i++) {
+                spotColor += shadingSpotLight(u_SpotLights[i], fs_in.Pos, normalize(fs_in.Normal));
+            }
+        }
+
+        finalColor = vec4(dirColor + pointColor + spotColor, 1.0);
+
+    } else {
+        finalColor = texture(u_Material.texture_diffuse1, fs_in.TexCoords);
     }
 
-    // Shading for the spot lights
-    vec3 spotColor = vec3(0.0);
-    if(u_UseSpotLights) {
-        for(int i = 0; i < 4; i++) {
-            spotColor += shadingSpotLight(u_SpotLights[i], fs_in.Pos, normalize(fs_in.Normal));
-        }
+    if (u_SetLit) {
+        finalColor.rgb *= 1.35f;
+    }
+    
+    if (u_ApplyChromaticAbberation) {
+        float chromaticAberrationAmount = 0.02;
+        vec4 colorR = texture(u_Material.texture_diffuse1, fs_in.TexCoords + vec2(chromaticAberrationAmount, 0.0));
+        vec4 colorG = texture(u_Material.texture_diffuse1, fs_in.TexCoords);
+        vec4 colorB = texture(u_Material.texture_diffuse1, fs_in.TexCoords - vec2(chromaticAberrationAmount, 0.0));
+        vec3 distortedColor = vec3(colorR.r, colorG.g, colorB.b);
+
+        // Combine RGB channels with displacement
+        finalColor = vec4(finalColor.rgb * distortedColor, 1.0);
     }
 
-    o_FragColor = vec4(dirColor + pointColor + spotColor, 1.0);
+    if (u_ApplyNightVision) {
+        vec3 color = texture(u_Material.texture_diffuse1, fs_in.TexCoords).rgb;
+        float gray = dot(color, vec3(0.299, 0.587, 0.114));
+
+        // Step 2: Apply Green Tint
+        vec3 greenTint = vec3(0.0, 1.0, 0.0); // Adjust the green tint color as needed
+        color = mix(color, gray * greenTint, 0.5); // Adjust the blend factor (0.5 in this case)
+
+        // Step 3: Add Noise
+        float noiseAmount = 0.05; // Adjust the noise amount as needed
+        vec2 noiseUV = vec2(gl_FragCoord.xy / 500.0); // Use a scaling factor appropriate for your scene size
+        float noise = texture(u_Material.texture_diffuse1, fs_in.TexCoords + noiseUV * noiseAmount).r;
+        color += noise * 0.2; // Adjust the noise intensity (0.2 in this case)
+
+        finalColor = vec4(color, 1.0);
+    }
+
+    o_FragColor = finalColor;
 }

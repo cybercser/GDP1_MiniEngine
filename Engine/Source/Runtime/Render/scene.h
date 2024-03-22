@@ -50,6 +50,7 @@ public:
     GameObject* FindObjectByName(const std::string& name);
 
     void AddGameObject(GameObject* gameObject);
+    void AddPointLight(PointLight& pointLight);
 
     DirectionalLight* FindDirectionalLightByName(const std::string& name);
     PointLight* FindPointLightByName(const std::string& name);

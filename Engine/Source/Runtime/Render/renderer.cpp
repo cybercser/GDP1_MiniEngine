@@ -15,18 +15,11 @@ using namespace glm;
 
 namespace gdp1 {
 
-void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, int fboTextureId) {
+void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, bool renderSkybox) {
     if (scene->HasFBO()) {
         scene->UseFBO();
     } else {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-
-        int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
-
-        glViewport(0, 0, width, height);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        ResetFrameBuffers();
     }
 
     if (scene == nullptr || camera == nullptr) {
@@ -39,6 +32,10 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
     mat4 model = mat4(1.0f);
     mat4 mv = view * model;
     mat3 normalMatrix = mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2]));
+
+    if (scene->HasFBO()) {
+        projection = glm::scale(projection, glm::vec3(1.0f, -1.0f, 1.0f));
+    }
 
     {
         // get the directional light
@@ -55,12 +52,26 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
 
         // directional light
         scene->lit_shader_ptr_->SetUniform("u_DirLight.dir", lightDirViewSpace);
+        scene->lit_shader_ptr_->SetUniform("u_NumPointLights", (int)scene->m_PointLightMap.size());
+        scene->lit_shader_ptr_->SetUniform("u_UseLights", true);
+        scene->lit_shader_ptr_->SetUniform("u_ApplyChromaticAbberation", false);
+        scene->lit_shader_ptr_->SetUniform("u_ApplyNightVision", false);
 
         int lightIndex = 0;
         for (std::unordered_map<std::string, PointLight*>::iterator it = scene->m_PointLightMap.begin();
              it != scene->m_PointLightMap.end(); it++, lightIndex++) {
             PointLight* pointLight = it->second;
             vec4 lightPosInViewSpace = glm::vec4(view * glm::vec4(pointLight->position, 1.0f));
+            scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].color",
+                                               pointLight->color);
+            scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].intensity",
+                                        pointLight->intensity);
+            scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].c",
+                                               pointLight->constant);
+            scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].l",
+                                               pointLight->linear);
+            scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].q",
+                                               pointLight->quadratic);
             scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos",
                                                glm::vec3(lightPosInViewSpace));
         }
@@ -103,10 +114,16 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
                 Shader* shader = shaderIt->second;
                 shader->Use();
                 shader->SetUniform("u_Model", go->transform->WorldMatrix());
+                shader->SetUniform("u_SetLit", go->setLit);
+                shader->SetUniform("u_UseLights", true);
 
                 if (go->hasFBO) {
+                    shader->SetUniform("u_UseLights", false);
+                    shader->SetUniform("u_ApplyChromaticAbberation", go->UseChromaticAberration);
+                    shader->SetUniform("u_ApplyNightVision", go->UseNightVision);
+
                     model->meshes[0].textures[0].hasFBO = true;
-                    model->meshes[0].textures[0].id = fboTextureId;
+                    model->meshes[0].textures[0].id = go->fboTextureId;
                 }
 
                 if (!go->hasSoftBody)
@@ -119,7 +136,18 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
     }
 
     // always draw the skybox at last
-    scene->skybox_ptr_->Draw(scene->skybox_shader_ptr_, view, projection);
+    if (renderSkybox) scene->skybox_ptr_->Draw(scene->skybox_shader_ptr_, view, projection);
+}
+
+void Renderer::ResetFrameBuffers() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+
+    glViewport(0, 0, width, height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 }  // namespace gdp1

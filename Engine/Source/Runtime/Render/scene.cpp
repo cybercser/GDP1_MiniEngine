@@ -35,9 +35,7 @@ Scene::Scene(std::string levelFilePath) {
     ProcessDesc(levelDesc);
 }
 
-LevelDesc& Scene::GetLevelDesc() {
-    return levelDesc;
-}
+LevelDesc& Scene::GetLevelDesc() { return levelDesc; }
 
 void Scene::CreateRootGameObject() {
     m_RootGameObject = new GameObject(this, "~Root");
@@ -160,6 +158,13 @@ void Scene::ProcessDesc(const LevelDesc& desc) {
 
 void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
     for (const ModelDesc& modelDesc : modelDescs) {
+        auto it = m_ModelMap.find(modelDesc.name);
+        if (it != m_ModelMap.end()) {
+            // Model already exists, you can skip adding it or handle the case as needed
+            // For example, if you want to skip adding the model, you can continue to the next iteration
+            continue;
+        }
+
         Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
         m_ModelMap.insert(std::make_pair(modelDesc.name, model));
 
@@ -460,6 +465,10 @@ void Scene::AddGameObject(GameObject* go) {
     UpdateHierarchy(xform);
 }
 
+void Scene::AddPointLight(PointLight& pointLight) {
+    m_PointLightMap.emplace(pointLight.name, new PointLight(pointLight));
+}
+
 DirectionalLight* Scene::FindDirectionalLightByName(const std::string& name) {
     DirectionalLightMap::iterator it = m_DirectionalLightMap.find(name);
     if (it != m_DirectionalLightMap.end()) {
@@ -490,14 +499,12 @@ float Scene::GetAnimationSpeed() const { return m_AnimationSystemPtr->GetSpeed()
 
 float Scene::GetAnimationElapsedTime() const { return m_AnimationSystemPtr->GetElapsedTime(); }
 
-void Scene::CreateFBO() { fbo_ptr_ = std::make_shared<FBO>(1920, 1080); }
+void Scene::CreateFBO() { fbo_ptr_ = std::make_shared<FBO>(512, 512); }
 
 void Scene::UseFBO() { fbo_ptr_.get()->Bind(); }
 
 bool Scene::HasFBO() { return fbo_ptr_.get() != nullptr; }
 
-FBO* Scene::GetFBO() { 
-    return fbo_ptr_.get();
-}
+FBO* Scene::GetFBO() { return fbo_ptr_.get(); }
 
 }  // namespace gdp1
