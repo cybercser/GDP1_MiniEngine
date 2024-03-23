@@ -8,7 +8,7 @@ using json = nlohmann::json;
 
 #pragma region Json Arbitrary Type Conversion
 
-// for glm::vec3, glm::vecc4 and glm::quat
+// for glm::vec3, glm::vec4 and glm::quat
 namespace glm {
 void from_json(const json& j, vec3& vec) {
     j.at("x").get_to(vec.x);
@@ -48,9 +48,9 @@ namespace gdp1 {
 
 // for TransformDesc
 void from_json(const json& j, TransformDesc& xform) {
-    j.at("localPosition").get_to(xform.localPosition);
-    j.at("localEulerAngles").get_to(xform.localEulerAngles);
-    j.at("localScale").get_to(xform.localScale);
+    xform.localPosition = j.value("localPosition", glm::vec3(0.0f));
+    xform.localEulerAngles = j.value("localEulerAngles", glm::vec3(0.0f));
+    xform.localScale = j.value("localScale", glm::vec3(1.0f));
 }
 
 void to_json(json& j, const TransformDesc& xform) {
@@ -76,15 +76,42 @@ void to_json(json& j, const RigidbodyDesc& rbDesc) {
              {"velocity", rbDesc.velocity}};
 }
 
+// for SoftbodyDesc
+void from_json(const json& j, SoftbodyDesc& sbDesc) {
+    j.at("objectName").get_to(sbDesc.objectName);
+    j.at("mass").get_to(sbDesc.mass);
+    j.at("iterations").get_to(sbDesc.iterations);
+    j.at("springStrength").get_to(sbDesc.springStrength);
+}
+
+void to_json(json& j, const SoftbodyDesc& sbDesc) {
+    j = json{{"objectName", sbDesc.objectName}, {"mass", sbDesc.mass},
+             {"iterations", sbDesc.iterations}, {"springStrength", sbDesc.springStrength}};
+}
+
+// for TextureDesc
+void from_json(const json& j, TexturesDesc& textureDesc) {
+    textureDesc.name = j.value("name", "DefaultName");
+    textureDesc.type = j.value("type", "DefaultType");
+    textureDesc.hasFBO = j.value("hasFBO", false);
+}
+
+void to_json(json& j, const TexturesDesc& textureDesc) {
+    j = {{"name", textureDesc.name},
+         {"type", textureDesc.type},
+         {"hasFBO", textureDesc.hasFBO}};
+}
+
 // for ModelDesc
 void from_json(const json& j, ModelDesc& modelDesc) {
     j.at("name").get_to(modelDesc.name);
     j.at("filepath").get_to(modelDesc.filepath);
     j.at("shader").get_to(modelDesc.shader);
+    j.at("textures").get_to(modelDesc.textures);
 }
 
 void to_json(json& j, const ModelDesc& modelDesc) {
-    j = {{"name", modelDesc.name}, {"filepath", modelDesc.filepath}, {"shader", modelDesc.shader}};
+    j = {{"name", modelDesc.name}, {"filepath", modelDesc.filepath}, {"shader", modelDesc.shader}, {"textures", modelDesc.textures}};
 }
 
 // for AnimationDesc
@@ -209,17 +236,36 @@ void to_json(json& j, const SkyboxDesc& sbDesc) {
 
 // for GameObjectDesc
 void from_json(const json& j, GameObjectDesc& goDesc) {
-    j.at("name").get_to(goDesc.name);
-    j.at("model").get_to(goDesc.modelName);
-    j.at("visible").get_to(goDesc.visible);
-    j.at("transform").get_to(goDesc.transform);
-    j.at("children").get_to(goDesc.children);
-    j.at("parent").get_to(goDesc.parentName);
+    goDesc.name = j.value("name", "");
+    goDesc.modelName = j.value("model", "");
+    goDesc.visible = j.value("visible", true);
+    goDesc.transform = j.value("transform", TransformDesc{});  // Initialize with default TransformDesc
+    goDesc.children = j.value("children", std::vector<std::string>{});
+    goDesc.parentName = j.value("parent", "");
+    goDesc.hasFBO = j.value("hasFBO", false);
+    goDesc.setLit = j.value("setLit", false);
 }
 
 void to_json(json& j, const GameObjectDesc& goDesc) {
-    j = {{"name", goDesc.name},           {"model", goDesc.modelName},   {"visible", goDesc.visible},
-         {"transform", goDesc.transform}, {"children", goDesc.children}, {"parent", goDesc.parentName}};
+    j = {{"name", goDesc.name},
+         {"model", goDesc.modelName},
+         {"visible", goDesc.visible},
+         {"transform", goDesc.transform},
+         {"children", goDesc.children},
+         {"parent", goDesc.parentName},
+         {"setLit", goDesc.setLit},
+         {"hasFBO", goDesc.hasFBO}};
+}
+
+// for CharacterAnimation Desc
+void from_json(const json& j, CharacterAnimationRefDesc& animDesc) {
+    j.at("name").get_to(animDesc.name);
+    j.at("path").get_to(animDesc.path);
+    j.at("model").get_to(animDesc.model);
+}
+
+void to_json(json& j, const CharacterAnimationRefDesc& animDesc) {
+    j = {{"name", animDesc.name}, {"path", animDesc.path}, {"model", animDesc.model}};
 }
 
 // for LevelDesc
@@ -234,7 +280,9 @@ void from_json(const json& j, LevelDesc& lvlDesc) {
     j.at("models").get_to(lvlDesc.modelDescs);
     j.at("gameObjects").get_to(lvlDesc.gameObjectDescs);
     j.at("rigidbodies").get_to(lvlDesc.rigidbodyDescs);
+    j.at("softbodies").get_to(lvlDesc.softbodyDescs);
     j.at("animation").get_to(lvlDesc.animationRefDesc);
+    j.at("character_animations").get_to(lvlDesc.characterAnimationRefDescs);
     j.at("audioSources").get_to(lvlDesc.audioSourceDescs);
     j.at("skybox").get_to(lvlDesc.skyboxDesc);
 }
@@ -251,6 +299,7 @@ void to_json(json& j, const LevelDesc& lvlDesc) {
          {"gameObjects", lvlDesc.gameObjectDescs},
          {"rigidbodies", lvlDesc.rigidbodyDescs},
          {"animation", lvlDesc.animationRefDesc},
+         {"character_animations", lvlDesc.characterAnimationRefDescs},
          {"audioSources", lvlDesc.audioSourceDescs},
          {"skybox", lvlDesc.skyboxDesc}};
 }

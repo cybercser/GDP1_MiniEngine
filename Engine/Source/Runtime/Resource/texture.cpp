@@ -3,23 +3,48 @@
 #include "stb_image.h"
 #include "Core/logger.h"
 
+#include <codecvt>
+
 namespace gdp1 {
+
+std::wstring GetPath() {
+    TCHAR buffer[MAX_PATH] = {0};
+    GetModuleFileName(NULL, buffer, MAX_PATH);
+    std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+    return std::wstring(buffer).substr(0, pos);
+}
+
+std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
+std::string ws_to_string(const std::wstring& wideStr) { return converter.to_bytes(wideStr); }
 
 GLuint Texture::LoadTexture(const std::string& texPath, bool flipY) {
     int width, height, numChannels;
-    unsigned char* data = Texture::LoadPixels(texPath, width, height, numChannels, flipY);
+    std::string texturePath;
+    size_t lastSlashPosition = texPath.find_last_of("/\\");
+
+    // If no directory separator found, add path to the whole string
+    if (lastSlashPosition == std::string::npos) {
+        texturePath = ws_to_string(GetPath()) + "/Assets/Textures/" + texPath;
+    } else {
+        texturePath = ws_to_string(GetPath()) + "/Assets/Textures/" + texPath.substr(lastSlashPosition + 1);
+    }
+
+    unsigned char* data = Texture::LoadPixels(texturePath, width, height, numChannels, flipY);
     GLuint tex = 0;
     if (data != nullptr) {
         GLenum format = GL_RGBA, internalFormat = GL_RGBA8;
         if (numChannels == 1) {
-            format = GL_R8;
-            internalFormat = GL_RED;
+            format = GL_RED;
+            internalFormat = GL_R8;
         } else if (numChannels == 3) {
             format = GL_RGB;
             internalFormat = GL_RGB8;
         } else if (numChannels == 4) {
             format = GL_RGBA;
             internalFormat = GL_RGBA8;
+        } else {
+            LOG_ERROR("Invalid numChannels value!");
         }
 
         glCreateTextures(GL_TEXTURE_2D, 1, &tex);
@@ -33,7 +58,7 @@ GLuint Texture::LoadTexture(const std::string& texPath, bool flipY) {
 
         Texture::DeletePixels(data);
     } else {
-        LOG_ERROR("Failed to load texture: {}", texPath);
+        LOG_ERROR("Failed to load texture: {}", texturePath);
     }
 
     return tex;
@@ -44,6 +69,11 @@ void Texture::DeletePixels(unsigned char* data) { stbi_image_free(data); }
 unsigned char* Texture::LoadPixels(const std::string& fName, int& width, int& height, int& numChannels, bool flip) {
     stbi_set_flip_vertically_on_load(flip);
     stbi_uc* data = stbi_load(fName.c_str(), &width, &height, &numChannels, STBI_default);
+
+    if (!data) {
+        LOG_ERROR("Reason: ", stbi_failure_reason());
+    }
+
     return data;
 }
 

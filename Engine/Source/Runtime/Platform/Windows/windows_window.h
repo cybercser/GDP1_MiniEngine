@@ -25,6 +25,8 @@ public:
     void SetCaptureMouse(bool enabled) override;
     bool IsMouseCaptured() const override;
 
+    void ToggleFullscreen() override;
+
     inline virtual void* GetNativeWindow() const { return m_Window; }
 
 private:
@@ -33,6 +35,7 @@ private:
 
 private:
     GLFWwindow* m_Window;
+    bool isFullScreen = false;
 
     struct WindowData {
         std::string title;

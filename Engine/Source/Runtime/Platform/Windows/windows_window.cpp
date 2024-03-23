@@ -41,7 +41,7 @@ void WindowsWindow::Init(const WindowProps& props) {
 
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);  // disable window resize
+        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);  // disable window resize
         // if (gl_debug_) glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
         // if (multi_samples_ > 0) {
         //     glfwWindowHint(GLFW_SAMPLES, multi_samples_);
@@ -50,7 +50,15 @@ void WindowsWindow::Init(const WindowProps& props) {
         s_GLFWInitialized = true;
     }
 
-    m_Window = glfwCreateWindow((int)props.width, (int)props.height, m_Data.title.c_str(), nullptr, nullptr);
+    //if (m_Data.width == 0 || m_Data.height == 0) {
+    //    GLFWmonitor* monitor = glfwGetPrimaryMonitor();       // Get the primary monitor
+    //    const GLFWvidmode* mode = glfwGetVideoMode(monitor);  // Get the current video mode of the primary monitor
+
+    //    m_Data.width = mode->width;
+    //    m_Data.height = mode->height;
+    //}
+
+    m_Window = glfwCreateWindow((int)m_Data.width, (int)m_Data.height, m_Data.title.c_str(), nullptr, nullptr);
 
     glfwMakeContextCurrent(m_Window);
     int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -140,9 +148,26 @@ void WindowsWindow::Init(const WindowProps& props) {
     });
 }
 
+void WindowsWindow::ToggleFullscreen() {
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    if (!isFullScreen) {
+        glfwSetWindowMonitor(m_Window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+        isFullScreen = true;
+    } else {
+        glfwSetWindowMonitor(m_Window, nullptr, 100, 100, m_Data.width, m_Data.height, mode->refreshRate);
+        isFullScreen = false;
+    }
+}
+
 void WindowsWindow::Shutdown() { glfwDestroyWindow(m_Window); }
 
 void WindowsWindow::OnUpdate() {
+    int width, height;
+    glfwGetFramebufferSize(m_Window, &width, &height);
+    glViewport(0, 0, width, height);
+
     glfwPollEvents();
     glfwSwapBuffers(m_Window);
 }

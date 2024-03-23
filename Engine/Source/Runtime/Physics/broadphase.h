@@ -2,30 +2,18 @@
 
 #include <vector>
 
-#include "rigidbody.h"
+#include "collision_info.h"
 
 namespace gdp1 {
 
 enum class SweepAxis { X, Y, Z };
 
-struct CollisionInfo {
-    Rigidbody* body1;
-    Rigidbody* body2;
-
-    CollisionInfo(Rigidbody* body1, Rigidbody* body2)
-        : body1(body1)
-        , body2(body2) {
-    }
-
-    bool operator==(const CollisionInfo& other) const {
-        return (body1 == other.body1 && body2 == other.body2) || (body1 == other.body2 && body2 == other.body1);
-    }
-
-    bool operator!=(const CollisionInfo& other) const {
-        return !(*this == other);
-    }
-};
-
 void BroadPhase(std::vector<Rigidbody*>& bodies, std::vector<CollisionInfo>& collisions);
+
+void BroadPhaseSoftBodies(std::vector<SoftBody*>& softbodies, std::vector<Rigidbody*>& rigidbodies,
+                          std::vector<SoftBodyCollisionInfo>& collisions);
+
+void SweepAndPruneAxisSoftBody(std::vector<SoftBody*>& softbodies, std::vector<Rigidbody*>& rigidbodies,
+                               std::vector<SoftBodyCollisionInfo>& collisions, SweepAxis axis);
 
 }  // namespace gdp1

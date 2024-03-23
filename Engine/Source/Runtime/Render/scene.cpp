@@ -9,12 +9,33 @@
 
 using namespace glm;
 
+CRITICAL_SECTION g_CriticalSection;
+DWORD WINAPI LoadModelThread(LPVOID lpParameter);
+
 namespace gdp1 {
 
 Scene::Scene(const LevelDesc& levelDesc) {
+    this->levelDesc = levelDesc;
+    InitializeCriticalSection(&g_CriticalSection);
     CreateRootGameObject();
     ProcessDesc(levelDesc);
 }
+
+Scene::Scene(std::string levelFilePath) {
+    LevelLoader loader;
+    if (loader.LoadLevel(levelFilePath)) {
+        LOG_INFO("Load scene successfully");
+    } else {
+        LOG_ERROR("Failed to load scene: {}", levelFilePath);
+        return;
+    }
+
+    levelDesc = loader.GetLevelDesc();
+    CreateRootGameObject();
+    ProcessDesc(levelDesc);
+}
+
+LevelDesc& Scene::GetLevelDesc() { return levelDesc; }
 
 void Scene::CreateRootGameObject() {
     m_RootGameObject = new GameObject(this, "~Root");
@@ -60,6 +81,8 @@ Scene::~Scene() {
             delete it->second;
         }
     }
+
+    DeleteCriticalSection(&g_CriticalSection);
 }
 
 int Scene::DrawDebug(Shader* shader) {
@@ -130,16 +153,51 @@ void Scene::ProcessDesc(const LevelDesc& desc) {
     CreateSkybox(desc.skyboxDesc);
     LoadShaders(desc);
     CreateAnimations(desc.animationRefDesc);
+    CreateCharacterAnimations(desc.characterAnimationRefDescs);
 }
 
 void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
     for (const ModelDesc& modelDesc : modelDescs) {
-        Model* model = new Model(modelDesc.filepath, modelDesc.shader);
+        auto it = m_ModelMap.find(modelDesc.name);
+        if (it != m_ModelMap.end()) {
+            // Model already exists, you can skip adding it or handle the case as needed
+            // For example, if you want to skip adding the model, you can continue to the next iteration
+            continue;
+        }
+
+        Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
         m_ModelMap.insert(std::make_pair(modelDesc.name, model));
 
         m_VertexCount += model->GetVertexCount();
         m_TriangleCount += model->GetTriangleCount();
     }
+
+    //// Initialize counters for vertex and triangle counts
+    // int vertexCount = 0;
+    // int triangleCount = 0;
+
+    // for (const ModelDesc& modelDesc : modelDescs) {
+    //     // Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
+
+    //    LoadModelThreadParams* params = new LoadModelThreadParams{modelDesc, m_ModelMap, vertexCount, triangleCount};
+    //
+    //    DWORD threadId;
+    //    HANDLE hThread = CreateThread(NULL, 0, LoadModelThread, (LPVOID)params, 0, &(threadId));
+    //    if (hThread != NULL)  {
+    //        // Add the thread handle to the vector
+    //        modelThreadHandles.push_back(hThread);
+    //    }
+    //}
+
+    // WaitForMultipleObjects(modelThreadHandles.size(), modelThreadHandles.data(), TRUE, INFINITE);
+
+    //// Close the thread handles
+    // for (HANDLE hThread : modelThreadHandles) {
+    //     CloseHandle(hThread);
+    // }
+
+    // m_VertexCount = vertexCount;
+    // m_TriangleCount = triangleCount;
 }
 
 bool Scene::LoadShaders(const LevelDesc& desc) {
@@ -159,11 +217,24 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
         // directional light
         lit_shader_ptr_->SetUniform("u_DirLight.color", dirLight->color);
         lit_shader_ptr_->SetUniform("u_DirLight.intensity", dirLight->intensity);
-
         lit_shader_ptr_->SetUniform("u_Material.s", vec3(0.2f, 0.2f, 0.2f));
         lit_shader_ptr_->SetUniform("u_Material.shininess", 32.0f);
-
         lit_shader_ptr_->SetUniform("u_UseProjTex", false);
+
+        lit_shader_ptr_->SetUniform("u_UsePointLights", true);
+
+        int lightIndex = 0;
+        for (std::unordered_map<std::string, PointLight*>::iterator it = m_PointLightMap.begin();
+             it != m_PointLightMap.end(); it++, lightIndex++) {
+            PointLight* pointLight = it->second;
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].color", pointLight->color);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].intensity",
+                                        pointLight->intensity);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos", pointLight->position);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].c", pointLight->constant);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].l", pointLight->linear);
+            lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].q", pointLight->quadratic);
+        }
 
         m_ShaderMap.insert(std::make_pair("lit", lit_shader_ptr_));
     } catch (GLSLProgramException& e) {
@@ -348,6 +419,16 @@ void Scene::CreateAnimations(const AnimationRefDesc& animationRefDesc) {
     m_AnimationSystemPtr = std::make_unique<AnimationSystem>(anim);
 }
 
+void Scene::CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc) {
+    for (const CharacterAnimationRefDesc& anim : desc) {
+        std::unordered_map<std::string, Model*>::iterator modelIt = m_ModelMap.find(anim.model);
+        if (modelIt != m_ModelMap.end()) {
+            modelIt->second->AddCharacterAnimation(anim.name, anim.path);
+            modelIt->second->SetCurrentAnimation(anim.name);
+        }
+    }
+}
+
 Model* Scene::FindModelByName(const std::string& name) {
     std::unordered_map<std::string, Model*>::iterator it = m_ModelMap.find(name);
     if (it != m_ModelMap.end()) {
@@ -362,6 +443,30 @@ GameObject* Scene::FindObjectByName(const std::string& name) {
         return it->second;
     }
     return nullptr;
+}
+
+void Scene::AddGameObject(GameObject* go) {
+    Transform* xform = go->transform;
+    if (!go->modelName.empty()) {
+        go->model = FindModelByName(go->modelName);
+    }
+
+    go->scene = this;
+
+    m_GameObjectMap.insert(std::make_pair(go->name, go));
+
+    // top level game object is a child of the root game object
+    if (go->parentName.empty()) {
+        xform->parent = xform->root = m_RootTransform;
+        xform->SetWorldMatrix(xform->LocalMatrix());
+        m_RootTransform->children.push_back(xform);
+    }
+
+    UpdateHierarchy(xform);
+}
+
+void Scene::AddPointLight(PointLight& pointLight) {
+    m_PointLightMap.emplace(pointLight.name, new PointLight(pointLight));
 }
 
 DirectionalLight* Scene::FindDirectionalLightByName(const std::string& name) {
@@ -393,5 +498,13 @@ size_t Scene::GetAnimationCurClipIndex() const { return m_AnimationSystemPtr->Ge
 float Scene::GetAnimationSpeed() const { return m_AnimationSystemPtr->GetSpeed(); }
 
 float Scene::GetAnimationElapsedTime() const { return m_AnimationSystemPtr->GetElapsedTime(); }
+
+void Scene::CreateFBO() { fbo_ptr_ = std::make_shared<FBO>(512, 512); }
+
+void Scene::UseFBO() { fbo_ptr_.get()->Bind(); }
+
+bool Scene::HasFBO() { return fbo_ptr_.get() != nullptr; }
+
+FBO* Scene::GetFBO() { return fbo_ptr_.get(); }
 
 }  // namespace gdp1

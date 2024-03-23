@@ -29,6 +29,14 @@ struct RigidbodyDesc {
     glm::vec3 velocity;
 };
 
+// Softbody description
+struct SoftbodyDesc {
+    std::string objectName;
+    float mass;
+    float springStrength;
+    int iterations;
+};
+
 // Transform description
 struct TransformDesc {
     glm::vec3 localPosition;
@@ -44,6 +52,15 @@ struct GameObjectDesc {
     TransformDesc transform;
     std::vector<std::string> children;
     std::string parentName;
+    bool hasFBO = false;
+    bool setLit = false;
+};
+
+// Textures description
+struct TexturesDesc {
+    std::string name;
+    std::string type;
+    bool hasFBO;
 };
 
 // Model description
@@ -51,12 +68,19 @@ struct ModelDesc {
     std::string name;
     std::string filepath;
     std::string shader;
+    std::vector<TexturesDesc> textures;
 };
 
 // AnimationReference description
 struct AnimationRefDesc {
     std::string name;
     std::string path;
+};
+
+struct CharacterAnimationRefDesc {
+    std::string name;
+    std::string path;
+    std::string model;
 };
 
 // AudioSource description
@@ -94,7 +118,9 @@ struct LevelDesc {
     std::vector<ModelDesc> modelDescs;
     std::vector<GameObjectDesc> gameObjectDescs;
     std::vector<RigidbodyDesc> rigidbodyDescs;
+    std::vector<SoftbodyDesc> softbodyDescs;
     std::vector<AudioSourceDesc> audioSourceDescs;
+    std::vector<CharacterAnimationRefDesc> characterAnimationRefDescs;
     AnimationRefDesc animationRefDesc;
     SkyboxDesc skyboxDesc;
 };

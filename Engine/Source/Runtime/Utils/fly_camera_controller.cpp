@@ -11,6 +11,24 @@
 
 namespace gdp1 {
 
+FlyCameraController::FlyCameraController(CameraDesc cameraDesc, float aspect, float translationSpeed,
+                                         float rotationSpeed)
+    : m_Position(cameraDesc.position)
+    , m_Up(cameraDesc.up)
+    , m_Yaw(cameraDesc.yaw)
+    , m_Pitch(cameraDesc.pitch)
+    , m_Fov(cameraDesc.fov)
+    , m_TranslationSpeed(translationSpeed)
+    , m_RotationSpeed(rotationSpeed) {
+    m_MouseSensitivity = 0.1f;
+
+    UpdateCameraVectors();
+
+    glm::vec3 center = m_Position + m_Forward;
+    m_Camera = std::make_shared<Camera>(cameraDesc.position, center, cameraDesc.up, cameraDesc.fov, aspect, cameraDesc.nearZ,
+                                        cameraDesc.farZ);
+}
+
 FlyCameraController::FlyCameraController(const glm::vec3& eye, const glm::vec3& up, float yaw, float pitch, float fov,
                                          float aspect, float nearZ, float farZ, float translationSpeed,
                                          float rotationSpeed)
@@ -150,7 +168,6 @@ bool FlyCameraController::OnWindowResized(WindowResizeEvent& e) {
 }
 
 bool FlyCameraController::OnMouseMoved(MouseMovedEvent& e) {
-    static bool firstMouse = true;
 
     if (firstMouse) {
         m_LastX = e.GetX();

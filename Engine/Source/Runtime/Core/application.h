@@ -16,7 +16,7 @@ namespace gdp1 {
 
 class Application {
 public:
-    Application(const std::string& name = "MiniEngine App", unsigned int width = 1280, unsigned int height = 720);
+    Application(const std::string& name = "MiniEngine App", unsigned int width = 1920, unsigned int height = 1080, bool startFullScreen = true);
     virtual ~Application() = default;
 
     void Run();

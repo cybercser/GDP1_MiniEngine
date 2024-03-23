@@ -18,6 +18,7 @@ public:
         AABB,
         CAPSULE,
         MESH,
+        POINT,
     };
 
     virtual eShape GetShapeType() const = 0;

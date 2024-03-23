@@ -2,6 +2,7 @@
 #include "intersections.h"
 
 #include "rigidbody.h"
+#include "softbody.h"
 #include "contact.h"
 #include "collider.h"
 #include "Render/model.h"
@@ -21,6 +22,22 @@ bool Intersect(Rigidbody* a, Rigidbody* b, Contact& contact) {
         return IntersectSphereMesh(a, b, contact);
     } else if (shapeB == Collider::eShape::SPHERE && shapeA == Collider::eShape::MESH) {
         return IntersectSphereMesh(b, a, contact);
+    }
+
+    return false;
+}
+
+bool Intersect(SoftBody* a, Rigidbody* b, SoftBodyContact& contact) {
+    contact.bodyA = a;
+    contact.bodyB = b;
+
+    Collider::eShape shapeA = Collider::eShape::POINT;
+    Collider::eShape shapeB = b->collider->GetShapeType();
+
+    if (shapeB == Collider::eShape::SPHERE) {
+        return IntersectPointSphere(a, b, contact);
+    } else if (shapeB == Collider::eShape::MESH) {
+        return IntersectPointMesh(a, b, contact);
     }
 
     return false;
@@ -61,6 +78,60 @@ bool IntersectSphereMesh(Rigidbody* a, Rigidbody* b, Contact& contact) {
         const glm::vec3& p2 = vertices[index2].position;
 
         if (IntersectSphereTriangle(sphereCollider->centerOfMass, sphereCollider->radius, p0, p1, p2, contact)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool IntersectPointMesh(SoftBody* a, Rigidbody* b, SoftBodyContact& contact) {
+    // Get the soft body's position (assuming it's represented as a point)
+    for (SoftBodyParticle* particle : a->particles) {
+        glm::vec3 pointPosition = particle->position;  // Adjust this based on your soft body representation
+
+        MeshCollider* meshCollider = static_cast<MeshCollider*>(b->collider);
+
+        const ColliderMesh& hull = meshCollider->GetMesh();
+        const std::vector<ColliderVertex>& vertices = hull.vertices;
+        const std::vector<unsigned int> indices = hull.indices;
+        for (size_t i = 0; i < indices.size(); i += 3) {
+            unsigned int index0 = indices[i];
+            unsigned int index1 = indices[i + 1];
+            unsigned int index2 = indices[i + 2];
+
+            const glm::vec3& p0 = vertices[index0].position;
+            const glm::vec3& p1 = vertices[index1].position;
+            const glm::vec3& p2 = vertices[index2].position;
+
+            if (IntersectPointTriangle(pointPosition, p0, p1, p2, contact)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool IntersectPointSphere(SoftBody* a, Rigidbody* b, SoftBodyContact& contact) {
+    // Get the soft body's position (assuming it's represented as a point)
+    for (SoftBodyParticle* particle : a->particles) {
+        glm::vec3 pointPosition = particle->position;  // Adjust this based on your soft body representation
+
+        SphereCollider* sphereCollider = static_cast<SphereCollider*>(b->collider);
+
+        // Calculate the distance between the point and the sphere's center
+        float distance = glm::distance(pointPosition, b->position);
+
+        if (distance <= sphereCollider->radius) {
+            // Collision detected
+            contact.bodyA = a;
+            contact.bodyB = b;
+            contact.normal = glm::normalize(pointPosition - b->position);
+            contact.ptOnA_WorldSpace = pointPosition;
+            contact.ptOnB_WorldSpace = b->position + contact.normal * sphereCollider->radius;
+            contact.separationDist = sphereCollider->radius - distance;
+
             return true;
         }
     }
@@ -185,6 +256,37 @@ bool IntersectRayTriangleDX(const glm::vec3& orig, const glm::vec3& dir, glm::ve
     v *= fInvDet;
 
     return true;
+}
+
+bool IntersectPointTriangle(const glm::vec3& point, const glm::vec3& vert0, const glm::vec3& vert1,
+                            const glm::vec3& vert2, SoftBodyContact& contact) {
+    // Calculate the barycentric coordinates of the point with respect to the triangle
+    glm::vec3 v0v1 = vert1 - vert0;
+    glm::vec3 v0v2 = vert2 - vert0;
+    glm::vec3 v0p = point - vert0;
+
+    float dot00 = glm::dot(v0v1, v0v1);
+    float dot01 = glm::dot(v0v1, v0v2);
+    float dot02 = glm::dot(v0v1, v0p);
+    float dot11 = glm::dot(v0v2, v0v2);
+    float dot12 = glm::dot(v0v2, v0p);
+
+    float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    // Check if the point is inside the triangle
+    if (u >= 0 && v >= 0 && u + v <= 1) {
+        // Collision detected
+        contact.normal = glm::cross(v0v1, v0v2);
+        contact.ptOnA_WorldSpace = point;
+        contact.ptOnB_WorldSpace = point - contact.normal;
+        // contact.separationDist = /* Calculate the separation distance if needed */;
+
+        return true;
+    }
+
+    return false;
 }
 
 }  // namespace gdp1

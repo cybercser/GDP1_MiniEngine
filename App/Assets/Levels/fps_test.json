@@ -7,17 +7,17 @@
       "name": "MainCamera",
       "main": true,
       "position": {
-        "x": 17.2,
-        "y": 1.0,
-        "z": -8.7
+        "x": 7.5,
+        "y": 3.1,
+        "z": 13.2
       },
       "up": {
         "x": 0.0,
         "y": 1.0,
-        "z": -0.1
+        "z": 0.0
       },
-      "yaw": 185,
-      "pitch": -10,
+      "yaw": 254.0,
+      "pitch": 0.0,
       "fov": 70.0,
       "nearZ": 0.1,
       "farZ": 1000.0
@@ -27,161 +27,311 @@
     {
       "name": "Sun",
       "direction": {
-        "x": -1.0,
-        "y": -1.00,
-        "z": 0.447
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.707
+      },
+      "color": {
+        "r": 0.8,
+        "g": 0.85,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "intensity": 0.5
+    }
+  ],
+  "pointLights": [
+    {
+      "name": "P_Light1",
+      "position": {
+        "x": 0.0,
+        "y": 0.5,
+        "z": 0.0
       },
       "color": {
         "r": 1.0,
-        "g": 0.90961653,
-        "b": 0.745283,
+        "g": 0.0,
+        "b": 0.0,
         "a": 1.0
       },
-      "intensity": 2.0
+      "intensity": 0.5,
+      "constant": 1.0,
+      "linear": 2.0,
+      "quadratic": 1.0
     }
   ],
-  "pointLights": [],
   "spotLights": [],
   "models": [
     {
-      "name": "sphere",
-      "filepath": "Assets/Models/FPS_Test/sphere.obj",
-      "shader": "untextured"
+      "name": "Wood",
+      "filepath": "Assets/Models/FPS_Test/wood.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "WoodPack_Base_color.png",
+          "type": "texture_diffuse"
+        },
+        {
+          "name": "WoodPack_Normal_OpenGL.png",
+          "type": "texture_normal"
+        },
+        {
+          "name": "WoodPack_Roughness.png",
+          "type": "texture_specular"
+        }
+      ]
     },
     {
-      "name": "world",
-      "filepath": "Assets/Models/FPS_Test/collision-world.glb",
-      "shader": "untextured"
+      "name": "Ball",
+      "filepath": "Assets/Models/FPS_Test/Ball.fbx",
+      "shader": "lit",
+      "textures": []
+    },
+    {
+      "name": "Chomp",
+      "filepath": "Assets/Models/FPS_Test/Chomp.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "wan_eye.0.png",
+          "type": "texture_diffuse"
+        },
+        {
+          "name": "wan_kui.png",
+          "type": "texture_diffuse"
+        },
+        {
+          "name": "wan_mouth.png",
+          "type": "texture_diffuse"
+        },
+        {
+          "name": "wan_tooth.png",
+          "type": "texture_diffuse"
+        },
+        {
+          "name": "wan_body.png",
+          "type": "texture_diffuse"
+        },
+        {
+          "name": "wan_chain.png",
+          "type": "texture_diffuse"
+        },
+        {
+          "name": "wan_connection.png",
+          "type": "texture_diffuse"
+        }
+      ]
     },
     {
       "name": "bush_01",
       "filepath": "Assets/Models/FPS_Test/Bush_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "bush_02",
       "filepath": "Assets/Models/FPS_Test/Bush_02.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "bush_03",
       "filepath": "Assets/Models/FPS_Test/Bush_03.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "branch_01",
       "filepath": "Assets/Models/FPS_Test/Branch_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "flowers_01",
       "filepath": "Assets/Models/FPS_Test/Flowers_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "grass_01",
       "filepath": "Assets/Models/FPS_Test/Grass_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "grass_02",
       "filepath": "Assets/Models/FPS_Test/Grass_02.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "flowers_02",
       "filepath": "Assets/Models/FPS_Test/Flowers_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "ground_01",
       "filepath": "Assets/Models/FPS_Test/Ground_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "ground_02",
       "filepath": "Assets/Models/FPS_Test/Ground_02.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "ground_03",
       "filepath": "Assets/Models/FPS_Test/Ground_03.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "mushroom_01",
       "filepath": "Assets/Models/FPS_Test/Mushroom_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "mushroom_02",
       "filepath": "Assets/Models/FPS_Test/Mushroom_02.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "rock_01",
       "filepath": "Assets/Models/FPS_Test/Rock_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "rock_02",
       "filepath": "Assets/Models/FPS_Test/Rock_02.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "rock_03",
       "filepath": "Assets/Models/FPS_Test/Rock_03.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "rock_04",
       "filepath": "Assets/Models/FPS_Test/Rock_04.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "rock_05",
       "filepath": "Assets/Models/FPS_Test/Rock_05.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "stump_01",
       "filepath": "Assets/Models/FPS_Test/Stump_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "stump_01",
       "filepath": "Assets/Models/FPS_Test/Stump_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "tree_01",
       "filepath": "Assets/Models/FPS_Test/Tree_01.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "tree_02",
       "filepath": "Assets/Models/FPS_Test/Tree_02.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "tree_03",
       "filepath": "Assets/Models/FPS_Test/Tree_03.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "tree_04",
       "filepath": "Assets/Models/FPS_Test/Tree_04.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
       "name": "tree_05",
       "filepath": "Assets/Models/FPS_Test/Tree_05.fbx",
-      "shader": "untextured"
+      "shader": "lit",
+      "textures": []
     },
     {
-      "name": "plane",
-      "filepath": "Assets/Models/FPS_Test/plane.obj",
-      "shader": "untextured"
+      "name": "Fall_Flat",
+      "filepath": "Assets/Models/FPS_Test/Fall_Flat.fbx",
+      "shader": "lit",
+      "textures": []
+    },
+    {
+      "name": "Blaster",
+      "filepath": "Assets/Models/FPS_Test/blasterE.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "colormap.png",
+          "type": "texture_diffuse"
+        }
+      ]
+    },
+    {
+      "name": "Cube",
+      "filepath": "Assets/Models/FPS_Test/Cube.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "colormap.png",
+          "type": "texture_diffuse"
+        }
+      ]
+    },
+    {
+      "name": "Cloth",
+      "filepath": "Assets/Models/FPS_Test/Cloth.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "black_color.png",
+          "type": "texture_diffuse"
+        }
+      ]
+    },
+    {
+      "name": "sphere",
+      "filepath": "Assets/Models/FPS_Test/Sphere.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "yellow_color.png",
+          "type": "texture_diffuse"
+        }
+      ]
+    },
+    {
+      "name": "ChainSphere",
+      "filepath": "Assets/Models/FPS_Test/ChainSphere.ply",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "yellow_color.png",
+          "type": "texture_diffuse"
+        }
+      ]
     }
   ],
   "gameObjects": [
@@ -1194,13 +1344,13 @@
       "parent": ""
     },
     {
-      "name": "rock_03 (3)",
+      "name": "rock_03_3",
       "model": "rock_03",
       "visible": true,
       "transform": {
         "localPosition": {
           "x": -3.51,
-          "y": 0.37,
+          "y": 0,
           "z": -12.16
         },
         "localEulerAngles": {
@@ -1209,9 +1359,9 @@
           "z": 0
         },
         "localScale": {
-          "x": 0.11218,
-          "y": 0.11218,
-          "z": 0.11218
+          "x": 1,
+          "y": 1,
+          "z": 1
         }
       },
       "children": [],
@@ -1872,6 +2022,30 @@
       "transform": {
         "localPosition": {
           "x": 2.891,
+          "y": 0.543410242,
+          "z": 11.737
+        },
+        "localEulerAngles": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 0.01,
+          "y": 0.01,
+          "z": 0.01
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "rock_05 (12)",
+      "model": "rock_05",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 10.891,
           "y": 0.543410242,
           "z": 11.737
         },
@@ -2850,37 +3024,13 @@
       "parent": ""
     },
     {
-      "name": "plane",
-      "model": "plane",
-      "visible": true,
-      "transform": {
-        "localPosition": {
-          "x": -5.8,
-          "y": 0,
-          "z": -4.99
-        },
-        "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "localScale": {
-          "x": 0.102641773,
-          "y": 0.102641773,
-          "z": 0.102641773
-        }
-      },
-      "children": [],
-      "parent": ""
-    },
-    {
-      "name": "plane",
-      "model": "plane",
+      "name": "ground",
+      "model": "ground_01",
       "visible": true,
       "transform": {
         "localPosition": {
           "x": 0,
-          "y": 0,
+          "y": -1,
           "z": 0
         },
         "localEulerAngles": {
@@ -2889,20 +3039,48 @@
           "z": 0
         },
         "localScale": {
-          "x": 1,
+          "x": 10,
           "y": 1,
-          "z": 1
+          "z": 10
         }
       },
       "children": [],
       "parent": ""
     }
   ],
-  "rigidbodies": [],
+  "rigidbodies": [
+    {
+      "objectName": "ground",
+      "active": true,
+      "collider": "MESH",
+      "invMass": 0.0,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "orientation": {
+        "w": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    }
+  ],
+  "softbodies": [
+  ],
   "animation": {
     "name": "",
     "path": ""
   },
+  "character_animations": [
+
+  ],
   "audioSources": [],
   "skybox": {
     "name": "StandardSkybox",

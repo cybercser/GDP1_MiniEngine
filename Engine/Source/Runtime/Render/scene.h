@@ -3,7 +3,11 @@
 #include "common.h"
 #include "shader.h"
 #include "light.h"
+#include "fbo.h"
 #include "Resource/level_loader.h"
+
+#include <Windows.h>
+#define WIN32_LEAN_AND_MEAN
 
 namespace gdp1 {
 
@@ -16,9 +20,18 @@ class Animation;
 class AnimationSystem;
 class Renderer;
 
+struct LoadModelThreadParams {
+    ModelDesc modelDesc;
+    std::unordered_map<std::string, Model*>& modelMap;
+    int& vertexCount;
+    int& triangleCount;
+};
+
 class Scene {
 public:
+
     Scene(const LevelDesc& levelJson);
+    Scene(std::string levelFilePath);
     ~Scene();
     void CreateRootGameObject();
 
@@ -36,6 +49,9 @@ public:
     Model* FindModelByName(const std::string& name);
     GameObject* FindObjectByName(const std::string& name);
 
+    void AddGameObject(GameObject* gameObject);
+    void AddPointLight(PointLight& pointLight);
+
     DirectionalLight* FindDirectionalLightByName(const std::string& name);
     PointLight* FindPointLightByName(const std::string& name);
     SpotLight* FindSpotLightByName(const std::string& name);
@@ -46,6 +62,13 @@ public:
     size_t GetAnimationCurClipIndex() const;
     float GetAnimationSpeed() const;
     float GetAnimationElapsedTime() const;
+
+    LevelDesc& GetLevelDesc();
+
+    void CreateFBO();
+    void UseFBO();
+    bool HasFBO();
+    FBO* GetFBO();
 
 private:
     void UpdateAnimation(float deltaTime);
@@ -59,10 +82,13 @@ private:
                       const std::vector<PointLight>& pointLights, const std::vector<SpotLight>& spotLights);
     void CreateSkybox(const SkyboxDesc& skyboxDesc);
     void CreateAnimations(const AnimationRefDesc& animationRefDesc);
+    void CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc);
 
     void CreateHierarchy(Transform* xform);
 
 private:
+    std::vector<HANDLE> modelThreadHandles;
+
     std::unordered_map<std::string, Model*> m_ModelMap;
     std::unordered_map<std::string, GameObject*> m_GameObjectMap;
 
@@ -83,11 +109,14 @@ private:
     SpotLightMap m_SpotLightMap;
 
     std::shared_ptr<Skybox> skybox_ptr_;
+    std::shared_ptr<FBO> fbo_ptr_;
 
     Transform* m_RootTransform;
     GameObject* m_RootGameObject;  // root transform must belong to a game object
 
     std::unique_ptr<AnimationSystem> m_AnimationSystemPtr;
+
+    LevelDesc levelDesc;
 
     unsigned int m_VertexCount;
     unsigned int m_TriangleCount;

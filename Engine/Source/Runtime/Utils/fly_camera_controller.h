@@ -7,6 +7,7 @@
 #include "Events/key_event.h"
 #include "Events/mouse_event.h"
 #include "Events/application_event.h"
+#include "Resource/level_object_description.h"
 
 namespace gdp1 {
 
@@ -22,6 +23,8 @@ enum class CameraMovement {
 
 class FlyCameraController {
 public:
+    FlyCameraController(CameraDesc cameraDesc, float aspect, float translationSpeed, float rotationSpeed);
+
     FlyCameraController(const glm::vec3& eye, const glm::vec3& up, float yaw, float pitch, float fov, float aspect,
                         float nearZ, float farZ, float translationSpeed, float rotationSpeed);
 
@@ -87,6 +90,8 @@ private:
 
     float m_LastX;
     float m_LastY;
+
+    bool firstMouse = true;
 };
 
 }  // namespace gdp1

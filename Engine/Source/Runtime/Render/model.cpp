@@ -6,15 +6,57 @@
 
 namespace gdp1 {
 
-Model::Model(const std::string const& path, const std::string& shader, bool gamma /*= false*/)
+glm::mat4 aiMatrix4x4ToGlmMat4(const aiMatrix4x4& matrix) {
+    glm::mat4 result;
+
+    // Copy elements from aiMatrix4x4 to glm::mat4
+    result[0][0] = matrix.a1;
+    result[0][1] = matrix.b1;
+    result[0][2] = matrix.c1;
+    result[0][3] = matrix.d1;
+    result[1][0] = matrix.a2;
+    result[1][1] = matrix.b2;
+    result[1][2] = matrix.c2;
+    result[1][3] = matrix.d2;
+    result[2][0] = matrix.a3;
+    result[2][1] = matrix.b3;
+    result[2][2] = matrix.c3;
+    result[2][3] = matrix.d3;
+    result[3][0] = matrix.a4;
+    result[3][1] = matrix.b4;
+    result[3][2] = matrix.c4;
+    result[3][3] = matrix.d4;
+
+    return result;
+}
+
+Model::Model(const std::string const& path, const std::string& shader, const std::vector<TexturesDesc> textures,
+             bool gamma /*= false*/)
     : gammaCorrection(gamma)
     , shaderName(shader)
     , num_vertices_(0)
-    , num_triangles_(0) {
+    , num_triangles_(0)
+    , currentAnimation(nullptr)
+    , texturesToLoad(textures) {
     LoadModel(path);
 }
 
 void Model::Draw(Shader* shader) {
+    if (currentAnimation) {
+        std::vector<aiMatrix4x4> transforms;
+        elapsedTime += 0.01f;
+        currentAnimation->boneTransform(elapsedTime, transforms);
+
+        shader->SetUniform("u_HasBones", true);
+
+        for (unsigned int i = 0; i < transforms.size(); i++) {
+            std::string name = "bones[" + std::to_string(i) + "]";
+            shader->SetUniform(name, aiMatrix4x4ToGlmMat4(transforms[i]));
+        }
+    } else {
+        shader->SetUniform("u_HasBones", false);
+    }
+
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
 }
 
@@ -26,18 +68,35 @@ unsigned int Model::GetVertexCount() const { return num_vertices_; }
 
 unsigned int Model::GetTriangleCount() const { return num_triangles_; }
 
+void Model::AddCharacterAnimation(std::string animationName, std::string animationPath) {
+    CharacterAnimation* animation = new CharacterAnimation(scene, animationPath, animationName, this);
+    character_animations[animationName] = animation;
+}
+
+void Model::SetCurrentAnimation(std::string name) {
+    auto it = character_animations.find(name);
+    if (it != character_animations.end()) {
+        currentAnimation = it->second;
+    } else {
+        currentAnimation = nullptr;
+    }
+}
+
 void Model::LoadModel(std::string const& path) {
     // read file via ASSIMP
-    Assimp::Importer importer;
-    const aiScene* scene =
-        importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                                    aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
+    scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
+                                        aiProcess_CalcTangentSpace | aiProcess_GenBoundingBoxes);
+
     // check for errors
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)  // if is Not Zero
     {
         std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
+
+    m_global_inverse_transform = scene->mRootNode->mTransformation;
+    m_global_inverse_transform.Inverse();
+
     // retrieve the directory path of the filepath
     directory = path.substr(0, path.find_last_of('/'));
 
@@ -73,6 +132,8 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     // walk through each of the mesh's vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
+        vertex.SetBoneDefaults();
+
         glm::vec3
             vector;  // we declare a placeholder vector since assimp uses its own vector class that doesn't directly
         // convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
@@ -132,9 +193,9 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     // 1. diffuse maps
     std::vector<TextureInfo> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-    //// 2. specular maps
-    // std::vector<Texture> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    // 2. specular maps
+    std::vector<TextureInfo> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     //  3. normal maps
     std::vector<TextureInfo> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
@@ -144,6 +205,37 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     // 5. opacity maps
     std::vector<TextureInfo> opacityMaps = LoadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity");
     textures.insert(textures.end(), opacityMaps.begin(), opacityMaps.end());
+
+    for (TexturesDesc textureDesc : texturesToLoad) {
+        TextureInfo* texture = LoadTexture(textureDesc.name, textureDesc.type);
+        if (texture != nullptr) textures.push_back(*texture);
+    }
+
+    // load bones
+    for (unsigned int i = 0; i < mesh->mNumBones; i++) {
+        unsigned int bone_index = 0;
+        std::string bone_name(mesh->mBones[i]->mName.data);
+
+        if (m_bone_mapping.find(bone_name) == m_bone_mapping.end()) {
+            // Allocate an index for a new bone
+            bone_index = m_num_bones;
+            m_num_bones++;
+
+            BoneMatrix bi;
+            bi.offset_matrix = mesh->mBones[i]->mOffsetMatrix;
+            m_bone_matrices.push_back(bi);
+            m_bone_mapping[bone_name] = bone_index;
+
+        } else {
+            bone_index = m_bone_mapping[bone_name];
+        }
+
+        for (unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
+            unsigned int vertex_id = mesh->mBones[i]->mWeights[j].mVertexId;
+            float weight = mesh->mBones[i]->mWeights[j].mWeight;
+            vertices[vertex_id].AddBoneData(bone_index, weight);
+        }
+    }
 
     // return a mesh object created from the extracted mesh data
     aiAABB& aabb = mesh->mAABB;
@@ -185,5 +277,34 @@ std::vector<TextureInfo> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureT
     }
     return textures;
 }
+
+TextureInfo* Model::LoadTexture(std::string textureName, std::string textureType) {
+    TextureInfo* texture = nullptr;
+
+    bool skip = false;
+    for (unsigned int j = 0; j < textures_loaded.size(); j++) {
+        if (textures_loaded[j].path == textureName) {
+            skip = true;
+            break;
+        }
+    }
+
+    if (!skip) {
+        texture = new TextureInfo();
+        texture->id = Texture::LoadTexture(textureName);
+        texture->type = textureType;
+        texture->path = textureName;
+
+        textures_loaded.push_back(*texture);
+    }
+
+    return texture;
+}
+
+std::map<std::string, unsigned int>& Model::GetBoneMap() { return m_bone_mapping; }
+
+std::vector<BoneMatrix>& Model::GetBoneMatrices() { return m_bone_matrices; }
+
+unsigned int Model::GetNumBones() { return m_num_bones; }
 
 }  // namespace gdp1
