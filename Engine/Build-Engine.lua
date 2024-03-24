@@ -22,6 +22,8 @@ project "Engine"
         "Vendor/imgui/backends/imgui_impl_glfw.cpp",
         "Vendor/imgui/backends/imgui_impl_opengl3_loader.h",
         "Vendor/**.natvis",
+        "Vendor/sqlite/**.h",
+        "Vendor/sqlite/**.c",
     }
 
     includedirs
@@ -36,6 +38,7 @@ project "Engine"
         "Vendor/spdlog/include",
         "Vendor/json/include",
         "Vendor/stb_image",
+        "Vendor/sqlite",
     }
 
     libdirs
