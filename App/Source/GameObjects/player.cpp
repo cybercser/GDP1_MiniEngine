@@ -1,19 +1,8 @@
 #include "player.h"
 #include "Utils/GameConstants.h"
 
-namespace Game {
-
 Player::Player(gdp1::Scene* scn, const gdp1::GameObjectDesc& desc)
     : gdp1::GameObject(scn, desc)
-    , health(DEFAULT_PLAYER_HEALTH)
-    , movement_speed(DEFAULT_PLAYER_MOVEMENT_SPEED)
-    , current_selected_weapon(PRIMARY_WEAPON)
-    , primary_weapon(nullptr)
-    , secondary_weapon(nullptr)
-    , melee_weapon(nullptr) {}
-
-Player::Player(gdp1::Scene* scn, const std::string& name)
-    : gdp1::GameObject(scn, name)
     , health(DEFAULT_PLAYER_HEALTH)
     , movement_speed(DEFAULT_PLAYER_MOVEMENT_SPEED)
     , current_selected_weapon(PRIMARY_WEAPON)
@@ -43,8 +32,4 @@ void Player::Reload() {}
 
 void Player::Update(float dt) {}
 
-void Player::OnCollision(gdp1::CollisionInfo* collisionInfo) {
-
-}
-
-}  // namespace Game
+void Player::OnCollision(gdp1::Contact* contact) {}

@@ -1,22 +1,23 @@
 #include "sqlite_database.h"
 
 #include <iostream>
-#include <sqlite3.h>
 #include <string>
 #include <vector>
+#include <common.h>
 
 namespace gdp1 {
 
 SQLiteDatabase::SQLiteDatabase(const std::string& path)
     : db(nullptr)
-    , dbPath(path) {}
+    , dbPath(path) {
+    }
 
 SQLiteDatabase::~SQLiteDatabase() { close(); }
 
 bool SQLiteDatabase::open() {
     int result = sqlite3_open(dbPath.c_str(), &db);
     if (result != SQLITE_OK) {
-        std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+        LOG_ERROR("Error opening database: ", sqlite3_errmsg(db));
         sqlite3_close(db);
         db = nullptr;
         return false;
@@ -35,7 +36,7 @@ bool SQLiteDatabase::execute(const std::string& query) {
     char* errMsg;
     int result = sqlite3_exec(db, query.c_str(), nullptr, nullptr, &errMsg);
     if (result != SQLITE_OK) {
-        std::cerr << "Error executing query: " << errMsg << std::endl;
+        LOG_ERROR("Error executing query: ", errMsg);
         sqlite3_free(errMsg);
         return false;
     }
@@ -63,7 +64,7 @@ std::vector<std::vector<std::string>> SQLiteDatabase::query(const std::string& q
         }
         sqlite3_finalize(stmt);
     } else {
-        std::cerr << "Error preparing query: " << sqlite3_errmsg(db) << std::endl;
+        LOG_ERROR("Error preparing query: ", sqlite3_errmsg(db));
     }
 
     return resultRows;

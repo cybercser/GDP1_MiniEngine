@@ -2,7 +2,7 @@
 
 #include "Resource/level_object_description.h"
 #include "transform.h"
-#include "Physics/collision_info.h"
+#include "Physics/contact.h"
 #include "Utils/camera.h"
 
 namespace gdp1 {
@@ -12,9 +12,11 @@ class Model;
 class Bounds;
 class Animation;
 class SoftBody;
+class UniqueId;
 
 class GameObject {
 public:
+    int id;
     std::string name;
     std::string modelName;
     Transform* transform;
@@ -29,7 +31,7 @@ public:
     bool UseNightVision = false;
     int fboTextureId = 0;
 
-    Camera* fboCamera = nullptr;
+    Camera* attachedCamera = nullptr;
 
     // temp variables for establishing hierarchy
     std::vector<std::string> childrenNames;
@@ -42,7 +44,7 @@ public:
     ~GameObject();
 
     virtual void Update(float dt);
-    virtual void OnCollision(CollisionInfo* collisionInfo);
+    virtual void OnCollision(Contact* contact);
 
     const Bounds& GetBounds();
 };

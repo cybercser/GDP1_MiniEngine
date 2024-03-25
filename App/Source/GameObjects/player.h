@@ -4,8 +4,6 @@
 
 #include "weapon.h"
 
-namespace Game {
-
 enum WeaponSelection { PRIMARY_WEAPON, SECONDARY_WEAPON, MELEE_WEAPON };
 
 class Player : public gdp1::GameObject {
@@ -13,10 +11,9 @@ class Player : public gdp1::GameObject {
 public:
 
     Player(gdp1::Scene* scn, const gdp1::GameObjectDesc& desc);
-    Player(gdp1::Scene* scn, const std::string& name);
 
     virtual void Update(float dt) override;
-    virtual void OnCollision(gdp1::CollisionInfo* collisionInfo) override;
+    virtual void OnCollision(gdp1::Contact* contact) override;
 
     // Set 
     void SetHealth(int health);
@@ -49,5 +46,3 @@ private:
     Weapon* melee_weapon;
 
 };
-
-}

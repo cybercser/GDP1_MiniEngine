@@ -19,7 +19,7 @@ project "App"
         "Source",
         -- Include Engine
         "../Engine/Source/Runtime",
-        "../Engine/Source/Vendor",
+        "../Engine/Source/Editor",
         "../Engine/Source/Editor",
         "../Engine/%{IncludeDir.glad}",
         "../Engine/%{IncludeDir.glm}",
@@ -28,6 +28,7 @@ project "App"
         "../Engine/%{IncludeDir.assimp}",
         "../Engine/%{IncludeDir.spdlog}",
         "../Engine/%{IncludeDir.json}",
+        "../Engine/Vendor/sqlite",
     }
 
     links

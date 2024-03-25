@@ -24,6 +24,7 @@ project "Engine"
         "Vendor/**.natvis",
         "Vendor/sqlite/**.h",
         "Vendor/sqlite/**.c",
+        "Vendor/sqlite/**.cpp",
     }
 
     includedirs

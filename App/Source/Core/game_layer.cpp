@@ -16,43 +16,33 @@ GameLayer::GameLayer()
 void GameLayer::OnAttach() {
     EnableGLDebugging();
 
-    //m_Scene = std::make_shared<Scene>("Assets/Levels/fps_test_1.json");
-    m_Scene = std::make_shared<Scene>("Assets/Levels/scene_monitors.json");
+    // Create Scene
+    m_Scene = std::make_shared<Scene>("Assets/Levels/fps_test.json");
 
-    fbo_Scene = std::make_shared<Scene>("Assets/Levels/fps_test.json");
-    fbo_Scene->CreateFBO();
+    // Initialize things here
 
-    fbo_Scene_1 = std::make_shared<Scene>("Assets/Levels/fps_test.json");
-    fbo_Scene_1->CreateFBO();
+    // Add Player and objects to the scene
+    AddPlayer();
+    CreateRaindropObjects(m_Scene.get(), 10);
+
+    db = std::make_shared<SQLiteDatabase>("Assets/Data/game_data.db");
+    db->open();
+
+    gameplayManager = new GameplayManager(*db.get());
+
+    gameplayManager->playerKilledZombie(m_Player->id, 1);
+    gameplayManager->playerKilledZombie(m_Player->id, 2);
+
+    int kills = gameplayManager->getPlayerKillCount(m_Player->id);
+    LOG_ERROR("Player killed: {}", kills);
 
     // init the camera
     const CameraDesc& camDesc = m_Scene->GetLevelDesc().cameraDescs[0];
-    const CameraDesc& fbo_CamDesc = fbo_Scene->GetLevelDesc().cameraDescs[0];
-    CameraDesc fbo_CamDesc_1 = fbo_Scene_1->GetLevelDesc().cameraDescs[0];
-    fbo_CamDesc_1.position = glm::vec3(9.6f, 11.2f, -0.8f);
-    fbo_CamDesc_1.up = glm::vec3(-0.5f, 0.8f, -0.2f);
-    fbo_CamDesc_1.yaw = 560.7f;
-    fbo_CamDesc_1.pitch = -34.8f;
 
     m_FlyCamera = std::make_unique<FlyCameraController>(camDesc, 16.0f / 9.0f, 10.0f, 2.0f);
-    m_FboCamera = std::make_unique<FlyCameraController>(fbo_CamDesc, 1.0f, 10.0f, 2.0f);
-    m_FboCamera_1 = std::make_unique<FlyCameraController>(fbo_CamDesc_1, 1.0f, 10.0f, 2.0f);
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
-
-    CreateRaindropObjects(fbo_Scene.get(), 50);
-    CreateRaindropObjects(fbo_Scene_1.get(), 50);
-
-    gdp1::GameObject* gameObject = m_Scene.get()->FindObjectByName("RetroTVScreen_1");
-    gameObject->UseChromaticAberration = true;
-    gameObject->UseNightVision = false;
-    gameObject->fboTextureId = fbo_Scene->GetFBO()->colorTextureId;
-
-    gdp1::GameObject* gameObject1 = m_Scene.get()->FindObjectByName("RetroTVScreen_2");
-    gameObject1->UseChromaticAberration = false;
-    gameObject1->UseNightVision = true;
-    gameObject1->fboTextureId = fbo_Scene_1->GetFBO()->colorTextureId;
 
     // init physics engine
     m_Physics = std::make_unique<Physics>(m_Scene.get(), m_Scene->GetLevelDesc());
@@ -69,11 +59,7 @@ void GameLayer::OnAttach() {
 void GameLayer::OnDetach() {}
 
 void GameLayer::OnEvent(gdp1::Event& event) {
-    if (Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT)) {
-        m_FboCamera_1->OnEvent(event);
-    } else {
-        m_FlyCamera->OnEvent(event);
-    }
+    m_FlyCamera->OnEvent(event);
 
     EventDispatcher dispatcher(event);
     dispatcher.Dispatch<MouseButtonPressedEvent>([&](MouseButtonPressedEvent& e) { return false; });
@@ -82,17 +68,11 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 }
 
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
-    if (Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT)) {
-        m_FboCamera_1->OnUpdate(ts);
-    } else {
-        m_FlyCamera->OnUpdate(ts);
-    }
+    m_FlyCamera->OnUpdate(ts);
 
     m_Physics->FixedUpdate(ts);
     m_Scene->Update(ts);
 
-    m_Renderer->Render(fbo_Scene, m_FboCamera->GetCamera(), true);
-    m_Renderer->Render(fbo_Scene_1, m_FboCamera_1->GetCamera(), true);
     m_Renderer->Render(m_Scene, m_FlyCamera->GetCamera(), enableSkyBox);
 }
 
@@ -100,15 +80,15 @@ void GameLayer::OnImGuiRender() {
     ImGui::Begin("Controls");
     ImGui::Text("WASD to move, mouse to look around");
     // add label to show the camera parameters
-    const glm::vec3& pos = m_FboCamera_1->GetPosition();
-    const glm::vec3& up = m_FboCamera_1->GetUp();
-    float yaw = m_FboCamera_1->GetYaw();
-    float pitch = m_FboCamera_1->GetPitch();
-    float fov = m_FboCamera_1->GetFov();
+    const glm::vec3& pos = m_FlyCamera->GetPosition();
+    const glm::vec3& up = m_FlyCamera->GetUp();
+    float yaw = m_FlyCamera->GetYaw();
+    float pitch = m_FlyCamera->GetPitch();
+    float fov = m_FlyCamera->GetFov();
 
     ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)\nUp: (%.1f, %.1f, %.1f)\nYaw: %.1f, Pitch: %.1f, FOV: %.1f", pos.x,
                 pos.y, pos.z, up.x, up.y, up.z, yaw, pitch, fov);
-    ImGui::Checkbox("Enable Skyobx", &enableSkyBox);
+    ImGui::Checkbox("Enable Skybox", &enableSkyBox);
     ImGui::End();
 }
 
@@ -168,4 +148,21 @@ void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
 
         scene->AddGameObject(raindrop);  // Add the raindrop to the scene (assuming this function exists)
     }
+}
+
+void GameLayer::AddPlayer() {
+    GameObjectDesc playerDesc;
+
+    playerDesc.name = "Player";
+    playerDesc.modelName = "PlayerHands";
+    playerDesc.visible = true;
+    playerDesc.transform.localPosition = glm::vec3(2.f);
+    playerDesc.transform.localScale = glm::vec3(0.1f);
+    playerDesc.transform.localEulerAngles = glm::vec3(1.0f);
+    playerDesc.setLit = true;
+    playerDesc.parentName = "";
+
+    m_Player = new Player(m_Scene.get(), playerDesc);
+
+    m_Scene->AddGameObject(m_Player);
 }

@@ -1,8 +1,6 @@
 #include "weapon.h"
 #include "Utils/GameConstants.h"
 
-namespace Game {
-
 Weapon::Weapon(gdp1::Scene* scn, const gdp1::GameObjectDesc& desc, WeaponType weapon_type)
     : gdp1::GameObject(scn, desc)
     , weapon_type(weapon_type)
@@ -33,5 +31,3 @@ void Weapon::Upgrade() {}
 void Weapon::Attack() {}
 
 void Weapon::SetWeaponType(WeaponType weapon_type) {}
-
-}

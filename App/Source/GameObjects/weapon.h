@@ -2,8 +2,6 @@
 
 #include <Core/game_object.h>
 
-namespace Game {
-
 enum WeaponType { PISTOL, RIFLE, MISSILE_LAUNCHER };
 
 class Weapon : public gdp1::GameObject {
@@ -34,5 +32,3 @@ private:
     int reload_capacity;
 
 };
-
-}  // namespace Game
