@@ -44,6 +44,7 @@ project "Engine"
         "Vendor/stb_image",
         "Vendor/sqlite",
         "Vendor/lua/include",
+        "Vendor/fmod/include",
     }
 
     libdirs
@@ -52,6 +53,7 @@ project "Engine"
         "Vendor/glfw/lib-vc2022",
         "Vendor/spdlog/lib",
         "Vendor/lua/lib",
+        "Vendor/fmod/lib",
     }
 
     links 
@@ -59,6 +61,7 @@ project "Engine"
 		"assimp-vc143-mt",
 		"glfw3",
 		"lua5.4.6-static",
+		"fmod_vc",
 	}
 
     filter "system:windows"
