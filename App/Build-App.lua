@@ -29,6 +29,7 @@ project "App"
         "../Engine/%{IncludeDir.spdlog}",
         "../Engine/%{IncludeDir.json}",
         "../Engine/Vendor/sqlite",
+        "../Engine/Vendor/lua/include",
     }
 
     links

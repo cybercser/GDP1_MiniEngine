@@ -25,6 +25,9 @@ project "Engine"
         "Vendor/sqlite/**.h",
         "Vendor/sqlite/**.c",
         "Vendor/sqlite/**.cpp",
+        "Vendor/lua/**.h",
+        "Vendor/lua/**.c",
+        "Vendor/lua/**.cpp",
     }
 
     includedirs
@@ -40,6 +43,7 @@ project "Engine"
         "Vendor/json/include",
         "Vendor/stb_image",
         "Vendor/sqlite",
+        "Vendor/lua/include",
     }
 
     libdirs
@@ -47,12 +51,14 @@ project "Engine"
         "Vendor/assimp/lib",
         "Vendor/glfw/lib-vc2022",
         "Vendor/spdlog/lib",
+        "Vendor/lua/lib",
     }
 
     links 
 	{ 
 		"assimp-vc143-mt",
 		"glfw3",
+		"lua5.4.6-static",
 	}
 
     filter "system:windows"
