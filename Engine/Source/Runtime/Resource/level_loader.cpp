@@ -68,12 +68,13 @@ void from_json(const json& j, RigidbodyDesc& rbDesc) {
     j.at("position").get_to(rbDesc.position);
     j.at("orientation").get_to(rbDesc.orientation);
     j.at("velocity").get_to(rbDesc.velocity);
+    j.at("applyGravity").get_to(rbDesc.applyGravity);
 }
 
 void to_json(json& j, const RigidbodyDesc& rbDesc) {
     j = json{{"objectName", rbDesc.objectName}, {"active", rbDesc.active},     {"collider", rbDesc.collider},
              {"invMass", rbDesc.invMass},       {"position", rbDesc.position}, {"orientation", rbDesc.orientation},
-             {"velocity", rbDesc.velocity}};
+             {"velocity", rbDesc.velocity},     {"applyGravity", rbDesc.applyGravity}};
 }
 
 // for SoftbodyDesc

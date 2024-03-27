@@ -3,7 +3,8 @@
 #include "Resource/level_object_description.h"
 #include "transform.h"
 #include "Physics/contact.h"
-#include "Utils/camera.h"
+#include "Physics/rigidbody.h"
+#include "Utils/fly_camera_controller.h"
 
 namespace gdp1 {
 
@@ -23,6 +24,9 @@ public:
     Model* model;
     Scene* scene;
     SoftBody* softBody;
+    Rigidbody* rigidBody;
+
+
     bool visible;
     bool hasSoftBody = false;
     bool hasFBO = false;
@@ -31,7 +35,7 @@ public:
     bool UseNightVision = false;
     int fboTextureId = 0;
 
-    Camera* attachedCamera = nullptr;
+    FlyCameraController* attachedCamera = nullptr;
 
     // temp variables for establishing hierarchy
     std::vector<std::string> childrenNames;
@@ -45,8 +49,11 @@ public:
 
     virtual void Update(float dt);
     virtual void OnCollision(Contact* contact);
+    virtual void OnEvent(Event& event);
 
     const Bounds& GetBounds();
+
+    Bounds GetTransformedBounds();
 };
 
 }  // namespace gdp1

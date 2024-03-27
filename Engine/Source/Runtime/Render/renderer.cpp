@@ -139,6 +139,60 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
     if (renderSkybox) scene->skybox_ptr_->Draw(scene->skybox_shader_ptr_, view, projection);
 }
 
+void Renderer::RenderDebug(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, bool renderSkybox) {
+
+    if (scene == nullptr || camera == nullptr) {
+        LOG_ERROR("Scene or camera is null");
+        return;
+    }
+
+    mat4 projection = camera->GetProjectionMatrix();
+    mat4 view = camera->GetViewMatrix();
+    mat4 model = mat4(1.0f);
+    mat4 mv = view * model;
+    mat3 normalMatrix = mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2]));
+
+    {
+        // get the directional light
+        DirectionalLight* dirLight = scene->FindDirectionalLightByName("Sun");
+
+        // update uniforms for debug shader
+        scene->debug_shader_ptr_->Use();
+        scene->debug_shader_ptr_->SetUniform("u_Model", model);
+        scene->debug_shader_ptr_->SetUniform("u_View", view);
+        scene->debug_shader_ptr_->SetUniform("u_Proj", projection);
+
+    }
+
+    std::unordered_map<std::string, GameObject*>& goMap = scene->m_GameObjectMap;
+    std::unordered_map<std::string, Shader*>& shaderMap = scene->m_ShaderMap;
+    for (std::unordered_map<std::string, GameObject*>::iterator it = goMap.begin(); it != goMap.end(); it++) {
+        GameObject* go = it->second;
+        if (go != nullptr && go->visible) {
+            Model* model = go->model;
+            if (model != nullptr) {
+                // find shader
+                std::unordered_map<std::string, Shader*>::const_iterator shaderIt = shaderMap.find(model->shaderName);
+                if (shaderIt == shaderMap.end()) {
+                    LOG_ERROR("Cannot find shader: " + model->shaderName);
+                    continue;
+                }
+
+                Shader* shader = shaderIt->second;
+                shader->Use();
+                shader->SetUniform("u_Model", go->transform->WorldMatrix());
+                shader->SetUniform("u_SetLit", go->setLit);
+                shader->SetUniform("u_UseLights", true);
+
+                model->DrawDebug(shader);
+            }
+        }
+    }
+
+    // always draw the skybox at last
+    if (renderSkybox) scene->skybox_ptr_->Draw(scene->skybox_shader_ptr_, view, projection);
+}
+
 void Renderer::ResetFrameBuffers() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());

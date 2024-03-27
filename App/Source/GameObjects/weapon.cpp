@@ -31,3 +31,9 @@ void Weapon::Upgrade() {}
 void Weapon::Attack() {}
 
 void Weapon::SetWeaponType(WeaponType weapon_type) {}
+
+void Weapon::Update(float dt) {}
+
+void Weapon::OnCollision(gdp1::Contact* contact) {}
+
+//void Weapon::OnEvent(gdp1::Event& event) {}

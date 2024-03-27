@@ -34,9 +34,9 @@ void Rigidbody::ApplyImpulse(const glm::vec3& impulse) {
 
     velocity += impulse * invMass;
 
-    if (object->hasSoftBody && object->softBody) {
+    /*if (object->hasSoftBody && object->softBody) {
         object->softBody->ApplyForce(velocity);
-    }
+    }*/
 }
 
 Bounds Rigidbody::GetBounds() const {

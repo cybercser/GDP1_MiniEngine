@@ -10,7 +10,7 @@
         "x": 7.5,
         "y": 3.1,
         "z": 13.2
-      },
+      },  
       "up": {
         "x": 0.0,
         "y": 1.0,
@@ -19,7 +19,7 @@
       "yaw": 254.0,
       "pitch": 0.0,
       "fov": 70.0,
-      "nearZ": 0.1,
+      "nearZ": 0.01,
       "farZ": 1000.0
     }
   ],
@@ -63,61 +63,18 @@
   "spotLights": [],
   "models": [
     {
-      "name": "Wood",
-      "filepath": "Assets/Models/FPS_Test/wood.ply",
-      "shader": "lit",
-      "textures": [
-        {
-          "name": "WoodPack_Base_color.png",
-          "type": "texture_diffuse"
-        },
-        {
-          "name": "WoodPack_Normal_OpenGL.png",
-          "type": "texture_normal"
-        },
-        {
-          "name": "WoodPack_Roughness.png",
-          "type": "texture_specular"
-        }
-      ]
-    },
-    {
       "name": "Ball",
       "filepath": "Assets/Models/FPS_Test/Ball.fbx",
       "shader": "lit",
       "textures": []
     },
     {
-      "name": "Chomp",
-      "filepath": "Assets/Models/FPS_Test/Chomp.ply",
+      "name": "Coin",
+      "filepath": "Assets/Models/FPS_Test/coin.fbx",
       "shader": "lit",
       "textures": [
         {
-          "name": "wan_eye.0.png",
-          "type": "texture_diffuse"
-        },
-        {
-          "name": "wan_kui.png",
-          "type": "texture_diffuse"
-        },
-        {
-          "name": "wan_mouth.png",
-          "type": "texture_diffuse"
-        },
-        {
-          "name": "wan_tooth.png",
-          "type": "texture_diffuse"
-        },
-        {
-          "name": "wan_body.png",
-          "type": "texture_diffuse"
-        },
-        {
-          "name": "wan_chain.png",
-          "type": "texture_diffuse"
-        },
-        {
-          "name": "wan_connection.png",
+          "name": "colormap.png",
           "type": "texture_diffuse"
         }
       ]
@@ -332,11 +289,44 @@
           "type": "texture_diffuse"
         }
       ]
+    },
+    {
+      "name": "Zombie",
+      "filepath": "Assets/Models/FPS_Test/zombie.fbx",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "zombie.png",
+          "type": "texture_diffuse"
+        }
+      ]
+    },
+    {
+      "name": "PlayerHands",
+      "filepath": "Assets/Models/FPS_Test/SK_FP_CH_Default_Cubic.fbx",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "T_FP_CH_Camo_001_001_D.png",
+          "type": "texture_diffuse"
+        }
+      ]
+    },
+    {
+      "name": "plane",
+      "filepath": "Assets/Models/FPS_Test/plane.obj",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "green.png",
+          "type": "texture_diffuse"
+        }
+      ]
     }
   ],
   "gameObjects": [
     {
-      "name": "tree_03 (1)",
+      "name": "Tree_03 (1)",
       "model": "tree_03",
       "visible": true,
       "transform": {
@@ -346,9 +336,9 @@
           "z": -1.778
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.03585496,
+          "y": -0.487761229,
+          "z": -0.0200778451
         },
         "localScale": {
           "x": 0.01,
@@ -360,7 +350,7 @@
       "parent": ""
     },
     {
-      "name": "tree_03 (2)",
+      "name": "Tree_03 (2)",
       "model": "tree_03",
       "visible": true,
       "transform": {
@@ -370,9 +360,9 @@
           "z": 0.19
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.66344285,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -384,7 +374,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (1)",
+      "name": "Tree_02 (1)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -394,9 +384,9 @@
           "z": -8.72
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0102843875,
+          "y": -0.3605997,
+          "z": -0.0264271013
         },
         "localScale": {
           "x": 0.01,
@@ -408,7 +398,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (3)",
+      "name": "Tree_02 (3)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -418,9 +408,9 @@
           "z": -18.21
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0102843875,
+          "y": -0.3605997,
+          "z": -0.0264271013
         },
         "localScale": {
           "x": 0.01,
@@ -432,7 +422,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (4)",
+      "name": "Tree_02 (4)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -442,9 +432,9 @@
           "z": -26.56
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0102843875,
+          "y": -0.3605997,
+          "z": -0.0264271013
         },
         "localScale": {
           "x": 0.01,
@@ -456,19 +446,19 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (5)",
+      "name": "Tree_02 (5)",
       "model": "tree_02",
       "visible": true,
       "transform": {
         "localPosition": {
-          "x": 3.68,
-          "y": 0.24,
-          "z": -22.29
+          "x": 3.6,
+          "y": 1.3,
+          "z": -22.3
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0102843875,
+          "y": -0.3605997,
+          "z": -0.0264271013
         },
         "localScale": {
           "x": 0.01,
@@ -480,7 +470,7 @@
       "parent": ""
     },
     {
-      "name": "tree_03 (3)",
+      "name": "Tree_03 (3)",
       "model": "tree_03",
       "visible": true,
       "transform": {
@@ -490,9 +480,9 @@
           "z": -13.471
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.01394159,
+          "y": 0.490886569,
+          "z": -0.007860216
         },
         "localScale": {
           "x": 0.01,
@@ -504,19 +494,19 @@
       "parent": ""
     },
     {
-      "name": "tree_03 (4)",
+      "name": "Tree_03 (4)",
       "model": "tree_03",
       "visible": true,
       "transform": {
         "localPosition": {
           "x": -13.99,
-          "y": 0,
+          "y": 0.0,
           "z": -23.91
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.00378465932,
+          "y": -0.9948653,
+          "z": -0.04091914
         },
         "localScale": {
           "x": 0.01,
@@ -528,7 +518,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (9)",
+      "name": "Tree_02 (9)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -538,9 +528,9 @@
           "z": -4.21
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0137237469,
+          "y": 0.4810702,
+          "z": -0.0473494641
         },
         "localScale": {
           "x": 0.01,
@@ -552,7 +542,7 @@
       "parent": ""
     },
     {
-      "name": "stump_01 (1)",
+      "name": "Stump_01 (1)",
       "model": "stump_01",
       "visible": true,
       "transform": {
@@ -562,9 +552,9 @@
           "z": -1.6
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.167525843,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -576,7 +566,7 @@
       "parent": ""
     },
     {
-      "name": "stump_01 (2)",
+      "name": "Stump_01 (2)",
       "model": "stump_01",
       "visible": true,
       "transform": {
@@ -586,9 +576,9 @@
           "z": -9.707207
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.3219374,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -600,7 +590,7 @@
       "parent": ""
     },
     {
-      "name": "stump_01",
+      "name": "Stump_01",
       "model": "stump_01",
       "visible": true,
       "transform": {
@@ -610,9 +600,9 @@
           "z": 6.28947163
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.008679065,
+          "y": 0.3005731,
+          "z": 0.000920805964
         },
         "localScale": {
           "x": 0.01,
@@ -624,7 +614,7 @@
       "parent": ""
     },
     {
-      "name": "tree_03",
+      "name": "Tree_03",
       "model": "tree_03",
       "visible": true,
       "transform": {
@@ -634,9 +624,9 @@
           "z": 0.84
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -648,7 +638,7 @@
       "parent": ""
     },
     {
-      "name": "tree_01",
+      "name": "Tree_01",
       "model": "tree_01",
       "visible": true,
       "transform": {
@@ -658,9 +648,9 @@
           "z": -17.61
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.541353762,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -672,7 +662,7 @@
       "parent": ""
     },
     {
-      "name": "rock_03 (2)",
+      "name": "Rock_03 (2)",
       "model": "rock_03",
       "visible": true,
       "transform": {
@@ -682,9 +672,9 @@
           "z": -18.61
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.193112621,
@@ -696,7 +686,7 @@
       "parent": ""
     },
     {
-      "name": "rock_02 (1)",
+      "name": "Rock_02 (1)",
       "model": "rock_02",
       "visible": true,
       "transform": {
@@ -706,9 +696,9 @@
           "z": -9.721
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0914692357,
+          "y": 0.7928278,
+          "z": -0.0701545849
         },
         "localScale": {
           "x": 0.150638218,
@@ -720,7 +710,7 @@
       "parent": ""
     },
     {
-      "name": "grass_02 (2)",
+      "name": "Grass_02 (2)",
       "model": "grass_02",
       "visible": true,
       "transform": {
@@ -730,9 +720,9 @@
           "z": 0.159614354
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.515497,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.0163060033,
@@ -744,7 +734,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_02 (3)",
+      "name": "Mushroom_02 (3)",
       "model": "mushroom_02",
       "visible": true,
       "transform": {
@@ -754,9 +744,9 @@
           "z": 0.28
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -768,7 +758,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (10)",
+      "name": "Grass_01 (10)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -778,9 +768,9 @@
           "z": -9.676659
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.016765000000000002,
@@ -792,7 +782,7 @@
       "parent": ""
     },
     {
-      "name": "branch_01 (1)",
+      "name": "Branch_01 (1)",
       "model": "branch_01",
       "visible": true,
       "transform": {
@@ -802,9 +792,9 @@
           "z": -8.521896
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -816,7 +806,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (9)",
+      "name": "Grass_01 (9)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -826,9 +816,9 @@
           "z": -8.206
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.04300975,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.0165360022,
@@ -840,7 +830,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01 (5)",
+      "name": "Mushroom_01 (5)",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -850,9 +840,9 @@
           "z": -7.9199295
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -864,19 +854,19 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (8)",
+      "name": "Grass_01 (8)",
       "model": "grass_01",
       "visible": true,
       "transform": {
         "localPosition": {
           "x": -5.879,
-          "y": 0,
+          "y": 0.0,
           "z": -6.2
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.016392,
@@ -888,7 +878,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01 (4)",
+      "name": "Mushroom_01 (4)",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -898,9 +888,9 @@
           "z": -6.027684
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.759161532,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -912,7 +902,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (7)",
+      "name": "Grass_01 (7)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -922,9 +912,9 @@
           "z": -1.686
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.242103353,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.0156870008,
@@ -936,7 +926,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_02 (2)",
+      "name": "Mushroom_02 (2)",
       "model": "mushroom_02",
       "visible": true,
       "transform": {
@@ -946,9 +936,9 @@
           "z": -0.341
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.0113,
@@ -960,7 +950,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_02 (1)",
+      "name": "Mushroom_02 (1)",
       "model": "mushroom_02",
       "visible": true,
       "transform": {
@@ -970,9 +960,9 @@
           "z": 0.683
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.703834236,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.0125999975,
@@ -984,7 +974,7 @@
       "parent": ""
     },
     {
-      "name": "grass_02 (1)",
+      "name": "Grass_02 (1)",
       "model": "grass_02",
       "visible": true,
       "transform": {
@@ -994,9 +984,9 @@
           "z": -0.246
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.014154,
@@ -1008,7 +998,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (6)",
+      "name": "Grass_01 (6)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -1018,9 +1008,9 @@
           "z": 0.505
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.013224,
@@ -1032,7 +1022,7 @@
       "parent": ""
     },
     {
-      "name": "rock_04 (3)",
+      "name": "Rock_04 (3)",
       "model": "rock_04",
       "visible": true,
       "transform": {
@@ -1042,9 +1032,9 @@
           "z": 0.13
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0246595535,
+          "y": 0.190630168,
+          "z": 0.125565216
         },
         "localScale": {
           "x": 0.00868045,
@@ -1056,7 +1046,7 @@
       "parent": ""
     },
     {
-      "name": "rock_01 (1)",
+      "name": "Rock_01 (1)",
       "model": "rock_01",
       "visible": true,
       "transform": {
@@ -1066,9 +1056,9 @@
           "z": 0.566
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0812125,
+          "y": -0.0100992005,
+          "z": -0.12299075
         },
         "localScale": {
           "x": 0.010792580000000001,
@@ -1080,7 +1070,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (5)",
+      "name": "Grass_01 (5)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -1090,9 +1080,9 @@
           "z": -4.434247
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.6173485,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.015508004399999999,
@@ -1104,7 +1094,7 @@
       "parent": ""
     },
     {
-      "name": "grass_02",
+      "name": "Grass_02",
       "model": "grass_02",
       "visible": true,
       "transform": {
@@ -1114,9 +1104,9 @@
           "z": -4.04198933
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.016755,
@@ -1128,7 +1118,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (4)",
+      "name": "Grass_01 (4)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -1138,9 +1128,9 @@
           "z": -13.3028345
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01728,
@@ -1152,7 +1142,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01 (3)",
+      "name": "Mushroom_01 (3)",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -1162,9 +1152,9 @@
           "z": -13.4453564
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1176,7 +1166,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01 (2)",
+      "name": "Mushroom_01 (2)",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -1186,9 +1176,9 @@
           "z": -8.8585
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1200,7 +1190,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01 (1)",
+      "name": "Mushroom_01 (1)",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -1210,9 +1200,9 @@
           "z": -4.22039
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1224,7 +1214,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01",
+      "name": "Mushroom_01",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -1234,9 +1224,9 @@
           "z": -1.564
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1248,7 +1238,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (3)",
+      "name": "Grass_01 (3)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -1258,9 +1248,9 @@
           "z": 1.005
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.017227,
@@ -1272,7 +1262,7 @@
       "parent": ""
     },
     {
-      "name": "branch_01",
+      "name": "Branch_01",
       "model": "branch_01",
       "visible": true,
       "transform": {
@@ -1282,9 +1272,9 @@
           "z": 0.407
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.412043571,
+          "y": -0.577385366,
+          "z": -0.385333359
         },
         "localScale": {
           "x": 0.01,
@@ -1296,7 +1286,7 @@
       "parent": ""
     },
     {
-      "name": "rock_03 (4)",
+      "name": "Rock_03 (4)",
       "model": "rock_03",
       "visible": true,
       "transform": {
@@ -1306,9 +1296,9 @@
           "z": 1.35
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.117541015
         },
         "localScale": {
           "x": 0.08524833,
@@ -1320,7 +1310,7 @@
       "parent": ""
     },
     {
-      "name": "rock_01",
+      "name": "Rock_01",
       "model": "rock_01",
       "visible": true,
       "transform": {
@@ -1330,9 +1320,9 @@
           "z": -7.74
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.19181475,
+          "y": -0.254786223,
+          "z": 0.0516066551
         },
         "localScale": {
           "x": 0.0318780017,
@@ -1344,31 +1334,31 @@
       "parent": ""
     },
     {
-      "name": "rock_03_3",
+      "name": "Rock_03 (3)",
       "model": "rock_03",
       "visible": true,
       "transform": {
         "localPosition": {
           "x": -3.51,
-          "y": 0,
+          "y": 0.37,
           "z": -12.16
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
-          "x": 1,
-          "y": 1,
-          "z": 1
+          "x": 0.11218,
+          "y": 0.11218,
+          "z": 0.11218
         }
       },
       "children": [],
       "parent": ""
     },
     {
-      "name": "rock_03 (1)",
+      "name": "Rock_03 (1)",
       "model": "rock_03",
       "visible": true,
       "transform": {
@@ -1378,9 +1368,9 @@
           "z": -5.95
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.05392400000000001,
@@ -1392,7 +1382,7 @@
       "parent": ""
     },
     {
-      "name": "rock_02",
+      "name": "Rock_02",
       "model": "rock_02",
       "visible": true,
       "transform": {
@@ -1402,9 +1392,9 @@
           "z": -12.16
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0902604,
+          "y": 0.0106773013,
+          "z": -0.1169891
         },
         "localScale": {
           "x": 0.15063822699999999,
@@ -1416,7 +1406,7 @@
       "parent": ""
     },
     {
-      "name": "rock_04 (2)",
+      "name": "Rock_04 (2)",
       "model": "rock_04",
       "visible": true,
       "transform": {
@@ -1426,9 +1416,9 @@
           "z": -5.8053546
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.151156113,
+          "y": -0.0449415334,
+          "z": 0.335218519
         },
         "localScale": {
           "x": 0.0232815862,
@@ -1440,7 +1430,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (2)",
+      "name": "Grass_01 (2)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -1450,9 +1440,9 @@
           "z": 6.009
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.007118915,
+          "y": -0.2044583,
+          "z": 0.005049266
         },
         "localScale": {
           "x": 0.014189,
@@ -1464,7 +1454,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (1)",
+      "name": "Grass_01 (1)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -1474,9 +1464,9 @@
           "z": 7.585
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1488,7 +1478,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01",
+      "name": "Grass_01",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -1498,9 +1488,9 @@
           "z": 7.227
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1512,7 +1502,7 @@
       "parent": ""
     },
     {
-      "name": "rock_03",
+      "name": "Rock_03",
       "model": "rock_03",
       "visible": true,
       "transform": {
@@ -1522,9 +1512,9 @@
           "z": 7.138
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.005700341,
+          "y": -0.05751944,
+          "z": 0.09845491
         },
         "localScale": {
           "x": 0.023192012300000002,
@@ -1536,31 +1526,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_02",
-      "model": "mushroom_02",
-      "visible": true,
-      "transform": {
-        "localPosition": {
-          "x": 8.049,
-          "y": -0.022,
-          "z": 7.304
-        },
-        "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "localScale": {
-          "x": 0.012683,
-          "y": 0.012683,
-          "z": 0.012683
-        }
-      },
-      "children": [],
-      "parent": ""
-    },
-    {
-      "name": "rock_04",
+      "name": "Rock_04",
       "model": "rock_04",
       "visible": true,
       "transform": {
@@ -1570,9 +1536,9 @@
           "z": 6.647
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.3179876
         },
         "localScale": {
           "x": 0.01,
@@ -1584,7 +1550,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05 (1)",
+      "name": "Tree_05 (1)",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -1594,9 +1560,9 @@
           "z": 5.04316139
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1608,7 +1574,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05 (2)",
+      "name": "Tree_05 (2)",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -1618,9 +1584,9 @@
           "z": 7.46538353
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.41742298,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.011759,
@@ -1632,7 +1598,7 @@
       "parent": ""
     },
     {
-      "name": "bush_03 (3)",
+      "name": "Bush_03 (3)",
       "model": "bush_03",
       "visible": true,
       "transform": {
@@ -1642,9 +1608,9 @@
           "z": -4.77471828
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1656,7 +1622,7 @@
       "parent": ""
     },
     {
-      "name": "bush_03 (2)",
+      "name": "Bush_03 (2)",
       "model": "bush_03",
       "visible": true,
       "transform": {
@@ -1666,9 +1632,9 @@
           "z": -2.324
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.140036732,
+          "y": 0.0525322743,
+          "z": -0.0254304539
         },
         "localScale": {
           "x": 0.01,
@@ -1680,7 +1646,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05 (5)",
+      "name": "Rock_05 (5)",
       "model": "rock_05",
       "visible": true,
       "transform": {
@@ -1690,9 +1656,9 @@
           "z": 5.29
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.873430848,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.00359650016,
@@ -1704,7 +1670,7 @@
       "parent": ""
     },
     {
-      "name": "bush_03 (1)",
+      "name": "Bush_03 (1)",
       "model": "bush_03",
       "visible": true,
       "transform": {
@@ -1714,9 +1680,9 @@
           "z": 4.71697235
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.9002399,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.010983000000000001,
@@ -1728,7 +1694,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05 (2)",
+      "name": "Rock_05 (2)",
       "model": "rock_05",
       "visible": true,
       "transform": {
@@ -1738,9 +1704,9 @@
           "z": -26.64
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.03205,
@@ -1752,7 +1718,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05 (1)",
+      "name": "Rock_05 (1)",
       "model": "rock_05",
       "visible": true,
       "transform": {
@@ -1762,9 +1728,9 @@
           "z": 3.24356127
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1776,31 +1742,7 @@
       "parent": ""
     },
     {
-      "name": "rock_03",
-      "model": "rock_03",
-      "visible": true,
-      "transform": {
-        "localPosition": {
-          "x": 7.596,
-          "y": 0.0344688,
-          "z": 9.986746
-        },
-        "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "localScale": {
-          "x": 0.01,
-          "y": 0.01,
-          "z": 0.01
-        }
-      },
-      "children": [],
-      "parent": ""
-    },
-    {
-      "name": "tree_04 (5)",
+      "name": "Tree_04 (5)",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -1810,9 +1752,9 @@
           "z": -0.8
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.3747762,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.012457996600000002,
@@ -1824,31 +1766,7 @@
       "parent": ""
     },
     {
-      "name": "flowers_02",
-      "model": "flowers_02",
-      "visible": true,
-      "transform": {
-        "localPosition": {
-          "x": 7.765618,
-          "y": 0.0006,
-          "z": 10.0867271
-        },
-        "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "localScale": {
-          "x": 0.01,
-          "y": 0.01,
-          "z": 0.01
-        }
-      },
-      "children": [],
-      "parent": ""
-    },
-    {
-      "name": "tree_04 (4)",
+      "name": "Tree_04 (4)",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -1858,9 +1776,9 @@
           "z": -11.6969185
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1872,7 +1790,7 @@
       "parent": ""
     },
     {
-      "name": "tree_04 (3)",
+      "name": "Tree_04 (3)",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -1882,9 +1800,9 @@
           "z": -6.78
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.006290495,
+          "y": 0.346247673,
+          "z": -0.036607597
         },
         "localScale": {
           "x": 0.0106,
@@ -1896,7 +1814,7 @@
       "parent": ""
     },
     {
-      "name": "tree_04 (2)",
+      "name": "Tree_04 (2)",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -1906,9 +1824,9 @@
           "z": 2.41
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1920,7 +1838,7 @@
       "parent": ""
     },
     {
-      "name": "tree_04 (1)",
+      "name": "Tree_04 (1)",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -1930,9 +1848,9 @@
           "z": 1.16036046
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.738624454,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1944,7 +1862,7 @@
       "parent": ""
     },
     {
-      "name": "flowers_01",
+      "name": "Flowers_01",
       "model": "flowers_01",
       "visible": true,
       "transform": {
@@ -1954,9 +1872,9 @@
           "z": 11.94
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.6152619,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1968,7 +1886,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05",
+      "name": "Tree_05",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -1978,9 +1896,9 @@
           "z": 10.368
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -1992,7 +1910,7 @@
       "parent": ""
     },
     {
-      "name": "bush_03",
+      "name": "Bush_03",
       "model": "bush_03",
       "visible": true,
       "transform": {
@@ -2002,9 +1920,9 @@
           "z": 11.179
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.223348215,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2016,7 +1934,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05",
+      "name": "Rock_05",
       "model": "rock_05",
       "visible": true,
       "transform": {
@@ -2026,9 +1944,9 @@
           "z": 11.737
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2040,31 +1958,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05 (12)",
-      "model": "rock_05",
-      "visible": true,
-      "transform": {
-        "localPosition": {
-          "x": 10.891,
-          "y": 0.543410242,
-          "z": 11.737
-        },
-        "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "localScale": {
-          "x": 0.01,
-          "y": 0.01,
-          "z": 0.01
-        }
-      },
-      "children": [],
-      "parent": ""
-    },
-    {
-      "name": "tree_04",
+      "name": "Tree_04",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -2074,9 +1968,9 @@
           "z": -5.98
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.006116238,
+          "y": 0.428544432,
+          "z": -0.0128935464
         },
         "localScale": {
           "x": 0.01,
@@ -2088,7 +1982,7 @@
       "parent": ""
     },
     {
-      "name": "tree_03 (5)",
+      "name": "Tree_03 (5)",
       "model": "tree_03",
       "visible": true,
       "transform": {
@@ -2098,9 +1992,9 @@
           "z": -9.994
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.006049124,
+          "y": 0.9256303,
+          "z": -0.0148175238
         },
         "localScale": {
           "x": 0.014677,
@@ -2112,7 +2006,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (10)",
+      "name": "Tree_02 (10)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -2122,9 +2016,9 @@
           "z": -9.88
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0219770577,
+          "y": 0.1459293,
+          "z": -0.0179211963
         },
         "localScale": {
           "x": 0.0085,
@@ -2136,7 +2030,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (11)",
+      "name": "Tree_02 (11)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -2146,9 +2040,9 @@
           "z": -9.1
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.04117644,
+          "y": -0.009361764,
+          "z": 0.00307075423
         },
         "localScale": {
           "x": 0.0085,
@@ -2160,19 +2054,19 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (12)",
+      "name": "Tree_02 (12)",
       "model": "tree_02",
       "visible": true,
       "transform": {
         "localPosition": {
-          "x": 2.685,
-          "y": 0,
-          "z": -22.82
+          "x": 2.60499978,
+          "y": 1.06,
+          "z": -22.829998
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0073574977,
+          "y": -0.360671461,
+          "z": 0.0191837754
         },
         "localScale": {
           "x": 0.0118,
@@ -2184,7 +2078,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05 (7)",
+      "name": "Rock_05 (7)",
       "model": "rock_05",
       "visible": true,
       "transform": {
@@ -2194,9 +2088,9 @@
           "z": -21.82
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.00716605961,
@@ -2208,19 +2102,19 @@
       "parent": ""
     },
     {
-      "name": "tree_03 (6)",
+      "name": "Tree_03 (6)",
       "model": "tree_03",
       "visible": true,
       "transform": {
         "localPosition": {
           "x": -0.66,
-          "y": 0,
+          "y": 0.0,
           "z": -31.73
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.00378465932,
+          "y": -0.9948653,
+          "z": -0.04091914
         },
         "localScale": {
           "x": 0.01,
@@ -2232,7 +2126,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (14)",
+      "name": "Tree_02 (14)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -2242,9 +2136,9 @@
           "z": -18.28
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.005057658,
+          "y": -0.412271917,
+          "z": -0.00520883454
         },
         "localScale": {
           "x": 0.011399999999999999,
@@ -2256,7 +2150,7 @@
       "parent": ""
     },
     {
-      "name": "tree_04 (6)",
+      "name": "Tree_04 (6)",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -2266,9 +2160,9 @@
           "z": -6.06
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.03868865,
+          "y": -0.08157744,
+          "z": 0.0266492534
         },
         "localScale": {
           "x": 0.0078000000000000005,
@@ -2280,7 +2174,7 @@
       "parent": ""
     },
     {
-      "name": "tree_04 (7)",
+      "name": "Tree_04 (7)",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -2290,9 +2184,9 @@
           "z": -1.68
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0009278251,
+          "y": 0.0280534085,
+          "z": 0.08733915
         },
         "localScale": {
           "x": 0.00982163548,
@@ -2304,7 +2198,7 @@
       "parent": ""
     },
     {
-      "name": "tree_04 (8)",
+      "name": "Tree_04 (8)",
       "model": "tree_04",
       "visible": true,
       "transform": {
@@ -2314,9 +2208,9 @@
           "z": 0.01
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.002535192,
+          "y": -0.469912827,
+          "z": -0.09465739
         },
         "localScale": {
           "x": 0.00893768847,
@@ -2328,7 +2222,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05 (2)",
+      "name": "Tree_05 (2)",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -2338,9 +2232,9 @@
           "z": -9.46448
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2352,7 +2246,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05",
+      "name": "Tree_05",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -2362,9 +2256,9 @@
           "z": -6.45
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2376,7 +2270,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (16)",
+      "name": "Tree_02 (16)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -2386,9 +2280,9 @@
           "z": -27.75
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.00142965117,
+          "y": -0.488156646,
+          "z": 0.0219101682
         },
         "localScale": {
           "x": 0.012641,
@@ -2400,7 +2294,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01 (1)",
+      "name": "Mushroom_01 (1)",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -2410,9 +2304,9 @@
           "z": -5.63534164
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": -0.0326628461,
+          "y": 0.228244215,
+          "z": -0.0397733934
         },
         "localScale": {
           "x": 0.00715860069,
@@ -2424,7 +2318,7 @@
       "parent": ""
     },
     {
-      "name": "bush_03 (1)",
+      "name": "Bush_03 (1)",
       "model": "bush_03",
       "visible": true,
       "transform": {
@@ -2434,9 +2328,9 @@
           "z": -10.4378462
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2448,7 +2342,7 @@
       "parent": ""
     },
     {
-      "name": "tree_02 (15)",
+      "name": "Tree_02 (15)",
       "model": "tree_02",
       "visible": true,
       "transform": {
@@ -2458,9 +2352,9 @@
           "z": -16.6
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.005057658,
+          "y": -0.412271917,
+          "z": -0.00520883454
         },
         "localScale": {
           "x": 0.012654,
@@ -2472,7 +2366,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05 (2)",
+      "name": "Rock_05 (2)",
       "model": "rock_05",
       "visible": true,
       "transform": {
@@ -2482,9 +2376,9 @@
           "z": -10.8074274
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.008076400000000001,
@@ -2496,7 +2390,7 @@
       "parent": ""
     },
     {
-      "name": "tree_01 (2)",
+      "name": "Tree_01 (2)",
       "model": "tree_01",
       "visible": true,
       "transform": {
@@ -2506,9 +2400,9 @@
           "z": -24.16
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.08303208,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2520,7 +2414,7 @@
       "parent": ""
     },
     {
-      "name": "branch_01",
+      "name": "Branch_01",
       "model": "branch_01",
       "visible": true,
       "transform": {
@@ -2530,9 +2424,9 @@
           "z": 2.498
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.7078147,
+          "y": 0.0959598944,
+          "z": -0.09801807
         },
         "localScale": {
           "x": 0.0095836,
@@ -2544,7 +2438,7 @@
       "parent": ""
     },
     {
-      "name": "rock_01",
+      "name": "Rock_01",
       "model": "rock_01",
       "visible": true,
       "transform": {
@@ -2554,9 +2448,9 @@
           "z": 3.257
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.149511546,
+          "y": -0.0748736039,
+          "z": 0.09877261
         },
         "localScale": {
           "x": 0.0064586,
@@ -2568,7 +2462,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01",
+      "name": "Mushroom_01",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -2578,9 +2472,9 @@
           "z": 4.034
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.0058586,
@@ -2592,7 +2486,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (2)",
+      "name": "Grass_01 (2)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -2602,9 +2496,9 @@
           "z": 4.062866
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2616,7 +2510,7 @@
       "parent": ""
     },
     {
-      "name": "bush_03",
+      "name": "Bush_03",
       "model": "bush_03",
       "visible": true,
       "transform": {
@@ -2626,9 +2520,9 @@
           "z": 3.4968617
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0781082362,
+          "y": -0.0991923362,
+          "z": -0.0030472856
         },
         "localScale": {
           "x": 0.01,
@@ -2640,7 +2534,7 @@
       "parent": ""
     },
     {
-      "name": "bush_02",
+      "name": "Bush_02",
       "model": "bush_02",
       "visible": true,
       "transform": {
@@ -2650,9 +2544,9 @@
           "z": -1.959
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2664,7 +2558,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (3)",
+      "name": "Grass_01 (3)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -2674,9 +2568,9 @@
           "z": -5.849
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.016017,
@@ -2688,7 +2582,7 @@
       "parent": ""
     },
     {
-      "name": "grass_02",
+      "name": "Grass_02",
       "model": "grass_02",
       "visible": true,
       "transform": {
@@ -2698,9 +2592,9 @@
           "z": 6.60075569
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2712,7 +2606,7 @@
       "parent": ""
     },
     {
-      "name": "flowers_01 (1)",
+      "name": "Flowers_01 (1)",
       "model": "flowers_01",
       "visible": true,
       "transform": {
@@ -2722,9 +2616,9 @@
           "z": 6.67481756
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.542660236,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2736,7 +2630,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05",
+      "name": "Rock_05",
       "model": "rock_05",
       "visible": true,
       "transform": {
@@ -2746,9 +2640,9 @@
           "z": 6.28
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.04805165,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.007699999,
@@ -2760,7 +2654,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01 (1)",
+      "name": "Grass_01 (1)",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -2770,9 +2664,9 @@
           "z": -1.34034193
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2784,7 +2678,7 @@
       "parent": ""
     },
     {
-      "name": "grass_01",
+      "name": "Grass_01",
       "model": "grass_01",
       "visible": true,
       "transform": {
@@ -2794,9 +2688,9 @@
           "z": -4.3500433
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.013535,
@@ -2808,7 +2702,7 @@
       "parent": ""
     },
     {
-      "name": "flowers_01",
+      "name": "Flowers_01",
       "model": "flowers_01",
       "visible": true,
       "transform": {
@@ -2818,9 +2712,9 @@
           "z": -4.346286
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.7784573,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2832,7 +2726,7 @@
       "parent": ""
     },
     {
-      "name": "flowers_02",
+      "name": "Flowers_02",
       "model": "flowers_02",
       "visible": true,
       "transform": {
@@ -2842,9 +2736,9 @@
           "z": -1.76030374
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2856,7 +2750,7 @@
       "parent": ""
     },
     {
-      "name": "flowers_01 (2)",
+      "name": "Flowers_01 (2)",
       "model": "flowers_01",
       "visible": true,
       "transform": {
@@ -2866,9 +2760,9 @@
           "z": 6.162
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.763109446,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.008900000449999999,
@@ -2880,7 +2774,7 @@
       "parent": ""
     },
     {
-      "name": "rock_05 (1)",
+      "name": "Rock_05 (1)",
       "model": "rock_05",
       "visible": true,
       "transform": {
@@ -2890,9 +2784,9 @@
           "z": 0.59
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": -0.04805165,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.016187,
@@ -2904,7 +2798,7 @@
       "parent": ""
     },
     {
-      "name": "mushroom_01 (2)",
+      "name": "Mushroom_01 (2)",
       "model": "mushroom_01",
       "visible": true,
       "transform": {
@@ -2914,9 +2808,9 @@
           "z": -5.621
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.01,
@@ -2928,7 +2822,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05 (1)",
+      "name": "Tree_05 (1)",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -2938,9 +2832,9 @@
           "z": -7.51
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.824988663,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.011200000000000002,
@@ -2952,7 +2846,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05 (3)",
+      "name": "Tree_05 (3)",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -2962,9 +2856,9 @@
           "z": -11.67
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.999586344,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.013466,
@@ -2976,7 +2870,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05 (4)",
+      "name": "Tree_05 (4)",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -2986,9 +2880,9 @@
           "z": -8.38
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.5015554,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.0112239122,
@@ -3000,7 +2894,7 @@
       "parent": ""
     },
     {
-      "name": "tree_05 (5)",
+      "name": "Tree_05 (5)",
       "model": "tree_05",
       "visible": true,
       "transform": {
@@ -3010,9 +2904,9 @@
           "z": 3.53
         },
         "localEulerAngles": {
-          "x": 0,
-          "y": 0,
-          "z": 0
+          "x": 0.0,
+          "y": 0.929367542,
+          "z": 0.0
         },
         "localScale": {
           "x": 0.008754651,
@@ -3024,24 +2918,264 @@
       "parent": ""
     },
     {
-      "name": "ground",
-      "model": "ground_01",
+      "name": "Ground_02",
+      "model": "ground_02",
+      "visible": false,
+      "transform": {
+        "localPosition": {
+          "x": 7.3,
+          "y": -3.488,
+          "z": -22.9
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 2,
+          "y": 2,
+          "z": 2
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Tree_02",
+      "model": "tree_02",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": -8.773648,
+          "y": 0.0,
+          "z": -14.6120148
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 0.01,
+          "y": 0.01,
+          "z": 0.01
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Tree_02 (1)",
+      "model": "tree_02",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": -11.8206835,
+          "y": 0.0,
+          "z": -16.6632843
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 0.01,
+          "y": 0.01,
+          "z": 0.01
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Tree_01",
+      "model": "tree_01",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": -8.290616,
+          "y": 0.0,
+          "z": -18.9856262
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 0.01,
+          "y": 0.01,
+          "z": 0.01
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Stump_01",
+      "model": "stump_01",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": -9.40719,
+          "y": 0.0,
+          "z": -13.9164619
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 0.01,
+          "y": 0.01,
+          "z": 0.01
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Ground_03",
+      "model": "plane",
       "visible": true,
       "transform": {
         "localPosition": {
           "x": 0,
-          "y": -1,
+          "y": 0,
           "z": 0
         },
         "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 3,
+          "y": 3,
+          "z": 3
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Tree_01 (1)",
+      "model": "tree_01",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 4.0452,
+          "y": 0.05,
+          "z": 2.6781
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 0.015657,
+          "y": 0.015657,
+          "z": 0.015657
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Ground_02 (1)",
+      "model": "ground_02",
+      "visible": false,
+      "transform": {
+        "localPosition": {
+          "x": -21.4,
+          "y": -0.34,
+          "z": -18.5
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "Ground_02 (2)",
+      "model": "ground_02",
+      "visible": false,
+      "transform": {
+        "localPosition": {
+          "x": -25.0,
+          "y": -5.4967,
+          "z": 18.4
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "zombie",
+      "model": "Zombie",
+      "visible": true,
+      "transform": {
+        "localPosition": {
           "x": 0,
           "y": 0,
           "z": 0
         },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 180.0,
+          "z": 0.0
+        },
         "localScale": {
-          "x": 10,
-          "y": 1,
-          "z": 10
+          "x": 0.005,
+          "y": 0.005,
+          "z": 0.005
+        }
+      },
+      "children": [],
+      "parent": ""
+    },
+    {
+      "name": "zombie1",
+      "model": "Zombie",
+      "visible": true,
+      "transform": {
+        "localPosition": {
+          "x": 5,
+          "y": 0,
+          "z": -5
+        },
+        "localEulerAngles": {
+          "x": 0.0,
+          "y": 240.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 0.005,
+          "y": 0.005,
+          "z": 0.005
         }
       },
       "children": [],
@@ -3050,8 +3184,9 @@
   ],
   "rigidbodies": [
     {
-      "objectName": "ground",
-      "active": true,
+      "objectName": "Ground_03",
+      "active": false,
+      "applyGravity": false,
       "collider": "MESH",
       "invMass": 0.0,
       "position": {
@@ -3059,29 +3194,61 @@
         "y": 0,
         "z": 0
       },
-      "velocity": {
+      "orientation": {
         "x": 0,
         "y": 0,
-        "z": 0
+        "z": 0,
+        "w": 0
       },
-      "orientation": {
-        "w": 0,
+      "velocity": {
         "x": 0,
         "y": 0,
         "z": 0
       }
     }
   ],
-  "softbodies": [
-  ],
+  "softbodies": [],
   "animation": {
     "name": "",
     "path": ""
   },
   "character_animations": [
-
+    {
+      "name": "zombie_scream",
+      "path": "Assets/Models/FPS_Test/zombie_scream.fbx",
+      "model": "Zombie"
+    },
+    {
+      "name": "Player_Idle",
+      "path": "Assets/Animations/Player_Idle.fbx",
+      "model": "PlayerHands"
+    },
+    {
+      "name": "zombie_attack",
+      "path": "Assets/Animations/zombie_attack.fbx",
+      "model": "Zombie"
+    }
   ],
-  "audioSources": [],
+  "audioSources": [
+    {
+      "name": "SFX",
+      "filepath": "Assets/Audio/sfx.mp3",
+      "volume": 1.0,
+      "pan": 1.0,
+      "pitch": 1.0,
+      "streamed": false,
+      "loop": true,
+      "spatial": false,
+      "playOnAwake": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "minDistance": 0.0,
+      "maxDistance": 0.0
+    }
+  ],
   "skybox": {
     "name": "StandardSkybox",
     "size": 2.0,
