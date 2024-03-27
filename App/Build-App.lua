@@ -50,7 +50,7 @@ project "App"
         {
             "{COPYFILE} ../Engine/Vendor/assimp/bin/assimp-vc143-mt.dll %{cfg.targetdir}/",
             "{COPYFILE} ../Engine/Vendor/glfw/lib-vc2022/*.dll %{cfg.targetdir}/",
-            "{COPYFILE} ../Engine/Vendor/fmod/lib/*.dll %{cfg.targetdir}/",
+            "{COPYFILE} ../Engine/Vendor/fmod/bin/*.dll %{cfg.targetdir}/",
             "{COPY} ./Assets %{cfg.targetdir}/Assets"
         }
 
@@ -63,6 +63,6 @@ project "App"
         {
             "{COPYFILE} ../Engine/Vendor/assimp/bin/assimp-vc143-mt.dll %{cfg.targetdir}/",
             "{COPYFILE} ../Engine/Vendor/glfw/lib-vc2022/*.dll %{cfg.targetdir}/",
-            "{COPYFILE} ../Engine/Vendor/fmod/lib/*.dll %{cfg.targetdir}/",
+            "{COPYFILE} ../Engine/Vendor/fmod/bin/*.dll %{cfg.targetdir}/",
 			"{COPY} ./Assets %{cfg.targetdir}/Assets"
         }
