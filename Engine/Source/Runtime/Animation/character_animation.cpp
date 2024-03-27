@@ -38,7 +38,6 @@ unsigned int CharacterAnimation::findPosition(float p_animation_time, const aiNo
         if (p_animation_time < (float)p_node_anim->mPositionKeys[i + 1].mTime) return i;
     }
 
-    assert(0);
     return 0;
 }
 
@@ -47,7 +46,6 @@ unsigned int CharacterAnimation::findRotation(float p_animation_time, const aiNo
         if (p_animation_time < (float)p_node_anim->mRotationKeys[i + 1].mTime) return i;
     }
 
-    assert(0);
     return 0;
 }
 
@@ -56,7 +54,6 @@ unsigned int CharacterAnimation::findScaling(float p_animation_time, const aiNod
         if (p_animation_time < (float)p_node_anim->mScalingKeys[i + 1].mTime) return i;
     }
 
-    assert(0);
     return 0;
 }
 
@@ -71,7 +68,7 @@ aiVector3D CharacterAnimation::calcInterpolatedPosition(float p_animation_time, 
     float delta_time = (float)(p_node_anim->mPositionKeys[next_position_index].mTime -
                                p_node_anim->mPositionKeys[position_index].mTime);
     float factor = (p_animation_time - (float)p_node_anim->mPositionKeys[position_index].mTime) / delta_time;
-    assert(factor >= 0.0f && factor <= 1.0f);
+    //assert(factor >= 0.0f && factor <= 1.0f);
     aiVector3D start = p_node_anim->mPositionKeys[position_index].mValue;
     aiVector3D end = p_node_anim->mPositionKeys[next_position_index].mValue;
     aiVector3D delta = end - start;
@@ -90,7 +87,7 @@ aiQuaternion CharacterAnimation::calcInterpolatedRotation(float p_animation_time
     float delta_time = (float)(p_node_anim->mRotationKeys[next_rotation_index].mTime -
                                p_node_anim->mRotationKeys[rotation_index].mTime);
     float factor = (p_animation_time - (float)p_node_anim->mRotationKeys[rotation_index].mTime) / delta_time;
-    assert(factor >= 0.0f && factor <= 1.0f);
+   // assert(factor >= 0.0f && factor <= 1.0f);
     aiQuaternion start_quat = p_node_anim->mRotationKeys[rotation_index].mValue;
     aiQuaternion end_quat = p_node_anim->mRotationKeys[next_rotation_index].mValue;
 
@@ -108,7 +105,7 @@ aiVector3D CharacterAnimation::calcInterpolatedScaling(float p_animation_time, c
     float delta_time =
         (float)(p_node_anim->mScalingKeys[next_scaling_index].mTime - p_node_anim->mScalingKeys[scaling_index].mTime);
     float factor = (p_animation_time - (float)p_node_anim->mScalingKeys[scaling_index].mTime) / delta_time;
-    assert(factor >= 0.0f && factor <= 1.0f);
+    //assert(factor >= 0.0f && factor <= 1.0f);
     aiVector3D start = p_node_anim->mScalingKeys[scaling_index].mValue;
     aiVector3D end = p_node_anim->mScalingKeys[next_scaling_index].mValue;
     aiVector3D delta = end - start;

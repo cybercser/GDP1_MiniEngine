@@ -23,6 +23,7 @@ public:
 
     GameObject* object;
     bool active;
+    bool applyGravity;
 
     glm::vec3 GetCenterOfMassWorldSpace() const;
     glm::vec3 GetCenterOfMassLocalSpace() const;

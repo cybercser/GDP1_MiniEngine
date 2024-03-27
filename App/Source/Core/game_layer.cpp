@@ -16,47 +16,57 @@ GameLayer::GameLayer()
 void GameLayer::OnAttach() {
     EnableGLDebugging();
 
-    //m_Scene = std::make_shared<Scene>("Assets/Levels/fps_test_1.json");
-    m_Scene = std::make_shared<Scene>("Assets/Levels/scene_monitors.json");
+    // Create Scene
+    m_Scene = std::make_shared<Scene>("Assets/Levels/fps_test.json");
 
-    fbo_Scene = std::make_shared<Scene>("Assets/Levels/fps_test.json");
-    fbo_Scene->CreateFBO();
+    // Initialize things here
 
-    fbo_Scene_1 = std::make_shared<Scene>("Assets/Levels/fps_test.json");
-    fbo_Scene_1->CreateFBO();
+    GameObject* zombie = m_Scene->FindObjectByName("zombie");
+    zombie->model->SetCurrentAnimation("zombie_scream");
+
+    // Add Player and objects to the scene
+    AddPlayer();
+    AddCoins();
+    CreateRaindropObjects(m_Scene.get(), 10);
+
+
+    // Initialize Audio Manager
+    m_audioManager = std::make_unique<gdp1::AudioManager>();
+    m_audioManager->Initialize();
+
+    // Play SFX Music initially - later change to handling by lua scripts
+    gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
+    m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
+    m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
+
+
+    // Initialize Database
+    db = std::make_shared<SQLiteDatabase>("Assets/Data/game_data.db");
+    db->open();
+
+    // Check sample usage of database operations
+    gameplayManager = new GameplayManager(*db.get());
+
+    gameplayManager->playerKilledZombie(m_Player->id, 1);
+    gameplayManager->playerKilledZombie(m_Player->id, 2);
+
+    int kills = gameplayManager->getPlayerKillCount(m_Player->id);
+    LOG_ERROR("Player killed: {}", kills);
+
 
     // init the camera
     const CameraDesc& camDesc = m_Scene->GetLevelDesc().cameraDescs[0];
-    const CameraDesc& fbo_CamDesc = fbo_Scene->GetLevelDesc().cameraDescs[0];
-    CameraDesc fbo_CamDesc_1 = fbo_Scene_1->GetLevelDesc().cameraDescs[0];
-    fbo_CamDesc_1.position = glm::vec3(9.6f, 11.2f, -0.8f);
-    fbo_CamDesc_1.up = glm::vec3(-0.5f, 0.8f, -0.2f);
-    fbo_CamDesc_1.yaw = 560.7f;
-    fbo_CamDesc_1.pitch = -34.8f;
+    m_Player->SetFPSCamera(camDesc);
 
-    m_FlyCamera = std::make_unique<FlyCameraController>(camDesc, 16.0f / 9.0f, 10.0f, 2.0f);
-    m_FboCamera = std::make_unique<FlyCameraController>(fbo_CamDesc, 1.0f, 10.0f, 2.0f);
-    m_FboCamera_1 = std::make_unique<FlyCameraController>(fbo_CamDesc_1, 1.0f, 10.0f, 2.0f);
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
 
-    CreateRaindropObjects(fbo_Scene.get(), 50);
-    CreateRaindropObjects(fbo_Scene_1.get(), 50);
-
-    gdp1::GameObject* gameObject = m_Scene.get()->FindObjectByName("RetroTVScreen_1");
-    gameObject->UseChromaticAberration = true;
-    gameObject->UseNightVision = false;
-    gameObject->fboTextureId = fbo_Scene->GetFBO()->colorTextureId;
-
-    gdp1::GameObject* gameObject1 = m_Scene.get()->FindObjectByName("RetroTVScreen_2");
-    gameObject1->UseChromaticAberration = false;
-    gameObject1->UseNightVision = true;
-    gameObject1->fboTextureId = fbo_Scene_1->GetFBO()->colorTextureId;
 
     // init physics engine
     m_Physics = std::make_unique<Physics>(m_Scene.get(), m_Scene->GetLevelDesc());
     m_Physics->StartSoftBodyThreads();
+
 
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -69,11 +79,7 @@ void GameLayer::OnAttach() {
 void GameLayer::OnDetach() {}
 
 void GameLayer::OnEvent(gdp1::Event& event) {
-    if (Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT)) {
-        m_FboCamera_1->OnEvent(event);
-    } else {
-        m_FlyCamera->OnEvent(event);
-    }
+    // m_FlyCamera->OnEvent(event);
 
     EventDispatcher dispatcher(event);
     dispatcher.Dispatch<MouseButtonPressedEvent>([&](MouseButtonPressedEvent& e) { return false; });
@@ -82,33 +88,35 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 }
 
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
-    if (Input::IsKeyPressed(HZ_KEY_LEFT_SHIFT)) {
-        m_FboCamera_1->OnUpdate(ts);
-    } else {
-        m_FlyCamera->OnUpdate(ts);
-    }
+    // m_FlyCamera->OnUpdate(ts);
+    m_Player->Update(ts);
 
     m_Physics->FixedUpdate(ts);
     m_Scene->Update(ts);
 
-    m_Renderer->Render(fbo_Scene, m_FboCamera->GetCamera(), true);
-    m_Renderer->Render(fbo_Scene_1, m_FboCamera_1->GetCamera(), true);
-    m_Renderer->Render(m_Scene, m_FlyCamera->GetCamera(), enableSkyBox);
+    m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), enableSkyBox);
+
+    // Render Debug Boxes
+    //m_Renderer->RenderDebug(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), enableSkyBox);
 }
 
 void GameLayer::OnImGuiRender() {
     ImGui::Begin("Controls");
     ImGui::Text("WASD to move, mouse to look around");
     // add label to show the camera parameters
-    const glm::vec3& pos = m_FboCamera_1->GetPosition();
-    const glm::vec3& up = m_FboCamera_1->GetUp();
-    float yaw = m_FboCamera_1->GetYaw();
-    float pitch = m_FboCamera_1->GetPitch();
-    float fov = m_FboCamera_1->GetFov();
+    const glm::vec3& pos = m_Player->fps_camera_ptr_.get()->GetPosition();
+    const glm::vec3& up = m_Player->fps_camera_ptr_.get()->GetUp();
+    float yaw = m_Player->fps_camera_ptr_.get()->GetYaw();
+    float pitch = m_Player->fps_camera_ptr_.get()->GetPitch();
+    float fov = m_Player->fps_camera_ptr_.get()->GetFov();
 
     ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)\nUp: (%.1f, %.1f, %.1f)\nYaw: %.1f, Pitch: %.1f, FOV: %.1f", pos.x,
                 pos.y, pos.z, up.x, up.y, up.z, yaw, pitch, fov);
-    ImGui::Checkbox("Enable Skyobx", &enableSkyBox);
+
+    ImGui::Text("Player Position: (%.3f, %.3f, %.3f)", m_Player->transform->localPosition.x,
+                m_Player->transform->localPosition.y, m_Player->transform->localPosition.z);
+
+    ImGui::Checkbox("Enable Skybox", &enableSkyBox);
     ImGui::End();
 }
 
@@ -122,9 +130,9 @@ void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
 
     for (int i = 0; i < numRaindrops; ++i) {
         // Generate random position, size, and other properties
-        float x = RandomFloat(-7.0f, 7.0f);    // Random X position
-        float y = RandomFloat(0.0f, 7.0f);      // Random Y position (height)
-        float z = RandomFloat(-7.0f, 7.0f);    // Random Z position
+        float x = RandomFloat(-7.0f, 7.0f);      // Random X position
+        float y = RandomFloat(0.0f, 7.0f);       // Random Y position (height)
+        float z = RandomFloat(-7.0f, 7.0f);      // Random Z position
         float scale = RandomFloat(0.05f, 0.2f);  // Random scale
         bool isVisible = true;                   // Raindrop is initially visible
 
@@ -150,8 +158,7 @@ void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
         rigidbodyDesc.objectName = desc.name;
         rigidbodyDesc.orientation = glm::vec3(0.0f);
         rigidbodyDesc.position = glm::vec3(0.0f);
-        rigidbodyDesc.velocity =
-            glm::vec3(RandomFloat(-0.1f, 0.1f), -RandomFloat(0.01f, 0.05f), RandomFloat(-0.1f, 0.1f));
+        rigidbodyDesc.velocity = glm::vec3(0.0f);
 
         PointLight pointLight;
         pointLight.color = randomColor;
@@ -167,5 +174,80 @@ void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
         // m_Scene->GetLevelDesc().rigidbodyDescs.push_back(rigidbodyDesc);
 
         scene->AddGameObject(raindrop);  // Add the raindrop to the scene (assuming this function exists)
+    }
+}
+
+void GameLayer::AddPlayer() {
+    GameObjectDesc playerDesc;
+
+    playerDesc.name = "Player";
+    playerDesc.modelName = "PlayerHands";
+    playerDesc.visible = true;
+    playerDesc.transform.localPosition = glm::vec3(0.f, 0.3f, -13.f);
+    playerDesc.transform.localScale = glm::vec3(0.5f);
+    playerDesc.transform.localEulerAngles = glm::vec3(0.0f, 30.f, 0.f);
+    playerDesc.setLit = true;
+    playerDesc.parentName = "";
+
+    RigidbodyDesc rigidBodyDesc;
+
+    rigidBodyDesc.active = true;
+    rigidBodyDesc.applyGravity = false;
+    rigidBodyDesc.collider = "MESH";
+    rigidBodyDesc.invMass = 1.0f;
+    rigidBodyDesc.objectName = "Player";
+    rigidBodyDesc.position = playerDesc.transform.localPosition;
+    rigidBodyDesc.velocity = glm::vec3(0.f);
+    rigidBodyDesc.orientation = playerDesc.transform.localEulerAngles;
+
+    m_Scene->GetLevelDesc().rigidbodyDescs.push_back(rigidBodyDesc);
+
+    //GameObjectDesc weaponDesc;
+
+    //weaponDesc.name = "ArGun";
+    //weaponDesc.modelName = "AR_Gun";
+    //weaponDesc.visible = true;
+    //weaponDesc.transform.localPosition = glm::vec3(0.f, 1.f, 0.f);
+    //weaponDesc.transform.localScale = glm::vec3(0.05f);
+    //weaponDesc.transform.localEulerAngles = glm::vec3(0.0f, 0.f, 0.f);
+    //weaponDesc.setLit = true;
+    //weaponDesc.parentName = "";
+
+    m_Player = new Player(m_Scene.get(), playerDesc);
+
+    m_Scene->AddGameObject(m_Player);
+    //m_Scene->AddGameObject(new Weapon(m_Scene.get(), weaponDesc, WeaponType::RIFLE));
+}
+
+void GameLayer::AddCoins() {
+    for (int i = 0; i < 30; i++) {
+        // Generate random position, size, and other properties
+        float x = RandomFloat(-20.0f, 20.0f);      // Random X position
+        float z = RandomFloat(-20.0f, 20.0f);      // Random Z position
+
+        GameObjectDesc coinDesc;
+
+        coinDesc.name = "Coin" + std::to_string(i);
+        coinDesc.modelName = "Coin";
+        coinDesc.visible = true;
+        coinDesc.transform.localPosition = glm::vec3(x, 0.7f, z);
+        coinDesc.transform.localScale = glm::vec3(0.005f);
+        coinDesc.transform.localEulerAngles = glm::vec3(0.0f);
+        coinDesc.setLit = true;
+        coinDesc.parentName = "";
+
+        RigidbodyDesc rigidBodyDesc;
+
+        rigidBodyDesc.active = true;
+        rigidBodyDesc.collider = "SPHERE";
+        rigidBodyDesc.invMass = 1.0f;
+        rigidBodyDesc.applyGravity = false;
+        rigidBodyDesc.objectName = "Coin" + std::to_string(i);
+        rigidBodyDesc.position = coinDesc.transform.localPosition;
+        rigidBodyDesc.velocity = glm::vec3(0.f);
+        rigidBodyDesc.orientation = glm::vec3(0.f);
+
+        m_Scene->GetLevelDesc().rigidbodyDescs.push_back(rigidBodyDesc);
+        m_Scene->AddGameObject(new Collectible(m_Scene.get(), coinDesc, CollectibleType::COIN));
     }
 }

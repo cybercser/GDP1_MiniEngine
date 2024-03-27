@@ -22,6 +22,7 @@ struct CameraDesc {
 struct RigidbodyDesc {
     std::string objectName;
     bool active;
+    bool applyGravity;
     std::string collider;
     float invMass;
     glm::vec3 position;

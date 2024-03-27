@@ -7,6 +7,13 @@
 
 namespace gdp1 {
 
+enum class CameraMovement {
+    kFORWARD,
+    kBACKWARD,
+    kLEFT,
+    kRIGHT,
+};
+
 class Camera {
 public:
     Camera(const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up, float fov, float aspect, float nearZ,

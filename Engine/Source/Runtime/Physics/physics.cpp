@@ -43,8 +43,12 @@ void Physics::Init(Scene* scene, const LevelDesc& levelDesc) {
         body->orientation = bodyDesc.orientation;
         body->invMass = bodyDesc.invMass;
         body->velocity = bodyDesc.velocity;
+        body->applyGravity = bodyDesc.applyGravity;
 
-        body->object = scene->FindObjectByName(objName);
+        GameObject* go = scene->FindObjectByName(objName);
+        body->object = go;
+
+        go->rigidBody = body;
 
         if (bodyDesc.collider == "SPHERE") {
             body->collider = new SphereCollider(1.0f);
@@ -97,10 +101,10 @@ void Physics::CreateBVH() {
 
 void Physics::FixedUpdate(float deltaTime) {
     for (Rigidbody* body : rigidbodies_) {
-        if (body->invMass == 0.0 || !body->active) continue;
+        if (body->invMass == 0.0 || !body->active || !body->applyGravity) continue;
 
         float mass = 1.0f / body->invMass;
-        glm::vec3 impulseGravity = glm::vec3(0.0, -9.8, 0.0) * mass * deltaTime;
+        glm::vec3 impulseGravity = glm::vec3(0.0, -0.1, 0.0) * mass * deltaTime;
         body->ApplyImpulse(impulseGravity);
     }
 
@@ -115,6 +119,10 @@ void Physics::FixedUpdate(float deltaTime) {
         Rigidbody* bodyA = info.body1;
         Rigidbody* bodyB = info.body2;
 
+        if (bodyA == bodyB) {
+            continue;
+        }
+
         // skip static body pairs (infinite mass)
         if (0.0f == bodyA->invMass && 0.0f == bodyB->invMass) {
             continue;
@@ -127,30 +135,18 @@ void Physics::FixedUpdate(float deltaTime) {
         Contact contact;
         if (Intersect(bodyA, bodyB, contact)) {
             ResolveContact(contact);
+            bodyA->object->OnCollision(&contact);
             // bodyA->object->OnCollision(info);
-            /*const glm::vec3& pt = contact.ptOnA_WorldSpace;
-            printf("(%s, %s) at (%.3f, %.3f, %.3f)\n", bodyA->object->name.c_str(), bodyB->object->name.c_str(), pt.x,
-                   pt.y, pt.z);*/
         }
     }
 
-    // Broad phase
-    // std::vector<SoftBodyCollisionInfo> softBodycollisionInfos;
-    // BroadPhaseSoftBodies(softbodies_, rigidbodies_, softBodycollisionInfos);
+    std::unordered_map<std::string, GameObject*> m_GameObjectMap = scene->GetGameObjectMap();
 
-    // for (size_t i = 0; i < softBodycollisionInfos.size(); i++) {
-    //     const SoftBodyCollisionInfo& info = softBodycollisionInfos[i];
-    //     SoftBody* bodyA = info.body1;
-    //     Rigidbody* bodyB = info.body2;
+    for (auto& pair : m_GameObjectMap) {
+        GameObject* gameObject = pair.second;
+        gameObject->Update(deltaTime);
+    }
 
-    //    SoftBodyContact contact;
-    //    if (Intersect(bodyA, bodyB, contact)) {
-    //        //ResolveContact(contact);
-    //        // bodyA->object->OnCollision(info);
-    //        const glm::vec3& pt = contact.ptOnA_WorldSpace;
-    //        printf("(%s, %s) at (%.3f, %.3f, %.3f)\n", "Softbody", bodyB->object->name.c_str(), pt.x, pt.y, pt.z);
-    //    }
-    //}
 
 #if 0
 	// the brute force way
@@ -180,7 +176,7 @@ void Physics::FixedUpdate(float deltaTime) {
 
     // update position
     for (Rigidbody* body : rigidbodies_) {
-        if (body->invMass == 0.0) continue;
+        if (body->invMass == 0.0 || !body->applyGravity) continue;
 
         body->position += body->velocity * deltaTime;
         body->collider->centerOfMass = body->position;

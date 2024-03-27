@@ -26,6 +26,9 @@ Application::Application(const std::string& name, unsigned int width, unsigned i
     m_Window = std::unique_ptr<Window>(Window::Create(WindowProps(name, width, height)));
     //if (startFullScreen) m_Window->ToggleFullscreen();
 
+    lua_state = luaL_newstate();
+    luaL_openlibs(lua_state);
+
     m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
     m_ImGuiLayer = new ImGuiLayer();

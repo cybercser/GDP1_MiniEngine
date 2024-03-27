@@ -10,6 +10,8 @@
 
 #include "ImGui/imgui_layer.h"
 
+#include <lua.hpp>
+
 namespace gdp1 {
 
 // forward declaration
@@ -29,6 +31,8 @@ public:
     inline Window& GetWindow() { return *m_Window; }
 
     inline static Application& Get() { return *s_Instance; }
+
+    lua_State* lua_state;
 
 private:
     bool OnWindowClose(WindowCloseEvent& e);

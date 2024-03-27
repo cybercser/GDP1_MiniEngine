@@ -65,6 +65,8 @@ public:
 
     LevelDesc& GetLevelDesc();
 
+    std::unordered_map<std::string, GameObject*> GetGameObjectMap() { return m_GameObjectMap; };
+
     void CreateFBO();
     void UseFBO();
     bool HasFBO();

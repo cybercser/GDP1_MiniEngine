@@ -22,6 +22,12 @@ project "Engine"
         "Vendor/imgui/backends/imgui_impl_glfw.cpp",
         "Vendor/imgui/backends/imgui_impl_opengl3_loader.h",
         "Vendor/**.natvis",
+        "Vendor/sqlite/**.h",
+        "Vendor/sqlite/**.c",
+        "Vendor/sqlite/**.cpp",
+        "Vendor/lua/**.h",
+        "Vendor/lua/**.c",
+        "Vendor/lua/**.cpp",
     }
 
     includedirs
@@ -36,6 +42,9 @@ project "Engine"
         "Vendor/spdlog/include",
         "Vendor/json/include",
         "Vendor/stb_image",
+        "Vendor/sqlite",
+        "Vendor/lua/include",
+        "Vendor/fmod/include",
     }
 
     libdirs
@@ -43,12 +52,16 @@ project "Engine"
         "Vendor/assimp/lib",
         "Vendor/glfw/lib-vc2022",
         "Vendor/spdlog/lib",
+        "Vendor/lua/lib",
+        "Vendor/fmod/lib",
     }
 
     links 
 	{ 
 		"assimp-vc143-mt",
 		"glfw3",
+		"lua5.4.6-static",
+		"fmod_vc",
 	}
 
     filter "system:windows"

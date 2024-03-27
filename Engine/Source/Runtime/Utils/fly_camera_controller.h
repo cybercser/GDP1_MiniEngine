@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "camera.h"
 
 #include "Core/timestep.h"
 #include "Events/event.h"
@@ -14,15 +15,10 @@ namespace gdp1 {
 // Forward declaration
 class Camera;
 
-enum class CameraMovement {
-    kFORWARD,
-    kBACKWARD,
-    kLEFT,
-    kRIGHT,
-};
-
 class FlyCameraController {
+
 public:
+
     FlyCameraController(CameraDesc cameraDesc, float aspect, float translationSpeed, float rotationSpeed);
 
     FlyCameraController(const glm::vec3& eye, const glm::vec3& up, float yaw, float pitch, float fov, float aspect,

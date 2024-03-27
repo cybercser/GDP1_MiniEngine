@@ -19,7 +19,7 @@ project "App"
         "Source",
         -- Include Engine
         "../Engine/Source/Runtime",
-        "../Engine/Source/Vendor",
+        "../Engine/Source/Editor",
         "../Engine/Source/Editor",
         "../Engine/%{IncludeDir.glad}",
         "../Engine/%{IncludeDir.glm}",
@@ -28,6 +28,9 @@ project "App"
         "../Engine/%{IncludeDir.assimp}",
         "../Engine/%{IncludeDir.spdlog}",
         "../Engine/%{IncludeDir.json}",
+        "../Engine/Vendor/sqlite",
+        "../Engine/Vendor/lua/include",
+        "../Engine/Vendor/fmod/include",
     }
 
     links
@@ -47,6 +50,7 @@ project "App"
         {
             "{COPYFILE} ../Engine/Vendor/assimp/bin/assimp-vc143-mt.dll %{cfg.targetdir}/",
             "{COPYFILE} ../Engine/Vendor/glfw/lib-vc2022/*.dll %{cfg.targetdir}/",
+            "{COPYFILE} ../Engine/Vendor/fmod/bin/*.dll %{cfg.targetdir}/",
             "{COPY} ./Assets %{cfg.targetdir}/Assets"
         }
 
@@ -59,5 +63,6 @@ project "App"
         {
             "{COPYFILE} ../Engine/Vendor/assimp/bin/assimp-vc143-mt.dll %{cfg.targetdir}/",
             "{COPYFILE} ../Engine/Vendor/glfw/lib-vc2022/*.dll %{cfg.targetdir}/",
+            "{COPYFILE} ../Engine/Vendor/fmod/bin/*.dll %{cfg.targetdir}/",
 			"{COPY} ./Assets %{cfg.targetdir}/Assets"
         }

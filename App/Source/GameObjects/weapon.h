@@ -2,8 +2,6 @@
 
 #include <Core/game_object.h>
 
-namespace Game {
-
 enum WeaponType { PISTOL, RIFLE, MISSILE_LAUNCHER };
 
 class Weapon : public gdp1::GameObject {
@@ -12,8 +10,13 @@ public:
     Weapon(gdp1::Scene* scn, const gdp1::GameObjectDesc& desc, WeaponType weapon_type);
     Weapon(gdp1::Scene* scn, const std::string& name, WeaponType weapon_type);
 
+    virtual void Update(float dt) override;
+    virtual void OnCollision(gdp1::Contact* contact) override;
+    //virtual void OnEvent(gdp1::Event& event) override;
+
     // Weapon Controls
     void Shoot();
+
     void Reload();
 
     void Upgrade(); // Weapon can be upgraded by player using collectibles from the inventory
@@ -34,5 +37,3 @@ private:
     int reload_capacity;
 
 };
-
-}  // namespace Game

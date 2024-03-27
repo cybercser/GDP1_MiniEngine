@@ -386,7 +386,6 @@ void Scene::CreateSkybox(const SkyboxDesc& skyboxDesc) {
 
 void Scene::CreateAnimations(const AnimationRefDesc& animationRefDesc) {
     AnimationLoader animLoader;
-    LOG_INFO("loading animation {}", animationRefDesc.name);
 
     Animation* anim = new Animation();
     animLoader.LoadAnimation(animationRefDesc.path, *anim);
@@ -420,7 +419,9 @@ void Scene::CreateAnimations(const AnimationRefDesc& animationRefDesc) {
 }
 
 void Scene::CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc) {
+
     for (const CharacterAnimationRefDesc& anim : desc) {
+        LOG_INFO("Loading character animation {}", anim.name);
         std::unordered_map<std::string, Model*>::iterator modelIt = m_ModelMap.find(anim.model);
         if (modelIt != m_ModelMap.end()) {
             modelIt->second->AddCharacterAnimation(anim.name, anim.path);
