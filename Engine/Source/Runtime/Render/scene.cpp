@@ -419,11 +419,10 @@ void Scene::CreateAnimations(const AnimationRefDesc& animationRefDesc) {
 }
 
 void Scene::CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc) {
-
     for (const CharacterAnimationRefDesc& anim : desc) {
-        LOG_INFO("Loading character animation {}", anim.name);
         std::unordered_map<std::string, Model*>::iterator modelIt = m_ModelMap.find(anim.model);
         if (modelIt != m_ModelMap.end()) {
+            CharacterAnimation* animation = new CharacterAnimation(anim.path, anim.name, modelIt->second);
             modelIt->second->AddCharacterAnimation(anim.name, anim.path);
             modelIt->second->SetCurrentAnimation(anim.name);
         }

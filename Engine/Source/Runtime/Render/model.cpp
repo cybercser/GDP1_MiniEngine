@@ -45,7 +45,10 @@ void Model::Draw(Shader* shader) {
     if (currentAnimation) {
         std::vector<aiMatrix4x4> transforms;
         elapsedTime += 0.01f;
-        currentAnimation->boneTransform(elapsedTime, transforms);
+        unsigned int endIndex = character_animations.size() - 1;
+        if (endIndex < 0) endIndex = 0;
+        currentAnimation->boneTransformsBlended(elapsedTime, transforms, 0, endIndex, 0.7f);
+        // currentAnimation->boneTransform(elapsedTime, transforms);
 
         shader->SetUniform("u_HasBones", true);
 
@@ -69,7 +72,7 @@ unsigned int Model::GetVertexCount() const { return num_vertices_; }
 unsigned int Model::GetTriangleCount() const { return num_triangles_; }
 
 void Model::AddCharacterAnimation(std::string animationName, std::string animationPath) {
-    CharacterAnimation* animation = new CharacterAnimation(scene, animationPath, animationName, this);
+    CharacterAnimation* animation = new CharacterAnimation(animationPath, animationName, this);
     character_animations[animationName] = animation;
 }
 

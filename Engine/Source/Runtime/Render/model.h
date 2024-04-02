@@ -58,6 +58,11 @@ public:
 
     aiMatrix4x4 m_global_inverse_transform;
 
+    std::map<std::string, CharacterAnimation*> character_animations;
+
+    CharacterAnimation* currentAnimation;
+    CharacterAnimation* prevAnimation;
+
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void LoadModel(std::string const& path);
@@ -78,10 +83,6 @@ private:
 private:
     unsigned int num_vertices_;
     unsigned int num_triangles_;
-
-    std::map<std::string, CharacterAnimation*> character_animations;
-
-    CharacterAnimation* currentAnimation;
 
     std::map<std::string, unsigned int> m_bone_mapping;
     unsigned int m_num_bones = 0;

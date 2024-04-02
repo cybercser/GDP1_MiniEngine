@@ -14,9 +14,24 @@ namespace gdp1 {
 
 class Model;
 
+struct LocalTransform {
+    aiVector3D Scaling;
+    aiQuaternion Rotation;
+    aiVector3D Translation;
+};
+
+struct NodeInfo {
+    NodeInfo() {}
+
+    NodeInfo(const aiNode* n) { pNode = n; }
+
+    const aiNode* pNode = NULL;
+    bool isRequired = false;
+};
+
 class CharacterAnimation {
 public:
-    CharacterAnimation(const aiScene* scene, const std::string& file, const std::string& name, Model* model);
+    CharacterAnimation(const std::string& file, const std::string& name, Model* model);
     ~CharacterAnimation();
 
     Assimp::Importer importer;
@@ -37,17 +52,32 @@ public:
     const aiNodeAnim* findNodeAnim(const aiAnimation* p_animation, const std::string p_node_name);
 
     // calculate transform matrix
-    aiVector3D calcInterpolatedPosition(float p_animation_time, const aiNodeAnim* p_node_anim);
-    aiQuaternion calcInterpolatedRotation(float p_animation_time, const aiNodeAnim* p_node_anim);
-    aiVector3D calcInterpolatedScaling(float p_animation_time, const aiNodeAnim* p_node_anim);
+    void calcInterpolatedPosition(aiVector3D& out, float p_animation_time, const aiNodeAnim* p_node_anim);
+    void calcInterpolatedRotation(aiQuaternion& out, float p_animation_time, const aiNodeAnim* p_node_anim);
+    void calcInterpolatedScaling(aiVector3D& out, float p_animation_time, const aiNodeAnim* p_node_anim);
 
     void readNodeHierarchy(float p_animation_time, const aiNode* p_node, const aiMatrix4x4 parent_transform);
     void boneTransform(double time_in_sec, std::vector<aiMatrix4x4>& transforms);
 
+    void boneTransformsBlended(float TimeInSeconds, std::vector<aiMatrix4x4>& blendedTransforms,
+                               unsigned int startAnimIndex, unsigned int endAnimIndex, float blendFactor);
+
+    void readNodeHierarchyBlended(float startAnimationTimeTicks, float endAnimationTimeTicks, const aiNode* pNode,
+                                  const aiMatrix4x4& parentTransform, const aiAnimation& startAnimation,
+                                  const aiAnimation& endAnimation, float blendFactor);
+
+    float calcAnimationTimeTicks(float timeInSeconds, unsigned int animationIndex);
+    void calcLocalTransform(LocalTransform& transform, float animationTimeTicks, const aiNodeAnim* nodeAnim);
+
     glm::mat4 aiToGlm(aiMatrix4x4 ai_matr);
     aiQuaternion nlerp(aiQuaternion a, aiQuaternion b, float blend);
 
+    std::map<std::string, NodeInfo> m_requiredNodeMap;
+
     Model* model;
+
+    CharacterAnimation* getAnimationByIndex(std::map<std::string, CharacterAnimation*>& animations, int index);
+
 };
 
 }  // namespace gdp1
