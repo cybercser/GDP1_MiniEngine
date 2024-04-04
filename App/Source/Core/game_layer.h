@@ -6,6 +6,7 @@
 #include <Physics/physics.h>
 #include <Physics/softbody.h>
 #include <Audio/audio_manager.h>
+#include <Core/game_object.h>
 
 #include "IO/sqlite_database.h"
 
@@ -14,6 +15,7 @@
 #include "GameObjects/collectible.h"
 
 class GameLayer : public gdp1::Layer {
+
     class SoftBody;
     class SoftBodyParticle;
 
@@ -35,11 +37,19 @@ private:
     std::unique_ptr<gdp1::AudioManager> m_audioManager;
 
     Player* m_Player;
+    gdp1::GameObject* zombie1;
+    gdp1::GameObject* zombie2;
     GameplayManager* gameplayManager;
 
     std::shared_ptr<gdp1::SQLiteDatabase> db;
 
     bool enableSkyBox = false;
+    bool setRunAnimation = false;
+    bool setRunAnimation1 = false;
+    bool previousRunAnimationState = false;
+    bool previousRunAnimationState1 = false;
+    bool drawDebug = false;
+
     void CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops);
 
     void AddPlayer();

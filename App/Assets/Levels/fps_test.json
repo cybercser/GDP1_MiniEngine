@@ -69,6 +69,21 @@
       "textures": []
     },
     {
+      "name": "Mutant",
+      "filepath": "Assets/Models/FPS_Test/Mutant.fbx",
+      "shader": "lit",
+      "textures": [
+        {
+          "name": "Mutant_diffuse.png",
+          "type": "texture_diffuse"
+        },
+        {
+          "name": "Mutant_normal.png",
+          "type": "texture_normal"
+        }
+      ]
+    },
+    {
       "name": "Coin",
       "filepath": "Assets/Models/FPS_Test/coin.fbx",
       "shader": "lit",
@@ -3185,7 +3200,7 @@
   "rigidbodies": [
     {
       "objectName": "Ground_03",
-      "active": false,
+      "active": true,
       "applyGravity": false,
       "collider": "MESH",
       "invMass": 0.0,
@@ -3215,7 +3230,7 @@
   "character_animations": [
     {
       "name": "zombie_scream",
-      "path": "Assets/Models/FPS_Test/zombie_scream.fbx",
+      "path": "Assets/Animations/zombie_scream.fbx",
       "model": "Zombie"
     },
     {
@@ -3226,6 +3241,16 @@
     {
       "name": "zombie_attack",
       "path": "Assets/Animations/zombie_attack.fbx",
+      "model": "Zombie"
+    },
+    {
+      "name": "zombie_walking",
+      "path": "Assets/Animations/zombie_walking.fbx",
+      "model": "Zombie"
+    },
+    {
+      "name": "zombie_running",
+      "path": "Assets/Animations/zombie_running.fbx",
       "model": "Zombie"
     }
   ],

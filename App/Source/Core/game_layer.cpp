@@ -7,7 +7,6 @@ using namespace gdp1::utils;
 #include "Input/key_codes.h"
 #include "Input/mouse_button_codes.h"
 
-#include "Core/game_object.h"
 #include "Utils/softbody_utils.h"
 
 GameLayer::GameLayer()
@@ -21,24 +20,26 @@ void GameLayer::OnAttach() {
 
     // Initialize things here
 
-    GameObject* zombie = m_Scene->FindObjectByName("zombie");
-    zombie->model->SetCurrentAnimation("zombie_scream");
+    zombie1 = m_Scene->FindObjectByName("zombie1");
+    zombie1->SetCurrentAnimation("zombie_walking");
+
+    zombie2 = m_Scene->FindObjectByName("zombie");
+    zombie2->SetCurrentAnimation("zombie_walking");
 
     // Add Player and objects to the scene
     AddPlayer();
-    AddCoins();
-    CreateRaindropObjects(m_Scene.get(), 10);
 
+    //AddCoins();
+    //CreateRaindropObjects(m_Scene.get(), 30);
 
     // Initialize Audio Manager
-    m_audioManager = std::make_unique<gdp1::AudioManager>();
+    m_audioManager = std::make_unique<AudioManager>();
     m_audioManager->Initialize();
 
     // Play SFX Music initially - later change to handling by lua scripts
-    gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
-    m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
-    m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
-
+    //gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
+    //m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
+    //m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
 
     // Initialize Database
     db = std::make_shared<SQLiteDatabase>("Assets/Data/game_data.db");
@@ -53,20 +54,16 @@ void GameLayer::OnAttach() {
     int kills = gameplayManager->getPlayerKillCount(m_Player->id);
     LOG_ERROR("Player killed: {}", kills);
 
-
     // init the camera
     const CameraDesc& camDesc = m_Scene->GetLevelDesc().cameraDescs[0];
     m_Player->SetFPSCamera(camDesc);
 
-
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
-
 
     // init physics engine
     m_Physics = std::make_unique<Physics>(m_Scene.get(), m_Scene->GetLevelDesc());
     m_Physics->StartSoftBodyThreads();
-
 
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
@@ -88,16 +85,36 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 }
 
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
+    if (setRunAnimation != previousRunAnimationState) {
+        if (setRunAnimation)
+            zombie1->SetCurrentAnimation("zombie_running");
+        else
+            zombie1->SetCurrentAnimation("zombie_walking");
+
+        // Update the previous state to the current state
+        previousRunAnimationState = setRunAnimation;
+    }
+
+    if (setRunAnimation1 != previousRunAnimationState1) {
+        if (setRunAnimation1)
+            zombie2->SetCurrentAnimation("zombie_running");
+        else
+            zombie2->SetCurrentAnimation("zombie_walking");
+
+        // Update the previous state to the current state
+        previousRunAnimationState1 = setRunAnimation1;
+    }
+
     // m_FlyCamera->OnUpdate(ts);
     m_Player->Update(ts);
 
     m_Physics->FixedUpdate(ts);
     m_Scene->Update(ts);
 
-    m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), enableSkyBox);
+    m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts, enableSkyBox);
 
     // Render Debug Boxes
-    //m_Renderer->RenderDebug(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), enableSkyBox);
+    if (drawDebug) m_Renderer->RenderDebug(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts, enableSkyBox);
 }
 
 void GameLayer::OnImGuiRender() {
@@ -117,6 +134,9 @@ void GameLayer::OnImGuiRender() {
                 m_Player->transform->localPosition.y, m_Player->transform->localPosition.z);
 
     ImGui::Checkbox("Enable Skybox", &enableSkyBox);
+    ImGui::Checkbox("Draw Debug", &drawDebug);
+    ImGui::Checkbox("Set Run Animation", &setRunAnimation);
+    ImGui::Checkbox("Set Run Animation Zombie 1", &setRunAnimation1);
     ImGui::End();
 }
 
@@ -131,7 +151,7 @@ void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
     for (int i = 0; i < numRaindrops; ++i) {
         // Generate random position, size, and other properties
         float x = RandomFloat(-7.0f, 7.0f);      // Random X position
-        float y = RandomFloat(0.0f, 7.0f);       // Random Y position (height)
+        float y = RandomFloat(0.0f, 4.0f);       // Random Y position (height)
         float z = RandomFloat(-7.0f, 7.0f);      // Random Z position
         float scale = RandomFloat(0.05f, 0.2f);  // Random scale
         bool isVisible = true;                   // Raindrop is initially visible
@@ -198,32 +218,35 @@ void GameLayer::AddPlayer() {
     rigidBodyDesc.objectName = "Player";
     rigidBodyDesc.position = playerDesc.transform.localPosition;
     rigidBodyDesc.velocity = glm::vec3(0.f);
+    rigidBodyDesc.applyGravity = false;
     rigidBodyDesc.orientation = playerDesc.transform.localEulerAngles;
 
     m_Scene->GetLevelDesc().rigidbodyDescs.push_back(rigidBodyDesc);
 
-    //GameObjectDesc weaponDesc;
+    // GameObjectDesc weaponDesc;
 
-    //weaponDesc.name = "ArGun";
-    //weaponDesc.modelName = "AR_Gun";
-    //weaponDesc.visible = true;
-    //weaponDesc.transform.localPosition = glm::vec3(0.f, 1.f, 0.f);
-    //weaponDesc.transform.localScale = glm::vec3(0.05f);
-    //weaponDesc.transform.localEulerAngles = glm::vec3(0.0f, 0.f, 0.f);
-    //weaponDesc.setLit = true;
-    //weaponDesc.parentName = "";
+    // weaponDesc.name = "ArGun";
+    // weaponDesc.modelName = "AR_Gun";
+    // weaponDesc.visible = true;
+    // weaponDesc.transform.localPosition = glm::vec3(0.f, 1.f, 0.f);
+    // weaponDesc.transform.localScale = glm::vec3(0.05f);
+    // weaponDesc.transform.localEulerAngles = glm::vec3(0.0f, 0.f, 0.f);
+    // weaponDesc.setLit = true;
+    // weaponDesc.parentName = "";
 
     m_Player = new Player(m_Scene.get(), playerDesc);
+    m_Player->model = m_Scene->FindModelByName(playerDesc.modelName);
+    m_Player->SetCurrentAnimation("Player_Idle");
 
     m_Scene->AddGameObject(m_Player);
-    //m_Scene->AddGameObject(new Weapon(m_Scene.get(), weaponDesc, WeaponType::RIFLE));
+    // m_Scene->AddGameObject(new Weapon(m_Scene.get(), weaponDesc, WeaponType::RIFLE));
 }
 
 void GameLayer::AddCoins() {
     for (int i = 0; i < 30; i++) {
         // Generate random position, size, and other properties
-        float x = RandomFloat(-20.0f, 20.0f);      // Random X position
-        float z = RandomFloat(-20.0f, 20.0f);      // Random Z position
+        float x = RandomFloat(-20.0f, 20.0f);  // Random X position
+        float z = RandomFloat(-20.0f, 20.0f);  // Random Z position
 
         GameObjectDesc coinDesc;
 

@@ -8,6 +8,9 @@ layout(location = 4) in vec3 a_Bitangents;
 layout(location = 5) in ivec4 boneIds;     // INT pointer
 layout(location = 6) in vec4 weights;
 
+// Instancing Transformations
+layout (location = 7) in mat4 instanceMatrix;
+
 flat out ivec4 outBoneIDs;
 
 out VS_OUT{

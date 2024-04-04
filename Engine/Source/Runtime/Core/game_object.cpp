@@ -3,6 +3,8 @@
 #include "Physics/bounds.h"
 #include "Render/model.h"
 #include "Utils/unique_id_generator.h"
+#include "Animation/character_animation.h"
+#include "Utils/glm_utils.h"
 
 namespace gdp1 {
 
@@ -50,6 +52,68 @@ Bounds GameObject::GetTransformedBounds() {
     transformedBounds.SetMinMax(glm::vec3(transformedMin), glm::vec3(transformedMax));
 
     return transformedBounds;
+}
+
+void GameObject::SetCurrentAnimation(std::string name) {
+    this->currentAnim = name;
+    auto it = model->character_animations.find(name);
+    if (it != model->character_animations.end()) {
+        currentAnimation = it->second;
+        blendFactor = 0.0f;
+    } else {
+        currentAnimation = nullptr;
+    }
+
+    // if (this->prevAnimation == nullptr) this->prevAnimation = this->currentAnimation;
+}
+
+void GameObject::UpdateAnimation(Shader* shader, float deltaTime) {
+    if (currentAnimation) {
+        elapsedAnimationTime += deltaTime;
+
+        if (blendFactor < 1.0f) {
+            blendFactor += deltaTime / blendDuration;
+        }
+
+        if (blendFactor > 1.0f) {
+            blendFactor = 1.0f;
+            prevAnimation = currentAnimation;
+        }
+
+        std::vector<aiMatrix4x4> transforms;
+
+        uint32_t startAnimIndex = GetAnimationIndex(prevAnimation);
+        uint32_t endAnimIndex = GetAnimationIndex(currentAnimation);
+
+        if (startAnimIndex == -1) startAnimIndex = endAnimIndex;
+
+        currentAnimation->boneTransformsBlended(elapsedAnimationTime, transforms, startAnimIndex, endAnimIndex,
+                                                blendFactor);
+
+        shader->SetUniform("u_HasBones", true);
+
+        for (unsigned int i = 0; i < transforms.size(); i++) {
+            std::string name = "bones[" + std::to_string(i) + "]";
+            shader->SetUniform(name, GLMUtils::aiMatrix4x4ToGlmMat4(transforms[i]));
+        }
+    } else {
+        shader->SetUniform("u_HasBones", false);
+    }
+    
+    model->currentAnimation = currentAnimation;
+    model->prevAnimation = prevAnimation;
+}
+
+uint32_t GameObject::GetAnimationIndex(CharacterAnimation* animation) {
+    uint32_t index = 0;
+    for (const auto& pair : model->character_animations) {
+        if (pair.second == animation) {
+            return index;
+        }
+        ++index;
+    }
+
+    return -1;
 }
 
 void GameObject::Update(float dt) {}

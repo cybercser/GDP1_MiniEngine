@@ -289,9 +289,8 @@ void CharacterAnimation::readNodeHierarchyBlended(float startAnimationTimeTicks,
     const aiNodeAnim* pEndNodeAnim = findNodeAnim(&endAnimation, NodeName);
 
     if ((pStartNodeAnim && !pEndNodeAnim) || (!pStartNodeAnim && pEndNodeAnim)) {
-        printf("On the node %s there is an animation node for only one of the start/end animations.\n",
-               NodeName.c_str());
-        printf("This case is not supported\n");
+        LOG_ERROR("On the node {0} there is an animation node for only one of the start/end animations.", NodeName.c_str());
+        LOG_ERROR("This case is not supported");
         exit(0);
     }
 
@@ -365,7 +364,7 @@ float CharacterAnimation::calcAnimationTimeTicks(float timeInSeconds, unsigned i
     // we need to use the integral part of mDuration for the total length of the animation
     float Duration = 0.0f;
     // float fraction = modf((float)scene->mAnimations[animationIndex]->mDuration, &Duration);
-    float fraction = modf((float)getAnimationByIndex(model->character_animations, animationIndex)->duration, &Duration);
+    float fraction = modf((float)anim->duration, &Duration);
     float AnimationTimeTicks = fmod(TimeInTicks, Duration);
     return AnimationTimeTicks;
 }
