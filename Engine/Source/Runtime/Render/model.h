@@ -24,17 +24,34 @@ public:
 
     // model data
     std::vector<TextureInfo> textures_loaded;  // stores all the textures loaded so far, optimization to make sure textures
-    
+
     // aren't loaded more than once.
     std::vector<Mesh> meshes;
     std::string directory;
     bool gammaCorrection;
 
+    unsigned int instancing;
+    std::vector<glm::mat4> instanceMatrix;
+
     std::string shaderName;
+
     Bounds bounds;
 
+    aiMatrix4x4 m_global_inverse_transform;
+
+    std::map<std::string, CharacterAnimation*> character_animations;
+
+    CharacterAnimation* currentAnimation;
+    CharacterAnimation* prevAnimation;
+
+public:
+
     // constructor, expects a filepath to a 3D model.
-    Model(const std::string& path, const std::string& shaderName, const std::vector<TexturesDesc> textures, bool gamma = false);
+    Model(const std::string& path, const std::string& shaderName, const std::vector<TexturesDesc> textures,
+          unsigned int instancing, std::vector<glm::mat4> instanceMatrix,
+          bool gamma = false);
+
+    Model(const Model& other);
 
     // draws the model, and thus all its meshes
     void Draw(Shader* shader);
@@ -43,12 +60,12 @@ public:
 
     void DrawDebug(Shader* shader);
 
+    void SetupInstancing(std::vector<glm::mat4>& instanceMatrix);
+
+    void ResetInstancing();
+
     unsigned int GetVertexCount() const;
     unsigned int GetTriangleCount() const;
-
-    void SetCurrentAnimation(std::string name);
-
-    void AddCharacterAnimation(std::string animationName, std::string animationPath);
 
     std::map<std::string, unsigned int>& GetBoneMap();
 
@@ -56,7 +73,15 @@ public:
 
     unsigned int GetNumBones();
 
-    aiMatrix4x4 m_global_inverse_transform;
+    void SetCurrentAnimation(std::string name);
+
+    void AddCharacterAnimation(std::string animationName, std::string animationPath);
+
+    uint32_t GetAnimationIndex(CharacterAnimation* animation);
+
+    void UpdateAnimation(float deltaTime);
+
+    void UpdateBoneMatrices(const std::vector<aiMatrix4x4>& transforms);
 
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
@@ -74,20 +99,16 @@ private:
 
     TextureInfo* LoadTexture(std::string textureName, std::string textureType);
 
-
 private:
     unsigned int num_vertices_;
     unsigned int num_triangles_;
-
-    std::map<std::string, CharacterAnimation*> character_animations;
-
-    CharacterAnimation* currentAnimation;
 
     std::map<std::string, unsigned int> m_bone_mapping;
     unsigned int m_num_bones = 0;
     std::vector<BoneMatrix> m_bone_matrices;
 
     double elapsedTime = 0.0f;
+    float blendFactor = 0.0f;
 
     std::vector<TexturesDesc> texturesToLoad;
 

@@ -18,7 +18,7 @@ void ResolveContact(Contact& contact) {
     // calculate the collision impulse (conservation of momentum)
     glm::vec3 vab = bodyB->velocity - bodyA->velocity;
     float impulseJ = 2.0f * glm::dot(vab, contact.normal) / invMassSum;
-    glm::vec3 vectorImpulseJ = contact.normal * impulseJ;
+    glm::vec3 vectorImpulseJ = 0.3f * contact.normal * impulseJ;
 
     bodyA->ApplyImpulse(vectorImpulseJ);
     bodyB->ApplyImpulse(-vectorImpulseJ);

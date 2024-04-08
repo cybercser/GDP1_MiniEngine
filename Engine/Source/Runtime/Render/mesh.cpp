@@ -1,12 +1,15 @@
 #include "mesh.h"
 
+#include <GLFW/glfw3.h>
+#include <Core/application.h>
+
 #define ADD_LINE(a, b)          \
     boundsIndices.push_back(a); \
     boundsIndices.push_back(b);
 
 namespace gdp1 {
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<TextureInfo> textures,
+Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std::vector<TextureInfo> textures,
            const Bounds& bounds, bool isDynamicBuffer) {
     this->vertices = vertices;
     this->indices = indices;
@@ -21,7 +24,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
     SetupDebugData();
 }
 
-void Mesh::Draw(Shader* shader) {
+void Mesh::DrawTextures(Shader* shader) {
     // bind appropriate textures
     unsigned int diffuseUnit = 1;
     unsigned int specularUnit = 1;
@@ -50,30 +53,62 @@ void Mesh::Draw(Shader* shader) {
             shader->SetUniform(uniformName.c_str(), i);
         }
 
-        /*if (textures[i].hasFBO) {
-            number = "0";
-            std::string uniformName = "u_Material." + name + number;
-            shader->SetUniform(uniformName.c_str(), i);
-        }*/
-
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
+}
+
+void Mesh::Draw(Shader* shader) {
+    DrawTextures(shader);
+
+    if (_VAO.ID == 93) {
+        bool breakP = true;
+    }
 
     // draw mesh
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(_VAO.ID);
+    glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, numInstances);
     glBindVertexArray(0);
 
     // always good practice to set everything back to defaults once configured.
-    //glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
+    Application::drawCalls++;
 }
 
 void Mesh::UpdateVertexBuffers() {
-    // Draw
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * vertices.size(), (GLvoid*)&vertices[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    _VBO.UpdateVertexBuffers();
+    Application::drawCalls++;
+}
+
+void Mesh::SetupInstancing(std::vector<glm::mat4>& instanceMatrix) {
+    _VAO.Bind();
+
+    _instanceVBO = VBO();
+    _instanceVBO.Bind();
+    _instanceVBO.BindData(instanceMatrix, isDynamicBuffer);
+    
+    _VAO.LinkAttrib(7, 4, GL_FLOAT, sizeof(glm::mat4), (void*)0);
+    _VAO.LinkAttrib(8, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+    _VAO.LinkAttrib(9, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+    _VAO.LinkAttrib(10, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+    // Update the matrix for every 1 instance
+    glVertexAttribDivisor(7, 1);
+    glVertexAttribDivisor(8, 1);
+    glVertexAttribDivisor(9, 1);
+    glVertexAttribDivisor(10, 1);
+
+    _instanceVBO.Unbind();
+    numInstances = instanceMatrix.size();
+}
+
+void Mesh::ResetInstancing() {
+    if (numInstances > 1 && _instanceVBO.ID != 0) {
+        _instanceVBO.Delete();
+    }
+
+    numInstances = 1;
+    return;
 }
 
 void Mesh::DrawDebug(Shader* shader) {
@@ -81,50 +116,34 @@ void Mesh::DrawDebug(Shader* shader) {
     glBindVertexArray(debugVAO);
     glDrawElements(GL_LINES, static_cast<unsigned int>(boundsIndices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+    Application::drawCalls++;
 }
 
-void Mesh::SetupMesh() {
-    // create buffers/arrays
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+ void Mesh::SetupMesh() {
+     // create buffers/arrays
+     _VAO.Bind();
 
-    glBindVertexArray(VAO);
-    // load data into vertex buffers
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // A great thing about structs is that their memory layout is sequential for all its items.
-    // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2
-    // array which again translates to 3/2 floats which translates to a byte array.
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+     _VBO.Bind();
+     _VBO.BindData(vertices, isDynamicBuffer);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+     EBO _EBO(indices, isDynamicBuffer);
 
-    // set the vertex attribute pointers
-    // vertex Positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    // vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    // vertex texture coords
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
-    // vertex tangent
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
-    // vertex bitangent
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
-    // ids
-    glEnableVertexAttribArray(5);
-    glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIDs));
+     _VAO.LinkAttrib(0, 3, GL_FLOAT, sizeof(Vertex), (void*)0);
+     _VAO.LinkAttrib(1, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+     _VAO.LinkAttrib(2, 2, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+     _VAO.LinkAttrib(3, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+     _VAO.LinkAttrib(4, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+     _VAO.Link_iAttrib(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIDs));
+     _VAO.LinkAttrib(6, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, weights));
 
-    // weights
-    glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, weights));
-    glBindVertexArray(0);
-}
+     // Unbind all to prevent accidentally modifying them
+     _VAO.Unbind();
+     _VBO.Unbind();
+     _EBO.Unbind();
+
+     _VBO.Delete();
+     _EBO.Delete();
+ }
 
 void Mesh::SetupDebugData() {
     // calculate the 8 vertices of the bounding box

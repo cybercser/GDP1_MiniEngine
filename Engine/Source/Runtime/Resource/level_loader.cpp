@@ -245,6 +245,7 @@ void from_json(const json& j, GameObjectDesc& goDesc) {
     goDesc.parentName = j.value("parent", "");
     goDesc.hasFBO = j.value("hasFBO", false);
     goDesc.setLit = j.value("setLit", false);
+    goDesc.isStatic = j.value("isStatic", true);
 }
 
 void to_json(json& j, const GameObjectDesc& goDesc) {
@@ -254,7 +255,8 @@ void to_json(json& j, const GameObjectDesc& goDesc) {
          {"transform", goDesc.transform},
          {"children", goDesc.children},
          {"parent", goDesc.parentName},
-         {"setLit", goDesc.setLit},
+         {"setLit", goDesc.setLit},       
+         {"isStatic", goDesc.isStatic},
          {"hasFBO", goDesc.hasFBO}};
 }
 

@@ -6,6 +6,8 @@
 #include "Physics/rigidbody.h"
 #include "Utils/fly_camera_controller.h"
 
+#include <common.h>
+
 namespace gdp1 {
 
 class Scene;
@@ -14,6 +16,7 @@ class Bounds;
 class Animation;
 class SoftBody;
 class UniqueId;
+class CharacterAnimation;
 
 class GameObject {
 public:
@@ -26,11 +29,13 @@ public:
     SoftBody* softBody;
     Rigidbody* rigidBody;
 
-
     bool visible;
     bool hasSoftBody = false;
     bool hasFBO = false;
     bool setLit = false;
+    bool isStatic = false;
+
+    // FBO Attributes
     bool UseChromaticAberration = false;
     bool UseNightVision = false;
     int fboTextureId = 0;
@@ -40,6 +45,17 @@ public:
     // temp variables for establishing hierarchy
     std::vector<std::string> childrenNames;
     std::string parentName;
+
+    CharacterAnimation* currentAnimation;
+    CharacterAnimation* prevAnimation;
+
+    std::string currentAnim = "";
+
+    float blendDuration = 0.4f;
+
+private:
+    float elapsedAnimationTime = 0.0f;
+    float blendFactor = 0.0f;
 
 public:
     GameObject() = delete;
@@ -54,6 +70,10 @@ public:
     const Bounds& GetBounds();
 
     Bounds GetTransformedBounds();
+
+    void UpdateAnimation(Shader* shader, float deltaTime);
+    void SetCurrentAnimation(std::string name);
+    uint32_t GetAnimationIndex(CharacterAnimation* animation);
 };
 
 }  // namespace gdp1

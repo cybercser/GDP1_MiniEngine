@@ -55,6 +55,7 @@ struct GameObjectDesc {
     std::string parentName;
     bool hasFBO = false;
     bool setLit = false;
+    bool isStatic = true;
 };
 
 // Textures description

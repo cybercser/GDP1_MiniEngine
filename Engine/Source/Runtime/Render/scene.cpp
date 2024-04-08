@@ -7,6 +7,8 @@
 #include "Core/game_object.h"
 #include "Animation/animation_system.h"
 
+#include <iostream>
+
 using namespace glm;
 
 CRITICAL_SECTION g_CriticalSection;
@@ -165,7 +167,7 @@ void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
             continue;
         }
 
-        Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
+        Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures, 1, {});
         m_ModelMap.insert(std::make_pair(modelDesc.name, model));
 
         m_VertexCount += model->GetVertexCount();
@@ -202,6 +204,7 @@ void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
 
 bool Scene::LoadShaders(const LevelDesc& desc) {
     try {
+
         lit_shader_ptr_ = new Shader();
         lit_shader_ptr_->CompileShader("Assets/Shaders/lit.vert.glsl");
         lit_shader_ptr_->CompileShader("Assets/shaders/lit.frag.glsl");
@@ -220,7 +223,6 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
         lit_shader_ptr_->SetUniform("u_Material.s", vec3(0.2f, 0.2f, 0.2f));
         lit_shader_ptr_->SetUniform("u_Material.shininess", 32.0f);
         lit_shader_ptr_->SetUniform("u_UseProjTex", false);
-
         lit_shader_ptr_->SetUniform("u_UsePointLights", true);
 
         int lightIndex = 0;
@@ -237,6 +239,47 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
         }
 
         m_ShaderMap.insert(std::make_pair("lit", lit_shader_ptr_));
+    } catch (GLSLProgramException& e) {
+        LOG_ERROR("GLSLProgramException: {}", e.what());
+        return false;
+    }
+
+    try {
+        inst_shader_ptr_ = new Shader();
+        inst_shader_ptr_->CompileShader("Assets/Shaders/inst.vert.glsl");
+        //inst_shader_ptr_->CompileShader("Assets/Shaders/inst.geom.glsl");
+        inst_shader_ptr_->CompileShader("Assets/shaders/lit.frag.glsl");
+        inst_shader_ptr_->Link();
+        inst_shader_ptr_->Use();
+
+        DirectionalLight* dirLight = FindDirectionalLightByName("Sun");
+        if (dirLight == nullptr) {
+            LOG_ERROR("Cannot find directional light: Sun");
+            return false;
+        }
+
+        // directional light
+        inst_shader_ptr_->SetUniform("u_DirLight.color", dirLight->color);
+        inst_shader_ptr_->SetUniform("u_DirLight.intensity", dirLight->intensity);
+        inst_shader_ptr_->SetUniform("u_Material.s", vec3(0.2f, 0.2f, 0.2f));
+        inst_shader_ptr_->SetUniform("u_Material.shininess", 32.0f);
+        inst_shader_ptr_->SetUniform("u_UseProjTex", false);
+        inst_shader_ptr_->SetUniform("u_UsePointLights", true);
+
+        int lightIndex = 0;
+        for (std::unordered_map<std::string, PointLight*>::iterator it = m_PointLightMap.begin();
+             it != m_PointLightMap.end(); it++, lightIndex++) {
+            PointLight* pointLight = it->second;
+            inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].color", pointLight->color);
+            inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].intensity",
+                                        pointLight->intensity);
+            inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos", pointLight->position);
+            inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].c", pointLight->constant);
+            inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].l", pointLight->linear);
+            inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].q", pointLight->quadratic);
+        }
+
+        m_ShaderMap.insert(std::make_pair("inst", inst_shader_ptr_));
     } catch (GLSLProgramException& e) {
         LOG_ERROR("GLSLProgramException: {}", e.what());
         return false;
@@ -419,11 +462,10 @@ void Scene::CreateAnimations(const AnimationRefDesc& animationRefDesc) {
 }
 
 void Scene::CreateCharacterAnimations(const std::vector<CharacterAnimationRefDesc>& desc) {
-
     for (const CharacterAnimationRefDesc& anim : desc) {
-        LOG_INFO("Loading character animation {}", anim.name);
         std::unordered_map<std::string, Model*>::iterator modelIt = m_ModelMap.find(anim.model);
         if (modelIt != m_ModelMap.end()) {
+            CharacterAnimation* animation = new CharacterAnimation(anim.path, anim.name, modelIt->second);
             modelIt->second->AddCharacterAnimation(anim.name, anim.path);
             modelIt->second->SetCurrentAnimation(anim.name);
         }

@@ -19,6 +19,7 @@ class Skybox;
 class Animation;
 class AnimationSystem;
 class Renderer;
+class ParticleSystem;
 
 struct LoadModelThreadParams {
     ModelDesc modelDesc;
@@ -100,6 +101,7 @@ private:
     Shader* untextured_shader_ptr_;
     Shader* unlit_shader_ptr_;
     Shader* skybox_shader_ptr_;
+    Shader* inst_shader_ptr_;
     std::unordered_map<std::string, Shader*> m_ShaderMap;
 
     using DirectionalLightMap = std::unordered_map<std::string, DirectionalLight*>;
@@ -124,6 +126,7 @@ private:
     unsigned int m_TriangleCount;
 
     friend class Renderer;
+    friend class ParticleSystem;
 };
 
 }  // namespace gdp1

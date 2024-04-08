@@ -6,57 +6,42 @@
 
 namespace gdp1 {
 
-glm::mat4 aiMatrix4x4ToGlmMat4(const aiMatrix4x4& matrix) {
-    glm::mat4 result;
-
-    // Copy elements from aiMatrix4x4 to glm::mat4
-    result[0][0] = matrix.a1;
-    result[0][1] = matrix.b1;
-    result[0][2] = matrix.c1;
-    result[0][3] = matrix.d1;
-    result[1][0] = matrix.a2;
-    result[1][1] = matrix.b2;
-    result[1][2] = matrix.c2;
-    result[1][3] = matrix.d2;
-    result[2][0] = matrix.a3;
-    result[2][1] = matrix.b3;
-    result[2][2] = matrix.c3;
-    result[2][3] = matrix.d3;
-    result[3][0] = matrix.a4;
-    result[3][1] = matrix.b4;
-    result[3][2] = matrix.c4;
-    result[3][3] = matrix.d4;
-
-    return result;
-}
-
 Model::Model(const std::string const& path, const std::string& shader, const std::vector<TexturesDesc> textures,
+             unsigned int instancing, std::vector<glm::mat4> instanceMatrix,
              bool gamma /*= false*/)
     : gammaCorrection(gamma)
     , shaderName(shader)
     , num_vertices_(0)
     , num_triangles_(0)
     , currentAnimation(nullptr)
-    , texturesToLoad(textures) {
+    , texturesToLoad(textures)
+    , instanceMatrix(instanceMatrix)
+    , instancing(instancing) {
     LoadModel(path);
 }
 
+// Copy constructor
+Model::Model(const Model& other)
+    : textures_loaded(other.textures_loaded)
+    , meshes(other.meshes)
+    , directory(other.directory)
+    , gammaCorrection(other.gammaCorrection)
+    , shaderName(other.shaderName)
+    , bounds(other.bounds)
+    , m_global_inverse_transform(other.m_global_inverse_transform)
+    , character_animations(other.character_animations)
+    , currentAnimation(other.currentAnimation)
+    , prevAnimation(other.prevAnimation)
+    , num_vertices_(other.num_vertices_)
+    , num_triangles_(other.num_triangles_)
+    , m_bone_mapping(other.m_bone_mapping)
+    , m_num_bones(other.m_num_bones)
+    , m_bone_matrices(other.m_bone_matrices)
+    , elapsedTime(other.elapsedTime)
+    , texturesToLoad(other.texturesToLoad)
+    , scene(other.scene) {}
+
 void Model::Draw(Shader* shader) {
-    if (currentAnimation) {
-        std::vector<aiMatrix4x4> transforms;
-        elapsedTime += 0.01f;
-        currentAnimation->boneTransform(elapsedTime, transforms);
-
-        shader->SetUniform("u_HasBones", true);
-
-        for (unsigned int i = 0; i < transforms.size(); i++) {
-            std::string name = "bones[" + std::to_string(i) + "]";
-            shader->SetUniform(name, aiMatrix4x4ToGlmMat4(transforms[i]));
-        }
-    } else {
-        shader->SetUniform("u_HasBones", false);
-    }
-
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
 }
 
@@ -64,19 +49,52 @@ void Model::DrawDebug(Shader* shader) {
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].DrawDebug(shader);
 }
 
+void Model::SetupInstancing(std::vector<glm::mat4>& instanceMatrix) {
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].SetupInstancing(instanceMatrix);
+}
+
+void Model::ResetInstancing() {
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].ResetInstancing();
+}
+
 unsigned int Model::GetVertexCount() const { return num_vertices_; }
 
 unsigned int Model::GetTriangleCount() const { return num_triangles_; }
 
 void Model::AddCharacterAnimation(std::string animationName, std::string animationPath) {
-    CharacterAnimation* animation = new CharacterAnimation(scene, animationPath, animationName, this);
+    CharacterAnimation* animation = new CharacterAnimation(animationPath, animationName, this);
     character_animations[animationName] = animation;
+}
+
+uint32_t Model::GetAnimationIndex(CharacterAnimation* animation) {
+    uint32_t index = 0;
+    for (const auto& pair : character_animations) {
+        if (pair.second == animation) {
+            return index;
+        }
+        ++index;
+    }
+
+    return -1;
+}
+
+void Model::UpdateAnimation(float deltaTime) {
+    blendFactor += 0.001f;
+    elapsedTime += deltaTime;
+
+    if (blendFactor > 1.0f) {
+        blendFactor = 1.0f;
+        prevAnimation = currentAnimation;
+    }
 }
 
 void Model::SetCurrentAnimation(std::string name) {
     auto it = character_animations.find(name);
     if (it != character_animations.end()) {
+        if (currentAnimation == nullptr) prevAnimation = it->second;
         currentAnimation = it->second;
+        blendFactor = 0.0f;
+        elapsedTime = 0.0f;
     } else {
         currentAnimation = nullptr;
     }

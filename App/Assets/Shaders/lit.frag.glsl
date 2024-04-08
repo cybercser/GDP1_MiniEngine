@@ -5,10 +5,7 @@ in VS_OUT {
     vec3 Normal;
     vec2 TexCoords;
     vec4 ProjTexCoord;
-    vec4 Weights;
 } fs_in;
-
-flat in ivec4 BoneIDs;
 
 out vec4 o_FragColor;
 
@@ -55,7 +52,7 @@ struct Material {
     float shininess;  // Specular shininess factor
 };
 
-const int NUM_LIGHTS = 100;
+const int NUM_LIGHTS = 1;
 
 uniform DirectionalLight u_DirLight;
 uniform PointLight u_PointLights[NUM_LIGHTS];
@@ -66,10 +63,7 @@ uniform bool u_UseLights;
 uniform bool u_UsePointLights;
 uniform bool u_UseSpotLights;
 uniform bool u_UseProjTex;
-uniform bool u_HasBones;
 uniform bool u_SetLit;
-uniform bool u_ApplyChromaticAbberation;
-uniform bool u_ApplyNightVision;
 
 uniform int u_NumPointLights;
 
@@ -216,34 +210,6 @@ void main() {
 
     if (u_SetLit) {
         finalColor.rgb *= 1.35f;
-    }
-    
-    if (u_ApplyChromaticAbberation) {
-        float chromaticAberrationAmount = 0.02;
-        vec4 colorR = texture(u_Material.texture_diffuse1, fs_in.TexCoords + vec2(chromaticAberrationAmount, 0.0));
-        vec4 colorG = texture(u_Material.texture_diffuse1, fs_in.TexCoords);
-        vec4 colorB = texture(u_Material.texture_diffuse1, fs_in.TexCoords - vec2(chromaticAberrationAmount, 0.0));
-        vec3 distortedColor = vec3(colorR.r, colorG.g, colorB.b);
-
-        // Combine RGB channels with displacement
-        finalColor = vec4(finalColor.rgb * distortedColor, 1.0);
-    }
-
-    if (u_ApplyNightVision) {
-        vec3 color = texture(u_Material.texture_diffuse1, fs_in.TexCoords).rgb;
-        float gray = dot(color, vec3(0.299, 0.587, 0.114));
-
-        // Step 2: Apply Green Tint
-        vec3 greenTint = vec3(0.0, 1.0, 0.0); // Adjust the green tint color as needed
-        color = mix(color, gray * greenTint, 0.5); // Adjust the blend factor (0.5 in this case)
-
-        // Step 3: Add Noise
-        float noiseAmount = 0.05; // Adjust the noise amount as needed
-        vec2 noiseUV = vec2(gl_FragCoord.xy / 500.0); // Use a scaling factor appropriate for your scene size
-        float noise = texture(u_Material.texture_diffuse1, fs_in.TexCoords + noiseUV * noiseAmount).r;
-        color += noise * 0.2; // Adjust the noise intensity (0.2 in this case)
-
-        finalColor = vec4(color, 1.0);
     }
 
     o_FragColor = finalColor;

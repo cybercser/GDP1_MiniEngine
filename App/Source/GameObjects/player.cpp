@@ -37,7 +37,7 @@ void Player::Sprint() {}
 void Player::Reload() {}
 
 void Player::SetFPSCamera(const gdp1::CameraDesc& camDesc) {
-    fps_camera_ptr_ = std::make_shared<gdp1::FPSCameraController>(camDesc, 16.0f / 9.0f, 10.0f, 2.0f);
+    fps_camera_ptr_ = std::make_shared<gdp1::FPSCameraController>(camDesc, 16.0f / 9.0f, 100.0f, 100.0f);
 }
 
 void Player::Update(float ts) {
@@ -112,20 +112,20 @@ bool Player::OnMouseMoved(gdp1::MouseMovedEvent& e) {
 }
 
 void Player::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch) {
-    //xOffset *= sensitivity;
-    //yOffset *= sensitivity;
+    // xOffset *= sensitivity;
+    // yOffset *= sensitivity;
 
-    //player->transform->rotation.y += xOffset;
-    //player->transform->rotation.x -= yOffset;
+    // player->transform->rotation.y += xOffset;
+    // player->transform->rotation.x -= yOffset;
 
-    //if (constrainPitch) {
-    //    if (player->transform->rotation.x > 89.0f) player->transform->rotation.x = 89.0f;
-    //    if (player->transform->rotation.x < -89.0f) player->transform->rotation.x = -89.0f;
-    //}
+    // if (constrainPitch) {
+    //     if (player->transform->rotation.x > 89.0f) player->transform->rotation.x = 89.0f;
+    //     if (player->transform->rotation.x < -89.0f) player->transform->rotation.x = -89.0f;
+    // }
 
     //// Update player's forward and right vectors based on rotation
-    //player->m_Forward = glm::normalize(glm::vec3(cos(glm::radians(player->transform->rotation.y)), 0.0f,
-    //                                             sin(glm::radians(player->transform->rotation.y))));
+    // player->m_Forward = glm::normalize(glm::vec3(cos(glm::radians(player->transform->rotation.y)), 0.0f,
+    //                                              sin(glm::radians(player->transform->rotation.y))));
 
-    //player->m_Right = glm::normalize(glm::cross(player->m_Forward, glm::vec3(0.0f, 1.0f, 0.0f)));
+    // player->m_Right = glm::normalize(glm::cross(player->m_Forward, glm::vec3(0.0f, 1.0f, 0.0f)));
 }
