@@ -54,13 +54,15 @@ public:
     Model(const Model& other);
 
     // draws the model, and thus all its meshes
-    void Draw(Shader* shader, int numOfInstances);
+    void Draw(Shader* shader);
 
     void DrawBuffer(Shader* shader);
 
     void DrawDebug(Shader* shader);
 
-    void SetupInstancing();
+    void SetupInstancing(std::vector<glm::mat4>& instanceMatrix);
+
+    void ResetInstancing();
 
     unsigned int GetVertexCount() const;
     unsigned int GetTriangleCount() const;

@@ -6,10 +6,13 @@
 #include "Input/mouse_button_codes.h"
 
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 
 using namespace glm;
 
 namespace gdp1 {
+
+int Application::drawCalls = 0;
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
@@ -63,9 +66,21 @@ void Application::PushOverlay(Layer* overlay) { m_LayerStack.PushOverlay(overlay
 
 void Application::Run() {
     while (m_Running) {
+        drawCalls = 0;
+
         float time = (float)glfwGetTime();
         Timestep timestep = time - m_LastFrameTime;
         m_LastFrameTime = time;
+
+         // Calculate FPS and MS
+        m_Frames++;
+        m_AccumulatedTime += timestep;
+        if (m_AccumulatedTime >= 1.0f) {
+            m_FPS = m_Frames;
+            m_MS = 1000.0f / m_FPS;
+            m_Frames = 0;
+            m_AccumulatedTime -= 1.0f;
+        }
 
         m_Window->OnUpdate();
 
@@ -77,6 +92,14 @@ void Application::Run() {
         for (Layer* layer : m_LayerStack) {
             layer->OnImGuiRender();
         }
+
+        // Render FPS and MS in ImGui dialog
+        ImGui::Begin("Performance Metrics");
+        ImGui::Text("FPS: %.3f", m_FPS);
+        ImGui::Text("MS per Frame: %.3f", m_MS);
+        ImGui::Text("Timestep: %.4f", timestep.GetSeconds());
+        ImGui::Text("Draw Calls: %d", drawCalls);
+        ImGui::End();
         m_ImGuiLayer->End();
     }
 }

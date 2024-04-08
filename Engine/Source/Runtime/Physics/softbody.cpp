@@ -84,7 +84,7 @@ void SoftBody::CreateParticles(Model* model, Transform* transform) {
             texture.type = meshToCopy.textures[i].type;
         }
 
-        Mesh mesh = Mesh(vertices, indices, textures, 1, {}, bounds, true);
+        Mesh mesh = Mesh(vertices, indices, textures, bounds, true);
 
         size_t sizeVertices = mesh.vertices.size();
 

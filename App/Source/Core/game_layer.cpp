@@ -14,6 +14,7 @@ GameLayer::GameLayer()
 
 void GameLayer::OnAttach() {
     EnableGLDebugging();
+    SetGLDebugLogLevel(DebugLogLevel::High);
 
     // Create Scene
     m_Scene = std::make_shared<Scene>("Assets/Levels/fps_test.json");
@@ -21,7 +22,7 @@ void GameLayer::OnAttach() {
     // Initialize things here
 
     zombie1 = m_Scene->FindObjectByName("zombie1");
-    zombie1->SetCurrentAnimation("zombie_walking");
+    zombie1->SetCurrentAnimation("zombie_crawl");
 
     zombie2 = m_Scene->FindObjectByName("zombie");
     zombie2->SetCurrentAnimation("zombie_walking");
@@ -29,17 +30,19 @@ void GameLayer::OnAttach() {
     // Add Player and objects to the scene
     AddPlayer();
 
+    // m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 1);
+
     //AddCoins();
-    //CreateRaindropObjects(m_Scene.get(), 30);
+    CreateSpheres(m_Scene.get(), 1000);
 
     // Initialize Audio Manager
     m_audioManager = std::make_unique<AudioManager>();
     m_audioManager->Initialize();
 
     // Play SFX Music initially - later change to handling by lua scripts
-    //gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
-    //m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
-    //m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
+    // gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
+    // m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
+    // m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
 
     // Initialize Database
     db = std::make_shared<SQLiteDatabase>("Assets/Data/game_data.db");
@@ -60,6 +63,7 @@ void GameLayer::OnAttach() {
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
+    m_Renderer->SetInstanced(setInstanced);
 
     // init physics engine
     m_Physics = std::make_unique<Physics>(m_Scene.get(), m_Scene->GetLevelDesc());
@@ -89,7 +93,7 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
         if (setRunAnimation)
             zombie1->SetCurrentAnimation("zombie_running");
         else
-            zombie1->SetCurrentAnimation("zombie_walking");
+            zombie1->SetCurrentAnimation("zombie_crawl");
 
         // Update the previous state to the current state
         previousRunAnimationState = setRunAnimation;
@@ -111,7 +115,9 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
     m_Physics->FixedUpdate(ts);
     m_Scene->Update(ts);
 
-    m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts, enableSkyBox);
+    // m_ParticleSystem->Render();
+
+    m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts, enableSkyBox, setInstanced);
 
     // Render Debug Boxes
     if (drawDebug) m_Renderer->RenderDebug(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts, enableSkyBox);
@@ -135,6 +141,7 @@ void GameLayer::OnImGuiRender() {
 
     ImGui::Checkbox("Enable Skybox", &enableSkyBox);
     ImGui::Checkbox("Draw Debug", &drawDebug);
+    ImGui::Checkbox("Set Instanced", &setInstanced);
     ImGui::Checkbox("Set Run Animation", &setRunAnimation);
     ImGui::Checkbox("Set Run Animation Zombie 1", &setRunAnimation1);
     ImGui::End();
@@ -144,7 +151,7 @@ float RandomFloat(float min, float max) {
     return min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX / (max - min));
 }
 
-void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
+void GameLayer::CreateSpheres(gdp1::Scene* scene, int numRaindrops) {
     // Seed the random number generator
     srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -167,6 +174,7 @@ void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
         desc.transform.localPosition = {x, y, z};
         desc.transform.localScale = {scale, scale, scale};
         desc.setLit = true;
+        desc.isStatic = true;
 
         // Create the raindrop GameObject and add it to the scene
         GameObject* raindrop = new GameObject(m_Scene.get(), desc);
@@ -180,7 +188,7 @@ void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
         rigidbodyDesc.position = glm::vec3(0.0f);
         rigidbodyDesc.velocity = glm::vec3(0.0f);
 
-        PointLight pointLight;
+        /*PointLight pointLight;
         pointLight.color = randomColor;
         pointLight.name = desc.name;
         pointLight.position = {x, y, z};
@@ -189,7 +197,7 @@ void GameLayer::CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops) {
         pointLight.linear = 2.0f;
         pointLight.quadratic = 1.0f;
 
-        scene->AddPointLight(pointLight);
+        scene->AddPointLight(pointLight);*/
 
         // m_Scene->GetLevelDesc().rigidbodyDescs.push_back(rigidbodyDesc);
 
@@ -208,6 +216,7 @@ void GameLayer::AddPlayer() {
     playerDesc.transform.localEulerAngles = glm::vec3(0.0f, 30.f, 0.f);
     playerDesc.setLit = true;
     playerDesc.parentName = "";
+    playerDesc.isStatic = false;
 
     RigidbodyDesc rigidBodyDesc;
 

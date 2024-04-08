@@ -37,7 +37,7 @@ void Player::Sprint() {}
 void Player::Reload() {}
 
 void Player::SetFPSCamera(const gdp1::CameraDesc& camDesc) {
-    fps_camera_ptr_ = std::make_shared<gdp1::FPSCameraController>(camDesc, 16.0f / 9.0f, 10.0f, 2.0f);
+    fps_camera_ptr_ = std::make_shared<gdp1::FPSCameraController>(camDesc, 16.0f / 9.0f, 100.0f, 100.0f);
 }
 
 void Player::Update(float ts) {

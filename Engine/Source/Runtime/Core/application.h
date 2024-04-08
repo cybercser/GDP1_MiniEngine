@@ -18,7 +18,7 @@ namespace gdp1 {
 
 class Application {
 public:
-    Application(const std::string& name = "MiniEngine App", unsigned int width = 1920, unsigned int height = 1080, bool startFullScreen = true);
+    Application(const std::string& name = "MiniEngine App", unsigned int width = 1920, unsigned int height = 1080, bool startFullScreen = false);
     virtual ~Application() = default;
 
     void Run();
@@ -34,6 +34,8 @@ public:
 
     lua_State* lua_state;
 
+    static int drawCalls;
+
 private:
     bool OnWindowClose(WindowCloseEvent& e);
     bool OnKeyPressed(KeyPressedEvent& e);
@@ -45,6 +47,11 @@ private:
     bool m_Running = true;
     LayerStack m_LayerStack;
     float m_LastFrameTime = 0.0f;
+    float m_AccumulatedTime = 0.0f;
+    float m_FPS = 0.0f;
+    float m_MS = 0.0f;
+
+    unsigned int m_Frames = 0;
 
     static Application* s_Instance;
 };

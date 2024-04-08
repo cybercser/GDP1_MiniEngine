@@ -5,20 +5,14 @@ layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoords;
 layout(location = 3) in vec3 a_Tangents;
 layout(location = 4) in vec3 a_Bitangents;
-layout(location = 5) in ivec4 boneIds;     // INT pointer
+layout(location = 5) in ivec4 boneIds;
 layout(location = 6) in vec4 weights;
 
-// Instancing Transformations
-layout (location = 7) in mat4 instanceMatrix;
-
-flat out ivec4 outBoneIDs;
-
 out VS_OUT{
-	vec3 Pos;
-	vec3 Normal;
-	vec2 TexCoords;
-	vec4 ProjTexCoord;
-    vec4 Weights;
+    vec3 Pos;
+    vec3 Normal;
+    vec2 TexCoords;
+    vec4 ProjTexCoord;
 } vs_out;
 
 uniform mat4 u_Model;
@@ -56,10 +50,6 @@ void main() {
     mat4 viewModel = u_View * u_Model;
     gl_Position =  u_Proj * viewModel * totalPosition;
 
-    
-    outBoneIDs = boneIds;
-
-    vs_out.Weights = weights;
 	vs_out.TexCoords = a_TexCoords;
 	vs_out.Normal = normalize(u_NormalMat * a_Normal);
 	vs_out.Pos = (u_View * u_Model * vec4(a_Pos, 1.0)).xyz;

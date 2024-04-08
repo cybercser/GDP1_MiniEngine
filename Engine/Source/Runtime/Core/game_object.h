@@ -33,6 +33,9 @@ public:
     bool hasSoftBody = false;
     bool hasFBO = false;
     bool setLit = false;
+    bool isStatic = false;
+
+    // FBO Attributes
     bool UseChromaticAberration = false;
     bool UseNightVision = false;
     int fboTextureId = 0;

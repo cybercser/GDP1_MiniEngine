@@ -3,7 +3,7 @@
 namespace gdp1 {
 namespace utils {
 
-static DebugLogLevel s_DebugLogLevel = DebugLogLevel::HighAssert;
+static DebugLogLevel s_DebugLogLevel = DebugLogLevel::High;
 
 int CheckForGLError(const char* file, int line) {
     // Returns 1 if an OpenGL error occurred, 0 otherwise.
@@ -81,7 +81,38 @@ void EnableGLDebugging() {
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 }
 
-void SetGLDebugLogLevel(DebugLogLevel level) { s_DebugLogLevel = level; }
+void SetGLDebugLogLevel(DebugLogLevel level) { 
+    s_DebugLogLevel = level;
+
+    // Set the OpenGL debug output filter to only log messages with severity HIGH
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+
+    switch (s_DebugLogLevel) {
+        case gdp1::utils::DebugLogLevel::None:
+            glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, 0, 0, nullptr,
+                                  GL_TRUE);
+            break;
+        case gdp1::utils::DebugLogLevel::High:
+            glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_HIGH, 0, nullptr,
+                                  GL_TRUE);
+            break;
+        case gdp1::utils::DebugLogLevel::Medium:
+            glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_MEDIUM, 0, nullptr,
+                                  GL_TRUE);
+            break;
+        case gdp1::utils::DebugLogLevel::Low:
+            glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_LOW, 0, nullptr,
+                                  GL_TRUE);
+            break;
+        case gdp1::utils::DebugLogLevel::Notification:
+            glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
+                                  GL_TRUE);
+            break;
+        default:
+            glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_TRUE);
+            break;
+    }
+}
 
 void GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* msg,
                      const void* param) {

@@ -1,5 +1,8 @@
 #include "mesh.h"
 
+#include <GLFW/glfw3.h>
+#include <Core/application.h>
+
 #define ADD_LINE(a, b)          \
     boundsIndices.push_back(a); \
     boundsIndices.push_back(b);
@@ -7,13 +10,10 @@
 namespace gdp1 {
 
 Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std::vector<TextureInfo> textures,
-           unsigned int instancing, std::vector<glm::mat4> instanceMatrix,
            const Bounds& bounds, bool isDynamicBuffer) {
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
-    this->instancing = instancing;
-    this->instanceMatrix = instanceMatrix;
 
     this->bounds = bounds;
     this->isDynamicBuffer = isDynamicBuffer;
@@ -24,7 +24,7 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std
     SetupDebugData();
 }
 
-void Mesh::Draw(Shader* shader, int numOfInstances) {
+void Mesh::DrawTextures(Shader* shader) {
     // bind appropriate textures
     unsigned int diffuseUnit = 1;
     unsigned int specularUnit = 1;
@@ -53,57 +53,62 @@ void Mesh::Draw(Shader* shader, int numOfInstances) {
             shader->SetUniform(uniformName.c_str(), i);
         }
 
-        /*if (textures[i].hasFBO) {
-            number = "0";
-            std::string uniformName = "u_Material." + name + number;
-            shader->SetUniform(uniformName.c_str(), i);
-        }*/
-
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
+}
 
-    // draw mesh
-    glBindVertexArray(VAO);
-    if (instancing == 1) {
-        glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-    } else {
-        shader->SetUniform("u_Model", go->transform->WorldMatrix());
+void Mesh::Draw(Shader* shader) {
+    DrawTextures(shader);
 
-        glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0,
-                                numOfInstances);
+    if (_VAO.ID == 93) {
+        bool breakP = true;
     }
 
+    // draw mesh
+    glBindVertexArray(_VAO.ID);
+    glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, numInstances);
     glBindVertexArray(0);
 
     // always good practice to set everything back to defaults once configured.
-    //glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
+    Application::drawCalls++;
 }
 
 void Mesh::UpdateVertexBuffers() {
-    //_VBO.UpdateVertexBuffers();
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * vertices.size(), (GLvoid*)&vertices[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    _VBO.UpdateVertexBuffers();
+    Application::drawCalls++;
 }
 
-void Mesh::SetupInstancing() {
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+void Mesh::SetupInstancing(std::vector<glm::mat4>& instanceMatrix) {
+    _VAO.Bind();
 
-    // Can't link to a mat4 so you need to link four vec4s
-    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-    glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(1 * sizeof(glm::vec4)));
-    glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-    glVertexAttribPointer(10, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+    _instanceVBO = VBO();
+    _instanceVBO.Bind();
+    _instanceVBO.BindData(instanceMatrix, isDynamicBuffer);
+    
+    _VAO.LinkAttrib(7, 4, GL_FLOAT, sizeof(glm::mat4), (void*)0);
+    _VAO.LinkAttrib(8, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+    _VAO.LinkAttrib(9, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+    _VAO.LinkAttrib(10, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 
-    // Makes it so the transform is only switched when drawing the next instance
+    // Update the matrix for every 1 instance
     glVertexAttribDivisor(7, 1);
     glVertexAttribDivisor(8, 1);
     glVertexAttribDivisor(9, 1);
     glVertexAttribDivisor(10, 1);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    _instanceVBO.Unbind();
+    numInstances = instanceMatrix.size();
+}
+
+void Mesh::ResetInstancing() {
+    if (numInstances > 1 && _instanceVBO.ID != 0) {
+        _instanceVBO.Delete();
+    }
+
+    numInstances = 1;
+    return;
 }
 
 void Mesh::DrawDebug(Shader* shader) {
@@ -111,106 +116,34 @@ void Mesh::DrawDebug(Shader* shader) {
     glBindVertexArray(debugVAO);
     glDrawElements(GL_LINES, static_cast<unsigned int>(boundsIndices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+    Application::drawCalls++;
 }
 
-void Mesh::SetupMesh() {
-    // create buffers/arrays
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+ void Mesh::SetupMesh() {
+     // create buffers/arrays
+     _VAO.Bind();
 
-    glBindVertexArray(VAO);
-    // load data into vertex buffers
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // A great thing about structs is that their memory layout is sequential for all its items.
-    // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2
-    // array which again translates to 3/2 floats which translates to a byte array.
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+     _VBO.Bind();
+     _VBO.BindData(vertices, isDynamicBuffer);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+     EBO _EBO(indices, isDynamicBuffer);
 
-    glGenBuffers(1, &instanceVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, instanceMatrix.size() * sizeof(glm::mat4), instanceMatrix.data(), GL_STATIC_DRAW);
+     _VAO.LinkAttrib(0, 3, GL_FLOAT, sizeof(Vertex), (void*)0);
+     _VAO.LinkAttrib(1, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+     _VAO.LinkAttrib(2, 2, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+     _VAO.LinkAttrib(3, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+     _VAO.LinkAttrib(4, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+     _VAO.Link_iAttrib(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIDs));
+     _VAO.LinkAttrib(6, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, weights));
 
-    // set the vertex attribute pointers
-    // vertex Positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    // vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    // vertex texture coords
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
-    // vertex tangent
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
-    // vertex bitangent
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
-    // ids
-    glEnableVertexAttribArray(5);
-    glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIDs));
+     // Unbind all to prevent accidentally modifying them
+     _VAO.Unbind();
+     _VBO.Unbind();
+     _EBO.Unbind();
 
-    // weights
-    glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, weights));
-
-    glBindVertexArray(0);
-}
-
-//void Mesh::SetupMesh() {
-//    // create buffers/arrays
-//    VAO.Bind();
-//     
-//    VBO instanceVBO;
-//    instanceVBO.BindData(instanceMatrix);
-//
-//    _VBO.BindData(vertices);
-//
-//    // Generates Element Buffer Object and links it to indices
-//    EBO EBO(indices);
-//
-//    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
-//
-//    // set the vertex attribute pointers
-//    VAO.LinkAttrib(_VBO, 0, 3, GL_FLOAT, sizeof(Vertex), (void*)0);
-//    VAO.LinkAttrib(_VBO, 1, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-//    VAO.LinkAttrib(_VBO, 2, 2, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
-//    VAO.LinkAttrib(_VBO, 3, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
-//    VAO.LinkAttrib(_VBO, 4, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
-//    VAO.LinkAttrib(_VBO, 5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIDs));
-//    VAO.LinkAttrib(_VBO, 6, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, weights));
-//
-//    if (instancing != 1) {
-//        instanceVBO.Bind();
-//        // Can't link to a mat4 so you need to link four vec4s
-//        VAO.LinkAttrib(instanceVBO, 7, 4, GL_FLOAT, sizeof(glm::mat4), (void*)0);
-//        VAO.LinkAttrib(instanceVBO, 8, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(1 * sizeof(glm::vec4)));
-//        VAO.LinkAttrib(instanceVBO, 9, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-//        VAO.LinkAttrib(instanceVBO, 10, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-//        VAO.LinkAttrib(instanceVBO, 11, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-//        VAO.LinkAttrib(instanceVBO, 12, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-//        VAO.LinkAttrib(instanceVBO, 13, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-//
-//        // Makes it so the transform is only switched when drawing the next instance
-//        glVertexAttribDivisor(7, 1);
-//        glVertexAttribDivisor(8, 1);
-//        glVertexAttribDivisor(9, 1);
-//        glVertexAttribDivisor(10, 1);
-//        glVertexAttribDivisor(11, 1);
-//        glVertexAttribDivisor(12, 1);
-//        glVertexAttribDivisor(13, 1);
-//    }
-//
-//    // Unbind all to prevent accidentally modifying them
-//    VAO.Unbind();
-//    _VBO.Unbind();
-//    instanceVBO.Unbind();
-//    EBO.Unbind();
-//}
+     _VBO.Delete();
+     _EBO.Delete();
+ }
 
 void Mesh::SetupDebugData() {
     // calculate the 8 vertices of the bounding box

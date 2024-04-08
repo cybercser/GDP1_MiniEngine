@@ -33,26 +33,24 @@ public:
     std::vector<unsigned int> indices;
     std::vector<TextureInfo> textures;
 
-    unsigned int instancing;
-    std::vector<glm::mat4> instanceMatrix;
-
-    unsigned int VAO;
     Bounds bounds;
 
     bool isDynamicBuffer;
 
     // constructor
     Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std::vector<TextureInfo> textures,
-         unsigned int instancing, std::vector<glm::mat4> instanceMatrix,
          const Bounds& bounds, bool isDynamicBuffer = false);
 
     // render the mesh
-    void Draw(Shader* shader, int numOfInstances);
+    void DrawTextures(Shader* shader);
+    void Draw(Shader* shader);
 
     // render the mesh
     void UpdateVertexBuffers();
 
-    void SetupInstancing();
+    void SetupInstancing(std::vector<glm::mat4>& instanceMatrix);
+
+    void ResetInstancing();
 
     void DrawDebug(Shader* shader);
 
@@ -64,13 +62,15 @@ private:
 
 private:
     // render data
-    unsigned int VBO, EBO;
-    unsigned int instanceVBO;
+    VAO _VAO;
+    VBO _VBO, _instanceVBO;
 
     // debug data
     unsigned int debugVAO, debugVBO, debugEBO;
     std::vector<glm::vec3> boundsVertices;
     std::vector<unsigned int> boundsIndices;
+
+    unsigned int numInstances = 1;
 };
 
 }  // namespace gdp1

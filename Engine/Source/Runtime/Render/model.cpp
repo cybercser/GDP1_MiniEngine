@@ -41,16 +41,20 @@ Model::Model(const Model& other)
     , texturesToLoad(other.texturesToLoad)
     , scene(other.scene) {}
 
-void Model::Draw(Shader* shader, int numOfInstances) {
-    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader, numOfInstances);
+void Model::Draw(Shader* shader) {
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
 }
 
 void Model::DrawDebug(Shader* shader) {
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].DrawDebug(shader);
 }
 
-void Model::SetupInstancing() {
-    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].SetupInstancing();
+void Model::SetupInstancing(std::vector<glm::mat4>& instanceMatrix) {
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].SetupInstancing(instanceMatrix);
+}
+
+void Model::ResetInstancing() {
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].ResetInstancing();
 }
 
 unsigned int Model::GetVertexCount() const { return num_vertices_; }
@@ -255,7 +259,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     aiAABB& aabb = mesh->mAABB;
     Bounds b;
     b.SetMinMax(glm::vec3(aabb.mMin.x, aabb.mMin.y, aabb.mMin.z), glm::vec3(aabb.mMax.x, aabb.mMax.y, aabb.mMax.z));
-    Mesh m = Mesh(vertices, indices, textures, instancing, instanceMatrix, b);
+    Mesh m = Mesh(vertices, indices, textures, b);
 
     bounds.Expand(m.bounds);  // expand model's bounding box so it contains all meshes
 

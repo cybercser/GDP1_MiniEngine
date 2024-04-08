@@ -295,17 +295,6 @@
       ]
     },
     {
-      "name": "ChainSphere",
-      "filepath": "Assets/Models/FPS_Test/ChainSphere.ply",
-      "shader": "lit",
-      "textures": [
-        {
-          "name": "yellow_color.png",
-          "type": "texture_diffuse"
-        }
-      ]
-    },
-    {
       "name": "Zombie",
       "filepath": "Assets/Models/FPS_Test/zombie.fbx",
       "shader": "lit",
@@ -3170,7 +3159,8 @@
         }
       },
       "children": [],
-      "parent": ""
+      "parent": "",
+      "isStatic": false
     },
     {
       "name": "zombie1",
@@ -3194,7 +3184,8 @@
         }
       },
       "children": [],
-      "parent": ""
+      "parent": "",
+      "isStatic": false
     }
   ],
   "rigidbodies": [
@@ -3251,6 +3242,11 @@
     {
       "name": "zombie_running",
       "path": "Assets/Animations/zombie_running.fbx",
+      "model": "Zombie"
+    },
+    {
+      "name": "zombie_crawl",
+      "path": "Assets/Animations/zombie_crawl.fbx",
       "model": "Zombie"
     }
   ],

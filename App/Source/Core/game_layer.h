@@ -13,11 +13,9 @@
 #include "GameplayManager/GameplayManager.h"
 #include "GameObjects/player.h"
 #include "GameObjects/collectible.h"
+#include "Particles/ParticleSystem.h"
 
 class GameLayer : public gdp1::Layer {
-
-    class SoftBody;
-    class SoftBodyParticle;
 
 public:
     GameLayer();
@@ -36,6 +34,8 @@ private:
     std::unique_ptr<gdp1::Physics> m_Physics;
     std::unique_ptr<gdp1::AudioManager> m_audioManager;
 
+    std::unique_ptr<gdp1::ParticleSystem> m_ParticleSystem;
+
     Player* m_Player;
     gdp1::GameObject* zombie1;
     gdp1::GameObject* zombie2;
@@ -49,8 +49,9 @@ private:
     bool previousRunAnimationState = false;
     bool previousRunAnimationState1 = false;
     bool drawDebug = false;
+    bool setInstanced = false;
 
-    void CreateRaindropObjects(gdp1::Scene* scene, int numRaindrops);
+    void CreateSpheres(gdp1::Scene* scene, int numRaindrops);
 
     void AddPlayer();
     void AddCoins();

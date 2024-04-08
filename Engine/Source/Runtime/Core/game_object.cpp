@@ -15,6 +15,7 @@ GameObject::GameObject(Scene* scn, const GameObjectDesc& desc)
     , modelName(desc.modelName)
     , visible(desc.visible)
     , hasFBO(desc.hasFBO)
+    , isStatic(desc.isStatic)
     , setLit(desc.setLit) {
     id = UniqueId::GenerateId();
     transform = new Transform(this, desc.transform);
@@ -27,7 +28,8 @@ GameObject::GameObject(Scene* scn, const std::string& name)
     , modelName("")
     , visible(false)
     , hasFBO(false)
-    , setLit(false) {
+    , setLit(false)
+    , isStatic(true) {
     id = UniqueId::GenerateId();
     transform = new Transform(this);
 }
