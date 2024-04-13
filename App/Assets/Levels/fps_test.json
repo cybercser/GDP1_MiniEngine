@@ -3170,7 +3170,7 @@
         "localPosition": {
           "x": 5,
           "y": 0,
-          "z": -5
+          "z": 0
         },
         "localEulerAngles": {
           "x": 0.0,
@@ -3248,6 +3248,21 @@
       "name": "zombie_crawl",
       "path": "Assets/Animations/zombie_crawl.fbx",
       "model": "Zombie"
+    },
+    {
+        "name": "zombie_death",
+        "path": "Assets/Animations/zombie_death.fbx",
+        "model": "Zombie"
+    },
+    {
+        "name": "zombie_reaction_hit",
+        "path": "Assets/Animations/zombie_reaction_hit.fbx",
+        "model": "Zombie"
+    },
+    {
+        "name": "zombie_idle",
+        "path": "Assets/Animations/zombie_idle.fbx",
+        "model": "Zombie"
     }
   ],
   "audioSources": [

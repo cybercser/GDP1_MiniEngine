@@ -43,17 +43,8 @@ private:
 
     std::shared_ptr<gdp1::SQLiteDatabase> db;
 
-    bool enableSkyBox = false;
-    bool setRunAnimation = false;
-    bool setRunAnimation1 = false;
-    bool previousRunAnimationState = false;
-    bool previousRunAnimationState1 = false;
-    bool drawDebug = false;
-    bool setInstanced = false;
-
     void CreateSpheres(gdp1::Scene* scene, int numRaindrops);
 
     void AddPlayer();
     void AddCoins();
-
 };

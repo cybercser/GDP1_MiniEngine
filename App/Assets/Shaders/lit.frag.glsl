@@ -67,6 +67,9 @@ uniform bool u_SetLit;
 
 uniform int u_NumPointLights;
 
+// Define reusable variables for texture lookups
+vec4 diffuseTextureColor = texture(u_Material.texture_diffuse1, fs_in.TexCoords);
+
 // Blinn-Phong shading, the directional light contribution
 // pos is the fragment's position in view space
 // n is the fragment's normal in view space
@@ -177,39 +180,38 @@ vec3 shadingSpotLight(SpotLight light, vec3 pos, vec3 n) {
 
 void main() {
     // discard the fragment if its opacity is 0
-    if(texture(u_Material.texture_opacity1, fs_in.TexCoords).a < 0.1)
+    if (diffuseTextureColor.a < 0.1)
         discard;
 
-    vec4 finalColor = vec4(1.0);
+    vec4 finalColor;
 
     if (u_UseLights) {
+        vec3 lightColor = vec3(0.0);
+
         // Only one directional light
         vec3 dirColor = shadingDirectionalLight(u_DirLight, fs_in.Pos, normalize(fs_in.Normal));
 
         // Shading for the point lights
-        vec3 pointColor = vec3(0.0);
-        if(u_UsePointLights) {
-            for(int i = 0; i < u_NumPointLights; i++) {
-                pointColor += shadingPointLight(u_PointLights[i], fs_in.Pos, normalize(fs_in.Normal));
+        if (u_UsePointLights) {
+            for (int i = 0; i < u_NumPointLights; i++) {
+                lightColor += shadingPointLight(u_PointLights[i], fs_in.Pos, normalize(fs_in.Normal));
             }
         }
 
         // Shading for the spot lights
-        vec3 spotColor = vec3(0.0);
-        if(u_UseSpotLights) {
-            for(int i = 0; i < 4; i++) {
-                spotColor += shadingSpotLight(u_SpotLights[i], fs_in.Pos, normalize(fs_in.Normal));
+        if (u_UseSpotLights) {
+            for (int i = 0; i < 4; i++) {
+                lightColor += shadingSpotLight(u_SpotLights[i], fs_in.Pos, normalize(fs_in.Normal));
             }
         }
 
-        finalColor = vec4(dirColor + pointColor + spotColor, 1.0);
-
+        finalColor = vec4(dirColor + lightColor, 1.0);
     } else {
-        finalColor = texture(u_Material.texture_diffuse1, fs_in.TexCoords);
+        finalColor = diffuseTextureColor;
     }
 
     if (u_SetLit) {
-        finalColor.rgb *= 1.35f;
+        finalColor.rgb *= 1.35;
     }
 
     o_FragColor = finalColor;

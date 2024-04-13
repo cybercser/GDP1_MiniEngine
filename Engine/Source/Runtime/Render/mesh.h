@@ -5,10 +5,10 @@
 #include "Physics/bounds.h"
 #include "shader.h"
 
-#include "assimp\Importer.hpp"
-#include "vao.h"
-#include "vbo.h"
-#include "ebo.h"
+#include "assimp/Importer.hpp"
+#include "Buffers/vao.h"
+#include "Buffers/vbo.h"
+#include "Buffers/ebo.h"
 
 namespace gdp1 {
 
@@ -66,7 +66,8 @@ private:
     VBO _VBO, _instanceVBO;
 
     // debug data
-    unsigned int debugVAO, debugVBO, debugEBO;
+    VAO debugVAO;
+    VBO debugVBO;
     std::vector<glm::vec3> boundsVertices;
     std::vector<unsigned int> boundsIndices;
 

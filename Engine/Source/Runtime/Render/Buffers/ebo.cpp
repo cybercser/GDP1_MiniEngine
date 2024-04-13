@@ -2,7 +2,7 @@
 
 namespace gdp1 {
 
-EBO::EBO(std::vector<GLuint>& indices, bool isDynamicBuffer) {
+EBO::EBO(std::vector<unsigned int>& indices, bool isDynamicBuffer) {
     glGenBuffers(1, &ID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0],

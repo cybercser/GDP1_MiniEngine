@@ -15,6 +15,11 @@ void VBO::BindData(std::vector<glm::mat4>& mat4s, bool isDynamicBuffer) {
                  isDynamicBuffer ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 }
 
+void VBO::BindData(std::vector<glm::vec3>& vertices, bool isDynamicBuffer) {
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0],
+                 isDynamicBuffer ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+}
+
 void VBO::UpdateVertexBuffers() {
     Bind();
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * vertices.size(), (GLvoid*)&vertices[0]);

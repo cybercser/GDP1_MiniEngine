@@ -34,6 +34,7 @@ public:
 
     void BindData(std::vector<Vertex>& vertices, bool isDynamicBuffer);
     void BindData(std::vector<glm::mat4>& mat4s, bool isDynamicBuffer);
+    void BindData(std::vector<glm::vec3>& vertices, bool isDynamicBuffer);
 
     // Update Buffers
     void UpdateVertexBuffers();

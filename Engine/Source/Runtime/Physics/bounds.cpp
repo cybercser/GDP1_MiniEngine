@@ -9,13 +9,11 @@ Bounds::Bounds(const glm::vec3& center, const glm::vec3& size) {
 
 Bounds::Bounds()
     : min_(glm::vec3(0.0f, 0.0f, 0.0f))
-    , max_(glm::vec3(0.0f, 0.0f, 0.0f)) {
-}
+    , max_(glm::vec3(0.0f, 0.0f, 0.0f)) {}
 
 Bounds::Bounds(const Bounds& that)
     : min_(that.min_)
-    , max_(that.max_) {
-}
+    , max_(that.max_) {}
 
 void Bounds::SetCenter(const glm::vec3& center) {
     glm::vec3 ext = GetExtents();
@@ -79,24 +77,22 @@ bool Bounds::Intersects(const Bounds& that) const {
     return true;
 }
 
-glm::vec3 Bounds::GetCenter() const {
-    return (max_ + min_) * 0.5f;
-}
+glm::vec3 Bounds::GetCenter() const { return (max_ + min_) * 0.5f; }
 
-glm::vec3 Bounds::GetExtents() const {
-    return (max_ - min_) * 0.5f;
-}
+glm::vec3 Bounds::GetExtents() const { return (max_ - min_) * 0.5f; }
 
-glm::vec3 Bounds::GetMin() const {
-    return min_;
-}
+glm::vec3 Bounds::GetMin() const { return min_; }
 
-glm::vec3 Bounds::GetMax() const {
-    return max_;
-}
+glm::vec3 Bounds::GetMax() const { return max_; }
 
-glm::vec3 Bounds::GetSize() const {
-    return max_ - min_;
+glm::vec3 Bounds::GetSize() const { return max_ - min_; }
+
+void Bounds::TransformBounds(glm::mat4& worldMatrix) {
+    // Transform the min and max points of the bounding box by the world matrix
+    glm::vec3 transformedMin = glm::vec3(worldMatrix * glm::vec4(min_, 1.0f));
+    glm::vec3 transformedMax = glm::vec3(worldMatrix * glm::vec4(max_, 1.0f));
+
+    SetMinMax(glm::min(transformedMin, transformedMax), glm::max(transformedMin, transformedMax));
 }
 
 }  // namespace gdp1
