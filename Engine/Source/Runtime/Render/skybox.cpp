@@ -40,6 +40,7 @@ void Skybox::Draw(Shader* shader, const glm::mat4& viewMat, const glm::mat4 proj
     if (VAO_ == 0) return;
 
     glDepthFunc(GL_LEQUAL);
+    glCullFace(GL_FRONT);
 
     shader->Use();
     glm::mat4 view = glm::mat4(glm::mat3(viewMat));  // remove translation from the view matrix
@@ -53,6 +54,7 @@ void Skybox::Draw(Shader* shader, const glm::mat4& viewMat, const glm::mat4 proj
     glBindVertexArray(0);
 
     glDepthFunc(GL_LESS);
+    glCullFace(GL_BACK);
 }
 
 /*

@@ -22,40 +22,26 @@ void GameLayer::OnAttach() {
     // Initialize things here
 
     zombie1 = m_Scene->FindObjectByName("zombie1");
-    zombie1->SetCurrentAnimation("zombie_crawl");
-
     zombie2 = m_Scene->FindObjectByName("zombie");
-    zombie2->SetCurrentAnimation("zombie_walking");
+
+    zombie1->SetCurrentAnimation("zombie_idle");
+    zombie2->SetCurrentAnimation("zombie_idle");
 
     // Add Player and objects to the scene
     AddPlayer();
-
-    // m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 1);
-
-    //AddCoins();
-    CreateSpheres(m_Scene.get(), 1000);
 
     // Initialize Audio Manager
     m_audioManager = std::make_unique<AudioManager>();
     m_audioManager->Initialize();
 
     // Play SFX Music initially - later change to handling by lua scripts
-    // gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
-    // m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
-    // m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
+    gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
+    m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
+    m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
 
     // Initialize Database
     db = std::make_shared<SQLiteDatabase>("Assets/Data/game_data.db");
     db->open();
-
-    // Check sample usage of database operations
-    gameplayManager = new GameplayManager(*db.get());
-
-    gameplayManager->playerKilledZombie(m_Player->id, 1);
-    gameplayManager->playerKilledZombie(m_Player->id, 2);
-
-    int kills = gameplayManager->getPlayerKillCount(m_Player->id);
-    LOG_ERROR("Player killed: {}", kills);
 
     // init the camera
     const CameraDesc& camDesc = m_Scene->GetLevelDesc().cameraDescs[0];
@@ -63,7 +49,6 @@ void GameLayer::OnAttach() {
 
     // init the renderer
     m_Renderer = std::make_unique<Renderer>();
-    m_Renderer->SetInstanced(setInstanced);
 
     // init physics engine
     m_Physics = std::make_unique<Physics>(m_Scene.get(), m_Scene->GetLevelDesc());
@@ -73,6 +58,9 @@ void GameLayer::OnAttach() {
     glEnable(GL_DEPTH_TEST);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -81,6 +69,7 @@ void GameLayer::OnDetach() {}
 
 void GameLayer::OnEvent(gdp1::Event& event) {
     // m_FlyCamera->OnEvent(event);
+    m_Player->OnEvent(event);
 
     EventDispatcher dispatcher(event);
     dispatcher.Dispatch<MouseButtonPressedEvent>([&](MouseButtonPressedEvent& e) { return false; });
@@ -89,25 +78,6 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 }
 
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
-    if (setRunAnimation != previousRunAnimationState) {
-        if (setRunAnimation)
-            zombie1->SetCurrentAnimation("zombie_running");
-        else
-            zombie1->SetCurrentAnimation("zombie_crawl");
-
-        // Update the previous state to the current state
-        previousRunAnimationState = setRunAnimation;
-    }
-
-    if (setRunAnimation1 != previousRunAnimationState1) {
-        if (setRunAnimation1)
-            zombie2->SetCurrentAnimation("zombie_running");
-        else
-            zombie2->SetCurrentAnimation("zombie_walking");
-
-        // Update the previous state to the current state
-        previousRunAnimationState1 = setRunAnimation1;
-    }
 
     // m_FlyCamera->OnUpdate(ts);
     m_Player->Update(ts);
@@ -115,12 +85,7 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
     m_Physics->FixedUpdate(ts);
     m_Scene->Update(ts);
 
-    // m_ParticleSystem->Render();
-
-    m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts, enableSkyBox, setInstanced);
-
-    // Render Debug Boxes
-    if (drawDebug) m_Renderer->RenderDebug(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts, enableSkyBox);
+    m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts);
 }
 
 void GameLayer::OnImGuiRender() {
@@ -139,11 +104,88 @@ void GameLayer::OnImGuiRender() {
     ImGui::Text("Player Position: (%.3f, %.3f, %.3f)", m_Player->transform->localPosition.x,
                 m_Player->transform->localPosition.y, m_Player->transform->localPosition.z);
 
-    ImGui::Checkbox("Enable Skybox", &enableSkyBox);
-    ImGui::Checkbox("Draw Debug", &drawDebug);
-    ImGui::Checkbox("Set Instanced", &setInstanced);
-    ImGui::Checkbox("Set Run Animation", &setRunAnimation);
-    ImGui::Checkbox("Set Run Animation Zombie 1", &setRunAnimation1);
+    ImGui::Checkbox("Enable Skybox", &m_Renderer->renderSkybox);
+    ImGui::Checkbox("Draw Debug", &m_Renderer->drawDebug);
+    ImGui::Checkbox("Set Instanced", &m_Renderer->setInstanced);
+
+    ImGui::End();
+
+    ImGui::Begin("Change Zombie 1 Animations");
+    static int selectedAnimation = 0;
+    const char* animationNames[] = {"Idle", "Walk", "Run", "Attack", "Scream", "Bullet Hit Reaction", "Crawl", "Death"};
+    for (int i = 0; i < IM_ARRAYSIZE(animationNames); i++) {
+        if (ImGui::RadioButton(animationNames[i], &selectedAnimation, i)) {
+            // Call a function with a parameter based on the selected radio button
+            switch (selectedAnimation) {
+                case 0:
+                    zombie1->SetCurrentAnimation("zombie_idle");
+                    break;
+                case 1:
+                    zombie1->SetCurrentAnimation("zombie_walking");
+                    break;
+                case 2:
+                    zombie1->SetCurrentAnimation("zombie_running");
+                    break;
+                case 3:
+                    zombie1->SetCurrentAnimation("zombie_attack");
+                    break;
+                case 4:
+                    zombie1->SetCurrentAnimation("zombie_scream");
+                    break;
+                case 5:
+                    zombie1->SetCurrentAnimation("zombie_reaction_hit");
+                    break;
+                case 6:
+                    zombie1->SetCurrentAnimation("zombie_crawl");
+                    break;
+                case 7:
+                    zombie1->SetCurrentAnimation("zombie_death");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    ImGui::End();
+
+    ImGui::Begin("Change Zombie 2 Animations");
+
+    static int selectedAnimation1 = 0;
+    for (int i = 0; i < IM_ARRAYSIZE(animationNames); i++) {
+        if (ImGui::RadioButton(animationNames[i], &selectedAnimation1, i)) {
+            // Call a function with a parameter based on the selected radio button
+            switch (selectedAnimation1) {
+                case 0:
+                    zombie2->SetCurrentAnimation("zombie_idle");
+                    break;
+                case 1:
+                    zombie2->SetCurrentAnimation("zombie_walking");
+                    break;
+                case 2:
+                    zombie2->SetCurrentAnimation("zombie_running");
+                    break;
+                case 3:
+                    zombie2->SetCurrentAnimation("zombie_attack");
+                    break;
+                case 4:
+                    zombie2->SetCurrentAnimation("zombie_scream");
+                    break;
+                case 5:
+                    zombie2->SetCurrentAnimation("zombie_reaction_hit");
+                    break;
+                case 6:
+                    zombie2->SetCurrentAnimation("zombie_crawl");
+                    break;
+                case 7:
+                    zombie2->SetCurrentAnimation("zombie_death");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     ImGui::End();
 }
 
@@ -188,19 +230,6 @@ void GameLayer::CreateSpheres(gdp1::Scene* scene, int numRaindrops) {
         rigidbodyDesc.position = glm::vec3(0.0f);
         rigidbodyDesc.velocity = glm::vec3(0.0f);
 
-        /*PointLight pointLight;
-        pointLight.color = randomColor;
-        pointLight.name = desc.name;
-        pointLight.position = {x, y, z};
-        pointLight.intensity = 0.7f;
-        pointLight.constant = 0.5f;
-        pointLight.linear = 2.0f;
-        pointLight.quadratic = 1.0f;
-
-        scene->AddPointLight(pointLight);*/
-
-        // m_Scene->GetLevelDesc().rigidbodyDescs.push_back(rigidbodyDesc);
-
         scene->AddGameObject(raindrop);  // Add the raindrop to the scene (assuming this function exists)
     }
 }
@@ -211,7 +240,7 @@ void GameLayer::AddPlayer() {
     playerDesc.name = "Player";
     playerDesc.modelName = "PlayerHands";
     playerDesc.visible = true;
-    playerDesc.transform.localPosition = glm::vec3(0.f, 0.3f, -13.f);
+    playerDesc.transform.localPosition = glm::vec3(2.5f, 0.3f, -4.5f);
     playerDesc.transform.localScale = glm::vec3(0.5f);
     playerDesc.transform.localEulerAngles = glm::vec3(0.0f, 30.f, 0.f);
     playerDesc.setLit = true;
@@ -232,23 +261,11 @@ void GameLayer::AddPlayer() {
 
     m_Scene->GetLevelDesc().rigidbodyDescs.push_back(rigidBodyDesc);
 
-    // GameObjectDesc weaponDesc;
-
-    // weaponDesc.name = "ArGun";
-    // weaponDesc.modelName = "AR_Gun";
-    // weaponDesc.visible = true;
-    // weaponDesc.transform.localPosition = glm::vec3(0.f, 1.f, 0.f);
-    // weaponDesc.transform.localScale = glm::vec3(0.05f);
-    // weaponDesc.transform.localEulerAngles = glm::vec3(0.0f, 0.f, 0.f);
-    // weaponDesc.setLit = true;
-    // weaponDesc.parentName = "";
-
     m_Player = new Player(m_Scene.get(), playerDesc);
     m_Player->model = m_Scene->FindModelByName(playerDesc.modelName);
     m_Player->SetCurrentAnimation("Player_Idle");
 
     m_Scene->AddGameObject(m_Player);
-    // m_Scene->AddGameObject(new Weapon(m_Scene.get(), weaponDesc, WeaponType::RIFLE));
 }
 
 void GameLayer::AddCoins() {

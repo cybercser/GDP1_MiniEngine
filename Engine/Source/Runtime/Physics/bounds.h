@@ -33,6 +33,8 @@ public:
 
     glm::vec3 GetSize() const;
 
+    void TransformBounds(glm::mat4& worldMatrix);
+
 private:
     glm::vec3 min_;
     glm::vec3 max_;

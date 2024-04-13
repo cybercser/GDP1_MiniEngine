@@ -17,20 +17,8 @@ using namespace std;
 
 namespace gdp1 {
 
-void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, Timestep ts, bool renderSkybox,
-                      bool isInstanced) {
+void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, Timestep ts) {
     if (!scene || !camera) {
-        LOG_ERROR("Scene or camera is null");
-        return;
-    }
-
-    double lastTime = glfwGetTime();
-    if (scene->HasFBO()) {
-        scene->UseFBO();
-    }
-
-    ResetFrameBuffers();
-    if (scene == nullptr || camera == nullptr) {
         LOG_ERROR("Scene or camera is null");
         return;
     }
@@ -42,16 +30,18 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
     mat3 normalMatrix = mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2]));
 
     if (scene->HasFBO()) {
+        scene->UseFBO();
         projection = glm::scale(projection, glm::vec3(1.0f, -1.0f, 1.0f));
     }
 
+    ResetFrameBuffers();
     SetupShaders(scene, projection, view, umodel, normalMatrix);
 
     unordered_map<string, Model*>& modelMap = scene->m_ModelMap;
     std::unordered_map<std::string, GameObject*> goMap;
 
-    if (isInstanced) {
-        if (!initializedInstancing) SetupInstancedRendering(scene);
+    if (setInstanced) {
+        if (projectionMatrix != projection || viewMatrix != view) SetupInstancedRendering(projection, view, scene);
 
         for (unordered_map<Model*, vector<glm::mat4>>::iterator it = instancesMap.begin(); it != instancesMap.end();
              it++) {
@@ -60,28 +50,24 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
         }
 
         goMap = dynamicGoMap;
-    }
-    else {
+
+        /*if (projectionMatrix != projection || viewMatrix != view)
+            fcGoMap = PerformFrustumCulling(projection, view, goMap);*/
+    } else {
         initializedInstancing = false;
 
         for (std::unordered_map<Model*, std::vector<glm::mat4>>::iterator it = instancesMap.begin();
              it != instancesMap.end(); it++) {
-            Model* model = it->first;
-            if (model != nullptr) {
-                model->ResetInstancing();
-                /*std::vector<glm::mat4> instanceMatrix;
-                instanceMatrix.push_back(it->second[0]);
-                model->SetupInstancing(instanceMatrix);*/
-            }
+            it->first->ResetInstancing();
         }
 
         goMap = scene->m_GameObjectMap;
+
+        /*if (projectionMatrix != projection || viewMatrix != view)
+            fcGoMap = PerformFrustumCulling(projection, view, goMap);*/
     }
 
-    // double currentTime = glfwGetTime();
-    // LOG_INFO("Time: {0}", lastTime - currentTime);
-
-    for (unordered_map<string, GameObject*>::iterator it = goMap.begin(); it != goMap.end(); it++) {
+    for (std::unordered_map<std::string, GameObject*>::iterator it = goMap.begin(); it != goMap.end(); it++) {
         GameObject* go = it->second;
         if (go != nullptr && go->visible) {
             Model* model = go->model;
@@ -98,15 +84,6 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
                 shader->SetUniform("u_Model", go->transform->WorldMatrix());
                 shader->SetUniform("u_SetLit", go->setLit);
                 shader->SetUniform("u_UseLights", true);
-
-                if (go->hasFBO) {
-                    shader->SetUniform("u_UseLights", false);
-                    shader->SetUniform("u_ApplyChromaticAberration", go->UseChromaticAberration);
-                    shader->SetUniform("u_ApplyNightVision", go->UseNightVision);
-
-                    model->meshes[0].textures[0].hasFBO = true;
-                    model->meshes[0].textures[0].id = go->fboTextureId;
-                }
 
                 if (!go->hasSoftBody) {
                     if (go->currentAnim != "") {
@@ -125,10 +102,10 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
 
     // always draw the skybox at last
     if (renderSkybox) scene->skybox_ptr_->Draw(scene->skybox_shader_ptr_, view, projection);
+    if (drawDebug) RenderDebug(scene, camera, ts);
 }
 
-void Renderer::RenderDebug(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, Timestep ts,
-                           bool renderSkybox) {
+void Renderer::RenderDebug(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, Timestep ts) {
     if (scene == nullptr || camera == nullptr) {
         LOG_ERROR("Scene or camera is null");
         return;
@@ -175,19 +152,18 @@ void Renderer::RenderDebug(std::shared_ptr<Scene> scene, std::shared_ptr<Camera>
             }
         }
     }
-
-    // always draw the skybox at last
-    if (renderSkybox) scene->skybox_ptr_->Draw(scene->skybox_shader_ptr_, view, projection);
 }
 
-void Renderer::SetupInstancedRendering(std::shared_ptr<Scene> scene) {
+void Renderer::SetupInstancedRendering(glm::mat4& projMatrix, glm::mat4& viewMatrix, std::shared_ptr<Scene> scene) {
     instancesMap.clear();
     dynamicGoMap.clear();
+
     std::unordered_map<std::string, GameObject*>& goMap = scene->m_GameObjectMap;
     std::unordered_map<std::string, Shader*>& shaderMap = scene->m_ShaderMap;
 
-    for (const auto& kvp : goMap) {
-        GameObject* go = kvp.second;
+    std::vector<GameObject*> tempMap = PerformFrustumCulling(projMatrix, viewMatrix, goMap);
+
+    for (const auto& go : tempMap) {
         Model* model = go->model;
 
         if (model && go->isStatic && go->visible) {
@@ -197,7 +173,6 @@ void Renderer::SetupInstancedRendering(std::shared_ptr<Scene> scene) {
             }
 
             instancesMap[model].push_back(go->transform->WorldMatrix());
-            // instancesMap[model].push_back(glm::mat4(0.1f));
         }
 
         if (!go->isStatic) {
@@ -209,6 +184,7 @@ void Renderer::SetupInstancedRendering(std::shared_ptr<Scene> scene) {
          it != instancesMap.end(); it++) {
         Model* model = it->first;
         if (model != nullptr) {
+            model->ResetInstancing();
             model->SetupInstancing(it->second);
         }
     }
@@ -218,9 +194,7 @@ void Renderer::SetupInstancedRendering(std::shared_ptr<Scene> scene) {
     return;
 }
 
-void Renderer::SetInstanced(bool setInstanced) { 
-    //this->isInstanced = setInstanced;
-}
+void Renderer::SetInstanced(bool setInstanced) { this->setInstanced = setInstanced; }
 
 void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, glm::mat4 view, glm::mat4 model,
                             glm::mat3 normalMatrix) {
@@ -241,7 +215,7 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
     scene->lit_shader_ptr_->SetUniform("u_NumPointLights", (int)scene->m_PointLightMap.size());
     scene->lit_shader_ptr_->SetUniform("u_UseLights", true);
 
-    /*int lightIndex = 0;
+    int lightIndex = 0;
     for (std::unordered_map<std::string, PointLight*>::iterator it = scene->m_PointLightMap.begin();
          it != scene->m_PointLightMap.end(); it++, lightIndex++) {
         PointLight* pointLight = it->second;
@@ -256,7 +230,7 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
                                            pointLight->quadratic);
         scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos",
                                            glm::vec3(lightPosInViewSpace));
-    }*/
+    }
 
     // update uniforms for instance shader same as default
     scene->inst_shader_ptr_->Use();
@@ -267,12 +241,6 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
     scene->inst_shader_ptr_->SetUniform("u_DirLight.dir", lightDirViewSpace);
     scene->inst_shader_ptr_->SetUniform("u_NumPointLights", (int)scene->m_PointLightMap.size());
     scene->inst_shader_ptr_->SetUniform("u_UseLights", true);
-
-    // update uniforms for debug shader
-    scene->debug_shader_ptr_->Use();
-    scene->debug_shader_ptr_->SetUniform("u_Model", model);
-    scene->debug_shader_ptr_->SetUniform("u_View", view);
-    scene->debug_shader_ptr_->SetUniform("u_Proj", projection);
 
     // update uniforms for untextured shader
     scene->untextured_shader_ptr_->Use();
@@ -300,6 +268,39 @@ void Renderer::ResetFrameBuffers() {
 
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+bool Renderer::IsObjectVisible(glm::mat4& projMatrix, glm::mat4& viewMatrix, GameObject* object) {
+    Bounds objBounds = object->model->bounds;
+    objBounds.TransformBounds(object->transform->WorldMatrix());
+
+    glm::vec4 minClip = projMatrix * viewMatrix * glm::vec4(objBounds.GetMin(), 1.0);
+    glm::vec4 maxClip = projMatrix * viewMatrix * glm::vec4(objBounds.GetMax(), 1.0);
+
+    // Check if the AABB is completely outside any of the six planes of the frustum
+    if (maxClip.x < -minClip.w || minClip.x > minClip.w || maxClip.y < -minClip.w || minClip.y > minClip.w ||
+        maxClip.z < -minClip.w || minClip.z > minClip.w) {
+        return false;  // Object is completely outside the frustum
+    }
+
+    return true;  // Object is outside the view frustum
+}
+
+std::vector<GameObject*> Renderer::PerformFrustumCulling(glm::mat4& projMatrix, glm::mat4& viewMatrix,
+                                                         std::unordered_map<std::string, GameObject*>& gameObjects) {
+    this->projectionMatrix = projMatrix;
+    this->viewMatrix = viewMatrix;
+
+    std::vector<GameObject*> visibleObjects;
+
+    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin(); it != gameObjects.end();
+         it++) {
+        if (IsObjectVisible(projMatrix, viewMatrix, it->second)) {
+            visibleObjects.push_back(it->second);
+        }
+    }
+
+    return visibleObjects;
 }
 
 }  // namespace gdp1

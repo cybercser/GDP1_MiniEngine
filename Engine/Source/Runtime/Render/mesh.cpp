@@ -86,7 +86,7 @@ void Mesh::SetupInstancing(std::vector<glm::mat4>& instanceMatrix) {
     _instanceVBO = VBO();
     _instanceVBO.Bind();
     _instanceVBO.BindData(instanceMatrix, isDynamicBuffer);
-    
+
     _VAO.LinkAttrib(7, 4, GL_FLOAT, sizeof(glm::mat4), (void*)0);
     _VAO.LinkAttrib(8, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
     _VAO.LinkAttrib(9, 4, GL_FLOAT, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
@@ -113,37 +113,37 @@ void Mesh::ResetInstancing() {
 
 void Mesh::DrawDebug(Shader* shader) {
     // draw bounds
-    glBindVertexArray(debugVAO);
+    debugVAO.Bind();
     glDrawElements(GL_LINES, static_cast<unsigned int>(boundsIndices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     Application::drawCalls++;
 }
 
- void Mesh::SetupMesh() {
-     // create buffers/arrays
-     _VAO.Bind();
+void Mesh::SetupMesh() {
+    // create buffers/arrays
+    _VAO.Bind();
 
-     _VBO.Bind();
-     _VBO.BindData(vertices, isDynamicBuffer);
+    _VBO.Bind();
+    _VBO.BindData(vertices, isDynamicBuffer);
 
-     EBO _EBO(indices, isDynamicBuffer);
+    EBO _EBO(indices, isDynamicBuffer);
 
-     _VAO.LinkAttrib(0, 3, GL_FLOAT, sizeof(Vertex), (void*)0);
-     _VAO.LinkAttrib(1, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-     _VAO.LinkAttrib(2, 2, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
-     _VAO.LinkAttrib(3, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
-     _VAO.LinkAttrib(4, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
-     _VAO.Link_iAttrib(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIDs));
-     _VAO.LinkAttrib(6, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, weights));
+    _VAO.LinkAttrib(0, 3, GL_FLOAT, sizeof(Vertex), (void*)0);
+    _VAO.LinkAttrib(1, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    _VAO.LinkAttrib(2, 2, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    _VAO.LinkAttrib(3, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+    _VAO.LinkAttrib(4, 3, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+    _VAO.Link_iAttrib(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, boneIDs));
+    _VAO.LinkAttrib(6, 4, GL_FLOAT, sizeof(Vertex), (void*)offsetof(Vertex, weights));
 
-     // Unbind all to prevent accidentally modifying them
-     _VAO.Unbind();
-     _VBO.Unbind();
-     _EBO.Unbind();
+    // Unbind all to prevent accidentally modifying them
+    _VAO.Unbind();
+    _VBO.Unbind();
+    _EBO.Unbind();
 
-     _VBO.Delete();
-     _EBO.Delete();
- }
+    _VBO.Delete();
+    _EBO.Delete();
+}
 
 void Mesh::SetupDebugData() {
     // calculate the 8 vertices of the bounding box
@@ -192,23 +192,16 @@ void Mesh::SetupDebugData() {
     ADD_LINE(6, 7);
 
     // create buffers/arrays
-    glGenVertexArrays(1, &debugVAO);
-    glGenBuffers(1, &debugVBO);
-    glGenBuffers(1, &debugEBO);
+    debugVAO.Bind();
 
-    glBindVertexArray(debugVAO);
     // load data into vertex buffers
-    glBindBuffer(GL_ARRAY_BUFFER, debugVBO);
-    glBufferData(GL_ARRAY_BUFFER, boundsVertices.size() * sizeof(glm::vec3), &boundsVertices[0], GL_STATIC_DRAW);
+    debugVBO.Bind();
+    debugVBO.BindData(boundsVertices, false);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, debugEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, boundsIndices.size() * sizeof(unsigned int), &boundsIndices[0],
-                 GL_STATIC_DRAW);
+    EBO debugEBO(boundsIndices, isDynamicBuffer);
 
     // set the vertex attribute pointers
-    // vertex Positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    debugVAO.LinkAttrib(0, 3, GL_FLOAT, sizeof(glm::vec3), (void*)0);
 
     glBindVertexArray(0);
 }
