@@ -26,6 +26,8 @@ private:
     unsigned int texId_;
     unsigned int VAO_, VBO_, EBO_;
 
+    double lastTime = 0.0f;
+
     std::vector<GLfloat> vertices_;
     std::vector<GLuint> indices_;
 };

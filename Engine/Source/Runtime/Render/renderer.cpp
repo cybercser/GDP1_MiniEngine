@@ -9,6 +9,8 @@
 #include "Core/application.h"
 #include "Physics/softbody.h"
 #include "Core/timestep.h"
+#include "Render/frustum.h"
+#include "Resource/lod_system.h"
 
 #include <GLFW/glfw3.h>
 
@@ -16,6 +18,13 @@ using namespace glm;
 using namespace std;
 
 namespace gdp1 {
+
+Renderer::Renderer() {
+    this->viewFrustum = new Frustum();
+    this->lodSystem = new LODSystem();
+    this->projectionMatrix = glm::mat4(1.0f);
+    this->viewMatrix = glm::mat4(1.0f);
+}
 
 void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera, Timestep ts) {
     if (!scene || !camera) {
@@ -29,6 +38,8 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
     mat4 mv = view * umodel;
     mat3 normalMatrix = mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2]));
 
+    glm::mat4 viewProjectionMatrix = projection * view;
+
     if (scene->HasFBO()) {
         scene->UseFBO();
         projection = glm::scale(projection, glm::vec3(1.0f, -1.0f, 1.0f));
@@ -37,37 +48,37 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
     ResetFrameBuffers();
     SetupShaders(scene, projection, view, umodel, normalMatrix);
 
-    unordered_map<string, Model*>& modelMap = scene->m_ModelMap;
-    std::unordered_map<std::string, GameObject*> goMap;
+    updateViewFrustum = isInstanced != setInstanced;
+
+    if (viewFrustum->viewProjectionMatrix != viewProjectionMatrix || updateViewFrustum) {
+        viewFrustum->Update(viewProjectionMatrix);
+        culledObjects.clear();
+        culledObjects = viewFrustum->GetCulledObjects(scene->GetGameObjectMap());
+        updateViewFrustum = false;
+    }
+
+    isInstanced = setInstanced;
 
     if (setInstanced) {
-        if (projectionMatrix != projection || viewMatrix != view) SetupInstancedRendering(projection, view, scene);
+        if (projectionMatrix != projection || viewMatrix != view)
+            SetupInstancedRendering(projection, view, culledObjects);
 
         for (unordered_map<Model*, vector<glm::mat4>>::iterator it = instancesMap.begin(); it != instancesMap.end();
              it++) {
             scene->inst_shader_ptr_->Use();
+            scene->inst_shader_ptr_->SetUniform("u_SetLit", false);
+            scene->inst_shader_ptr_->SetUniform("u_UseLights", true);
+            it->first->currentLODLevel = 0;
             it->first->Draw(scene->inst_shader_ptr_);
         }
 
-        goMap = dynamicGoMap;
-
-        /*if (projectionMatrix != projection || viewMatrix != view)
-            fcGoMap = PerformFrustumCulling(projection, view, goMap);*/
-    } else {
-        initializedInstancing = false;
-
-        for (std::unordered_map<Model*, std::vector<glm::mat4>>::iterator it = instancesMap.begin();
-             it != instancesMap.end(); it++) {
-            it->first->ResetInstancing();
-        }
-
-        goMap = scene->m_GameObjectMap;
-
-        /*if (projectionMatrix != projection || viewMatrix != view)
-            fcGoMap = PerformFrustumCulling(projection, view, goMap);*/
+        culledObjects = dynamicGoMap;
     }
 
-    for (std::unordered_map<std::string, GameObject*>::iterator it = goMap.begin(); it != goMap.end(); it++) {
+    lodSystem->Update(camera, culledObjects);
+    
+    for (std::unordered_map<std::string, GameObject*>::iterator it = culledObjects.begin(); it != culledObjects.end();
+         it++) {
         GameObject* go = it->second;
         if (go != nullptr && go->visible) {
             Model* model = go->model;
@@ -92,6 +103,7 @@ void Renderer::Render(std::shared_ptr<Scene> scene, std::shared_ptr<Camera> came
                         model->currentAnimation = go->currentAnimation;
                         model->prevAnimation = go->prevAnimation;
                     }
+                    model->ResetInstancing();
                     model->Draw(shader);
                 } else {
                     if (go->softBody) go->softBody->Draw(shader);
@@ -128,6 +140,7 @@ void Renderer::RenderDebug(std::shared_ptr<Scene> scene, std::shared_ptr<Camera>
     std::unordered_map<std::string, GameObject*>& goMap = scene->m_GameObjectMap;
     std::unordered_map<std::string, Shader*>& shaderMap = scene->m_ShaderMap;
 
+#pragma omp parallel for
     for (std::unordered_map<std::string, GameObject*>::iterator it = goMap.begin(); it != goMap.end(); it++) {
         GameObject* go = it->second;
         if (go != nullptr && go->visible) {
@@ -154,20 +167,23 @@ void Renderer::RenderDebug(std::shared_ptr<Scene> scene, std::shared_ptr<Camera>
     }
 }
 
-void Renderer::SetupInstancedRendering(glm::mat4& projMatrix, glm::mat4& viewMatrix, std::shared_ptr<Scene> scene) {
+void Renderer::SetupInstancedRendering(glm::mat4& projMatrix, glm::mat4& viewMatrix,
+                                       std::unordered_map<std::string, GameObject*>& gameObjects) {
+    this->projectionMatrix = projMatrix;
+    this->viewMatrix = viewMatrix;
+
     instancesMap.clear();
     dynamicGoMap.clear();
 
-    std::unordered_map<std::string, GameObject*>& goMap = scene->m_GameObjectMap;
-    std::unordered_map<std::string, Shader*>& shaderMap = scene->m_ShaderMap;
-
-    std::vector<GameObject*> tempMap = PerformFrustumCulling(projMatrix, viewMatrix, goMap);
-
-    for (const auto& go : tempMap) {
+#pragma omp parallel for
+    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin(); it != gameObjects.end();
+         it++) {
+        GameObject* go = it->second;
         Model* model = go->model;
 
         if (model && go->isStatic && go->visible) {
             // Check if the model is already in instancesMap, and if not, add it
+            // #pragma omp critical
             if (instancesMap.find(model) == instancesMap.end()) {
                 instancesMap[model] = std::vector<glm::mat4>();
             }
@@ -176,25 +192,24 @@ void Renderer::SetupInstancedRendering(glm::mat4& projMatrix, glm::mat4& viewMat
         }
 
         if (!go->isStatic) {
+            // #pragma omp critical
             dynamicGoMap[go->name] = go;
         }
     }
 
+#pragma omp parallel for
     for (std::unordered_map<Model*, std::vector<glm::mat4>>::iterator it = instancesMap.begin();
          it != instancesMap.end(); it++) {
-        Model* model = it->first;
-        if (model != nullptr) {
-            model->ResetInstancing();
-            model->SetupInstancing(it->second);
-        }
+        it->first->SetupInstancing(it->second, true);
     }
-
-    initializedInstancing = true;
 
     return;
 }
 
-void Renderer::SetInstanced(bool setInstanced) { this->setInstanced = setInstanced; }
+void Renderer::SetInstanced(bool setInstanced) {
+    this->setInstanced = setInstanced;
+    this->updateViewFrustum = true;
+}
 
 void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, glm::mat4 view, glm::mat4 model,
                             glm::mat3 normalMatrix) {
@@ -241,6 +256,24 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
     scene->inst_shader_ptr_->SetUniform("u_DirLight.dir", lightDirViewSpace);
     scene->inst_shader_ptr_->SetUniform("u_NumPointLights", (int)scene->m_PointLightMap.size());
     scene->inst_shader_ptr_->SetUniform("u_UseLights", true);
+
+    lightIndex = 0;
+    for (std::unordered_map<std::string, PointLight*>::iterator it = scene->m_PointLightMap.begin();
+         it != scene->m_PointLightMap.end(); it++, lightIndex++) {
+        PointLight* pointLight = it->second;
+        vec4 lightPosInViewSpace = glm::vec4(view * glm::vec4(pointLight->position, 1.0f));
+        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].color",
+                                            pointLight->color);
+        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].intensity",
+                                            pointLight->intensity);
+        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].c",
+                                            pointLight->constant);
+        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].l", pointLight->linear);
+        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].q",
+                                            pointLight->quadratic);
+        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos",
+                                            glm::vec3(lightPosInViewSpace));
+    }
 
     // update uniforms for untextured shader
     scene->untextured_shader_ptr_->Use();

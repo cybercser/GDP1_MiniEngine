@@ -30,6 +30,6 @@ void main() {
 
     vs_out.TexCoords = a_TexCoords;
     vs_out.Normal = normalize(u_NormalMat * (instanceMatrix * vec4(a_Normal, 0.0)).xyz);
-    vs_out.Pos = (u_View * instancePos).xyz;
+    vs_out.Pos = (u_View * instanceMatrix * instancePos).xyz;
     vs_out.ProjTexCoord = u_ProjectorMat * instancePos;
 }

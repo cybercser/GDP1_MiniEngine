@@ -20,7 +20,7 @@
       "pitch": 0.0,
       "fov": 70.0,
       "nearZ": 0.01,
-      "farZ": 1000.0
+      "farZ": 40.0
     }
   ],
   "directionalLights": [
@@ -45,8 +45,8 @@
       "name": "P_Light1",
       "position": {
         "x": 0.0,
-        "y": 0.5,
-        "z": 0.0
+        "y": 0.1,
+        "z": -2.0
       },
       "color": {
         "r": 1.0,
@@ -54,7 +54,7 @@
         "b": 0.0,
         "a": 1.0
       },
-      "intensity": 0.5,
+      "intensity": 1.0,
       "constant": 1.0,
       "linear": 2.0,
       "quadratic": 1.0
@@ -264,13 +264,8 @@
     {
       "name": "Cube",
       "filepath": "Assets/Models/FPS_Test/Cube.ply",
-      "shader": "lit",
-      "textures": [
-        {
-          "name": "colormap.png",
-          "type": "texture_diffuse"
-        }
-      ]
+      "shader": "untextured",
+      "textures": []
     },
     {
       "name": "Cloth",

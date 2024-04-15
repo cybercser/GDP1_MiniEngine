@@ -7,8 +7,7 @@
 namespace gdp1 {
 
 Model::Model(const std::string const& path, const std::string& shader, const std::vector<TexturesDesc> textures,
-             unsigned int instancing, std::vector<glm::mat4> instanceMatrix,
-             bool gamma /*= false*/)
+             unsigned int instancing, std::vector<glm::mat4> instanceMatrix, bool gamma /*= false*/)
     : gammaCorrection(gamma)
     , shaderName(shader)
     , num_vertices_(0)
@@ -42,15 +41,17 @@ Model::Model(const Model& other)
     , scene(other.scene) {}
 
 void Model::Draw(Shader* shader) {
-    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
+    if (currentLODLevel < lodLevels.size()) lodLevels[currentLODLevel].mesh.Draw(shader);
+
+    // for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
 }
 
 void Model::DrawDebug(Shader* shader) {
     for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].DrawDebug(shader);
 }
 
-void Model::SetupInstancing(std::vector<glm::mat4>& instanceMatrix) {
-    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].SetupInstancing(instanceMatrix);
+void Model::SetupInstancing(std::vector<glm::mat4>& instanceMatrix, bool reset) {
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].SetupInstancing(instanceMatrix, reset);
 }
 
 void Model::ResetInstancing() {
@@ -129,11 +130,14 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene) {
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         // the node object only contains indices to index the actual objects in the scene_ptr_.
         // the scene_ptr_ contains all the data, node is just to keep stuff organized (like relations between nodes).
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(ProcessMesh(mesh, scene));
+        aiMesh* aiMesh = scene->mMeshes[node->mMeshes[i]];
+        Mesh mesh = ProcessMesh(aiMesh, scene);
+        meshes.push_back(mesh);
 
-        num_vertices_ += mesh->mNumVertices;
-        num_triangles_ += mesh->mNumFaces;
+        lodLevels.push_back(LODLevel(i + 1, mesh));
+
+        num_vertices_ += aiMesh->mNumVertices;
+        num_triangles_ += aiMesh->mNumFaces;
     }
     // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
     for (unsigned int i = 0; i < node->mNumChildren; i++) {

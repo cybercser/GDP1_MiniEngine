@@ -178,6 +178,23 @@ vec3 shadingSpotLight(SpotLight light, vec3 pos, vec3 n) {
     return ambient + diffuse + specular + projTexColor * 0.5;
 }
 
+float near = 0.1f;
+float far = 200.0f;
+
+float linearizeDepth(float depth)
+{
+	return (2.0 * near * far) / (far + near - (depth * 2.0 - 1.0) * (far - near));
+}
+
+float logisticDepth(float depth, float steepness, float offset)
+{
+    float zVal = linearizeDepth(depth);
+    return (1.0 / (1.0 + exp(-steepness * (zVal - offset))));
+}
+
+float u_FogDensity = 0.3;
+vec3 u_FogColor = vec3(0.1, 0.1, 0.1);
+
 void main() {
     // discard the fragment if its opacity is 0
     if (diffuseTextureColor.a < 0.1)
@@ -214,5 +231,17 @@ void main() {
         finalColor.rgb *= 1.35;
     }
 
-    o_FragColor = finalColor;
+    // Calculate the distance from the camera in view-space
+    float distance = length(fs_in.Pos);
+
+    // Calculate fog factor using an exponential fog model
+    float fogFactor = exp(-u_FogDensity * distance);
+
+    // Blend fog color with the skybox color
+    vec3 blendedColor = mix(u_FogColor, finalColor.rgb, fogFactor);
+
+    // Apply fog effect
+    o_FragColor = vec4(blendedColor, finalColor.a);
+
+    //o_FragColor = finalColor;
 }

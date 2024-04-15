@@ -5,9 +5,16 @@
 #include "light.h"
 #include "skybox.h"
 #include "Core/game_object.h"
+#include "Core/application.h"
 #include "Animation/animation_system.h"
 
 #include <iostream>
+#include <thread>
+#include <vector>
+#include <algorithm>
+#include <GLFW/glfw3.h>
+#include <GL/GL.h>
+#include <mutex>
 
 using namespace glm;
 
@@ -159,6 +166,8 @@ void Scene::ProcessDesc(const LevelDesc& desc) {
 }
 
 void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
+
+//#pragma omp parallel for
     for (const ModelDesc& modelDesc : modelDescs) {
         auto it = m_ModelMap.find(modelDesc.name);
         if (it != m_ModelMap.end()) {
@@ -174,39 +183,75 @@ void Scene::LoadModels(const std::vector<ModelDesc>& modelDescs) {
         m_TriangleCount += model->GetTriangleCount();
     }
 
-    //// Initialize counters for vertex and triangle counts
-    // int vertexCount = 0;
-    // int triangleCount = 0;
+    //m_VertexCount = 0;
+    //m_TriangleCount = 0;
 
-    // for (const ModelDesc& modelDesc : modelDescs) {
-    //     // Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
+    //std::mutex modelMapMutex;
+    //GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+
+    //// Define a lambda function to be executed in each thread
+    //auto processModel = [&](const ModelDesc& modelDesc) {
+    //    auto it = m_ModelMap.find(modelDesc.name);
+    //    if (it != m_ModelMap.end()) {
+    //        // Model already exists, skip adding it
+    //        return;
+    //    }
+
+    //    Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures, 1, {});
+    //    std::lock_guard<std::mutex> lock(modelMapMutex);
+    //    m_ModelMap.insert(std::make_pair(modelDesc.name, model));
+
+    //    // You might need to synchronize access to m_VertexCount and m_TriangleCount
+    //    // if they are shared between threads to avoid data races.
+    //    m_VertexCount += model->GetVertexCount();
+    //    m_TriangleCount += model->GetTriangleCount();
+    //};
+
+    //// Create a vector of threads
+    //std::vector<std::thread> threads;
+
+    //for (const ModelDesc& modelDesc : modelDescs) {
+    //    threads.emplace_back(processModel, modelDesc);
+    //}
+
+    //// Join all threads to wait for them to finish
+    //std::for_each(threads.begin(), threads.end(), [](std::thread& t) { t.join(); });
+
+    LOG_INFO("Models Loaded");
+
+    //// Initialize counters for vertex and triangle counts
+    //int vertexCount = 0;
+    //int triangleCount = 0;
+
+    //for (const ModelDesc& modelDesc : modelDescs) {
+    //    // Model* model = new Model(modelDesc.filepath, modelDesc.shader, modelDesc.textures);
 
     //    LoadModelThreadParams* params = new LoadModelThreadParams{modelDesc, m_ModelMap, vertexCount, triangleCount};
-    //
+
     //    DWORD threadId;
     //    HANDLE hThread = CreateThread(NULL, 0, LoadModelThread, (LPVOID)params, 0, &(threadId));
-    //    if (hThread != NULL)  {
+    //    if (hThread != NULL) {
     //        // Add the thread handle to the vector
     //        modelThreadHandles.push_back(hThread);
     //    }
     //}
 
-    // WaitForMultipleObjects(modelThreadHandles.size(), modelThreadHandles.data(), TRUE, INFINITE);
+    //WaitForMultipleObjects(modelThreadHandles.size(), modelThreadHandles.data(), TRUE, INFINITE);
 
     //// Close the thread handles
-    // for (HANDLE hThread : modelThreadHandles) {
-    //     CloseHandle(hThread);
-    // }
+    //for (HANDLE hThread : modelThreadHandles) {
+    //    CloseHandle(hThread);
+    //}
 
-    // m_VertexCount = vertexCount;
-    // m_TriangleCount = triangleCount;
+    //m_VertexCount = vertexCount;
+    //m_TriangleCount = triangleCount;
 }
 
 bool Scene::LoadShaders(const LevelDesc& desc) {
     try {
-
         lit_shader_ptr_ = new Shader();
         lit_shader_ptr_->CompileShader("Assets/Shaders/lit.vert.glsl");
+        //lit_shader_ptr_->CompileShader("Assets/Shaders/lit.geom.glsl");
         lit_shader_ptr_->CompileShader("Assets/shaders/lit.frag.glsl");
         lit_shader_ptr_->Link();
         lit_shader_ptr_->Use();
@@ -247,7 +292,7 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
     try {
         inst_shader_ptr_ = new Shader();
         inst_shader_ptr_->CompileShader("Assets/Shaders/inst.vert.glsl");
-        //inst_shader_ptr_->CompileShader("Assets/Shaders/inst.geom.glsl");
+        // inst_shader_ptr_->CompileShader("Assets/Shaders/lit.geom.glsl");
         inst_shader_ptr_->CompileShader("Assets/shaders/lit.frag.glsl");
         inst_shader_ptr_->Link();
         inst_shader_ptr_->Use();
@@ -272,7 +317,7 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
             PointLight* pointLight = it->second;
             inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].color", pointLight->color);
             inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].intensity",
-                                        pointLight->intensity);
+                                         pointLight->intensity);
             inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos", pointLight->position);
             inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].c", pointLight->constant);
             inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].l", pointLight->linear);
@@ -359,6 +404,7 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
 }
 
 void Scene::CreateGameObjects(const std::vector<GameObjectDesc>& gameObjectDescs) {
+//#pragma omp parallel for
     for (const GameObjectDesc& goDesc : gameObjectDescs) {
         GameObject* go = new GameObject(this, goDesc);
         Transform* xform = go->transform;

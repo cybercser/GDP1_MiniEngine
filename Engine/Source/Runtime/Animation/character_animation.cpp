@@ -168,20 +168,6 @@ void CharacterAnimation::readNodeHierarchy(float p_animation_time, const aiNode*
         LocalTransform transform;
         calcLocalTransform(transform, p_animation_time, node_anim);
 
-        //// scaling
-        // aiVector3D scaling_vector = calcInterpolatedScaling(p_animation_time, node_anim);
-        // aiMatrix4x4 scaling_matr;
-        // aiMatrix4x4::Scaling(scaling_vector, scaling_matr);
-
-        //// rotation
-        // aiQuaternion rotate_quat = calcInterpolatedRotation(p_animation_time, node_anim);
-        // aiMatrix4x4 rotate_matr = aiMatrix4x4(rotate_quat.GetMatrix());
-
-        //// translation
-        // aiVector3D translate_vector = calcInterpolatedPosition(p_animation_time, node_anim);
-        // aiMatrix4x4 translate_matr;
-        // aiMatrix4x4::Translation(translate_vector, translate_matr);
-
         aiMatrix4x4 scaling_matr;
         aiMatrix4x4::Scaling(transform.Scaling, scaling_matr);
 

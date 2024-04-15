@@ -44,9 +44,7 @@ void Camera::SetEyeCenter(const glm::vec3& eye, const glm::vec3& center) {
     RecalculateViewMatrix();
 }
 
-const glm::vec3& Camera::GetEye() const {
-    return eye_;
-}
+const glm::vec3& Camera::GetEye() const { return eye_; }
 
 void Camera::SetCenterUp(const glm::vec3& center, const glm::vec3& up) {
     center_ = center;
@@ -54,13 +52,9 @@ void Camera::SetCenterUp(const glm::vec3& center, const glm::vec3& up) {
     RecalculateViewMatrix();
 }
 
-const glm::vec3& Camera::GetCenter() const {
-    return center_;
-}
+const glm::vec3& Camera::GetCenter() const { return center_; }
 
-const glm::vec3& Camera::GetUp() const {
-    return up_;
-}
+const glm::vec3& Camera::GetUp() const { return up_; }
 
 void Camera::SetAspect(float aspect) {
     aspect_ = aspect;
@@ -72,17 +66,13 @@ void Camera::SetFov(float fov) {
     RecalculateProjectionMatrix();
 }
 
-const glm::mat4& Camera::GetViewMatrix() {
-    return view_matrix_;
-}
+const glm::mat4& Camera::GetViewMatrix() { return view_matrix_; }
 
-const glm::mat4& Camera::GetProjectionMatrix() {
-    return projection_matrix_;
-}
+const glm::mat4& Camera::GetProjectionMatrix() { return projection_matrix_; }
 
-void Camera::RecalculateViewMatrix() {
-    view_matrix_ = glm::lookAt(eye_, center_, up_);
-}
+const glm::mat4& Camera::GetViewProjectionMatrix() { return projection_matrix_ * view_matrix_; }
+
+void Camera::RecalculateViewMatrix() { view_matrix_ = glm::lookAt(eye_, center_, up_); }
 
 void Camera::RecalculateProjectionMatrix() {
     projection_matrix_ = glm::perspective(glm::radians(fov_), aspect_, near_z_, far_z_);

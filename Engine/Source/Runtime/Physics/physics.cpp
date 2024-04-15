@@ -86,7 +86,7 @@ void Physics::Init(Scene* scene, const LevelDesc& levelDesc) {
         soft_body_map_.insert({objName, body});
     }
 
-    // CreateBVH();
+    //CreateBVH();
 }
 
 void Physics::CreateBVH() {

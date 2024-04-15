@@ -30,9 +30,15 @@ void GameLayer::OnAttach() {
     // Add Player and objects to the scene
     AddPlayer();
 
+    // Add Spheres
+    //CreateSpheres(m_Scene.get(), 3000);
+
     // Initialize Audio Manager
     m_audioManager = std::make_unique<AudioManager>();
     m_audioManager->Initialize();
+
+    // Particle System
+    m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 50000);
 
     // Play SFX Music initially - later change to handling by lua scripts
     gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
@@ -56,6 +62,7 @@ void GameLayer::OnAttach() {
 
     // configure global OpenGL state
     glEnable(GL_DEPTH_TEST);
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glEnable(GL_CULL_FACE);
@@ -63,6 +70,8 @@ void GameLayer::OnAttach() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 }
 
 void GameLayer::OnDetach() {}
@@ -86,6 +95,7 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
     m_Scene->Update(ts);
 
     m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts);
+    //m_ParticleSystem->Render(m_Player->fps_camera_ptr_.get()->GetCamera());
 }
 
 void GameLayer::OnImGuiRender() {

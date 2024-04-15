@@ -4,6 +4,7 @@
 #include "shader.h"
 #include "Animation/character_animation.h"
 #include "Resource/level_object_description.h"
+#include "Resource/lod_level.h"
 
 #include <string>
 #include <vector>
@@ -22,6 +23,8 @@ class Model {
 public:
     static const unsigned int MAX_BONES = 100;
 
+    int currentLODLevel = 0;
+
     // model data
     std::vector<TextureInfo> textures_loaded;  // stores all the textures loaded so far, optimization to make sure textures
 
@@ -32,6 +35,8 @@ public:
 
     unsigned int instancing;
     std::vector<glm::mat4> instanceMatrix;
+
+    std::vector<LODLevel> lodLevels;
 
     std::string shaderName;
 
@@ -60,7 +65,7 @@ public:
 
     void DrawDebug(Shader* shader);
 
-    void SetupInstancing(std::vector<glm::mat4>& instanceMatrix);
+    void SetupInstancing(std::vector<glm::mat4>& instanceMatrix, bool reset);
 
     void ResetInstancing();
 
