@@ -48,7 +48,7 @@ public:
     // render the mesh
     void UpdateVertexBuffers();
 
-    void SetupInstancing(std::vector<glm::mat4>& instanceMatrix);
+    void SetupInstancing(std::vector<glm::mat4>& instanceMatrix, bool reset);
 
     void ResetInstancing();
 

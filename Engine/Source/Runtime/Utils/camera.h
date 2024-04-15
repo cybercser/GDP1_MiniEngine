@@ -39,6 +39,7 @@ public:
 
     const glm::mat4& GetViewMatrix();
     const glm::mat4& GetProjectionMatrix();
+    const glm::mat4& GetViewProjectionMatrix();
 
 private:
     void RecalculateViewMatrix();

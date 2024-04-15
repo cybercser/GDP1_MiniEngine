@@ -61,17 +61,13 @@ void Mesh::DrawTextures(Shader* shader) {
 void Mesh::Draw(Shader* shader) {
     DrawTextures(shader);
 
-    if (_VAO.ID == 93) {
-        bool breakP = true;
-    }
-
     // draw mesh
     glBindVertexArray(_VAO.ID);
     glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, numInstances);
     glBindVertexArray(0);
 
     // always good practice to set everything back to defaults once configured.
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
     Application::drawCalls++;
 }
 
@@ -80,7 +76,9 @@ void Mesh::UpdateVertexBuffers() {
     Application::drawCalls++;
 }
 
-void Mesh::SetupInstancing(std::vector<glm::mat4>& instanceMatrix) {
+void Mesh::SetupInstancing(std::vector<glm::mat4>& instanceMatrix, bool reset) {
+    if (reset) ResetInstancing();
+
     _VAO.Bind();
 
     _instanceVBO = VBO();

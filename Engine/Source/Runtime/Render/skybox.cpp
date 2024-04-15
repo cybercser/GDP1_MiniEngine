@@ -3,6 +3,9 @@
 #include "Resource/texture.h"
 #include "shader.h"
 
+#include <Core/application.h>
+#include <GLFW/glfw3.h>
+
 namespace gdp1 {
 
 Skybox::Skybox(const std::vector<std::string>& faces, float size)
@@ -10,6 +13,7 @@ Skybox::Skybox(const std::vector<std::string>& faces, float size)
     , VAO_(0)
     , VBO_(0)
     , EBO_(0) {
+    lastTime = glfwGetTime();
     LoadCubemap(faces);
     InitSkyboxVAO(size);
 }
@@ -42,10 +46,15 @@ void Skybox::Draw(Shader* shader, const glm::mat4& viewMat, const glm::mat4 proj
     glDepthFunc(GL_LEQUAL);
     glCullFace(GL_FRONT);
 
+    double currentTime = glfwGetTime();
+
     shader->Use();
     glm::mat4 view = glm::mat4(glm::mat3(viewMat));  // remove translation from the view matrix
     shader->SetUniform("u_View", view);
     shader->SetUniform("u_Proj", projMat);
+    //shader->SetUniform("u_Time", float(currentTime - lastTime));
+    
+    lastTime = currentTime;
 
     glBindVertexArray(VAO_);
     glActiveTexture(GL_TEXTURE0);
@@ -55,6 +64,8 @@ void Skybox::Draw(Shader* shader, const glm::mat4& viewMat, const glm::mat4 proj
 
     glDepthFunc(GL_LESS);
     glCullFace(GL_BACK);
+
+    Application::drawCalls++;
 }
 
 /*
