@@ -12,13 +12,15 @@
 
 #include <lua.hpp>
 
+#include "cs_runner.h"
+
 namespace gdp1 {
 
 // forward declaration
 
-class Application {
+class Application : public CSRunner {
 public:
-    Application(const std::string& name = "MiniEngine App", unsigned int width = 1920, unsigned int height = 1080, bool startFullScreen = false);
+    Application(const std::string& name = "MiniEngine App", unsigned int width = 0, unsigned int height = 0, bool startFullScreen = false);
     virtual ~Application() = default;
 
     void Run();

@@ -5,6 +5,7 @@
 #include "Animation/character_animation.h"
 #include "Resource/level_object_description.h"
 #include "Resource/lod_level.h"
+#include "Resource/texture.h"
 
 #include <string>
 #include <vector>
@@ -15,21 +16,23 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+#include <Core/cs_runner.h>
+
 namespace gdp1 {
 
 class CharacterAnimation;
 
-class Model {
+class Model : public CSRunner {
 public:
     static const unsigned int MAX_BONES = 100;
 
     int currentLODLevel = 0;
 
     // model data
-    std::vector<TextureInfo> textures_loaded;  // stores all the textures loaded so far, optimization to make sure textures
+    std::vector<TextureInfo*> textures_loaded;  // stores all the textures loaded so far, optimization to make sure textures
 
     // aren't loaded more than once.
-    std::vector<Mesh> meshes;
+    std::vector<Mesh*> meshes;
     std::string directory;
     bool gammaCorrection;
 
@@ -57,6 +60,8 @@ public:
           bool gamma = false);
 
     Model(const Model& other);
+
+    void LoadTextures();
 
     // draws the model, and thus all its meshes
     void Draw(Shader* shader);
@@ -88,6 +93,8 @@ public:
 
     void UpdateBoneMatrices(const std::vector<aiMatrix4x4>& transforms);
 
+    void SetupMeshes();
+
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void LoadModel(std::string const& path);
@@ -96,11 +103,11 @@ private:
     // process on its children nodes (if any).
     void ProcessNode(aiNode* node, const aiScene* scene);
 
-    Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
+    Mesh* ProcessMesh(aiMesh* mesh, const aiScene* scene);
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-    std::vector<TextureInfo> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
+    std::vector<TextureInfo*> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 
     TextureInfo* LoadTexture(std::string textureName, std::string textureType);
 
@@ -116,6 +123,8 @@ private:
     float blendFactor = 0.0f;
 
     std::vector<TexturesDesc> texturesToLoad;
+
+    std::map<aiMesh*, Mesh*> m_MeshMap;
 
     Assimp::Importer importer;
     const aiScene* scene;

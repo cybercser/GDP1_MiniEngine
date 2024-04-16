@@ -16,6 +16,9 @@ public:
     // Links a VBO Attribute such as a position or color to the VAO
     void LinkAttrib(GLuint layout, GLuint numComponents, GLenum type, GLsizeiptr stride, void* offset);
     void Link_iAttrib(GLuint layout, GLuint numComponents, GLenum type, GLsizeiptr stride, void* offset);
+
+    // Generate the VAO
+    void Generate();
     
     // Binds the VAO
     void Bind();

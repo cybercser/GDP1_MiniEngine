@@ -51,16 +51,16 @@ MeshCollider::MeshCollider(GameObject* pObject)
     glm::mat4 transMat = object->transform->WorldMatrix();
     unsigned int indexOffset = 0;
     for (auto& mesh : model->meshes) {
-        for (auto& vertex : mesh.vertices) {
+        for (auto& vertex : mesh->vertices) {
             ColliderVertex cv;
             cv.position = glm::vec3(glm::vec4(vertex.position, 1.0f) * transMat);
             cv.texCoords = vertex.texCoords;
             hull_.vertices.push_back(cv);
         }
-        for (auto& index : mesh.indices) {
+        for (auto& index : mesh->indices) {
             hull_.indices.push_back(index + indexOffset);
         }
-        indexOffset += mesh.vertices.size();
+        indexOffset += mesh->vertices.size();
     }
     SetupMesh();
 

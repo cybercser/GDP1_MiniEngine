@@ -79,7 +79,7 @@ void Application::Run() {
             m_FPS = m_Frames;
             m_MS = 1000.0f / m_FPS;
             m_Frames = 0;
-            m_AccumulatedTime -= 1.0f;
+            m_AccumulatedTime = 0.0f;
         }
 
         m_Window->OnUpdate();
@@ -100,6 +100,7 @@ void Application::Run() {
         ImGui::Text("Timestep: %.4f", timestep.GetSeconds());
         ImGui::Text("Draw Calls: %d", drawCalls);
         ImGui::End();
+
         m_ImGuiLayer->End();
     }
 }

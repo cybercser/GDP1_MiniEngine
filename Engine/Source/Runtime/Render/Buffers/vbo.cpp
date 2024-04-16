@@ -2,7 +2,7 @@
 
 namespace gdp1 {
 
-VBO::VBO() { glGenBuffers(1, &ID); }
+VBO::VBO() { }
 
 void VBO::BindData(std::vector<Vertex>& vertices, bool isDynamicBuffer) {
     this->vertices = vertices;
@@ -24,6 +24,9 @@ void VBO::UpdateVertexBuffers() {
     Bind();
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * vertices.size(), (GLvoid*)&vertices[0]);
 }
+
+// Binds the VBO
+void VBO::Generate() { glGenBuffers(1, &ID); }
 
 // Binds the VBO
 void VBO::Bind() { glBindBuffer(GL_ARRAY_BUFFER, ID); }

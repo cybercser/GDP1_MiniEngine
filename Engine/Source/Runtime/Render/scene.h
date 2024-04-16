@@ -6,8 +6,10 @@
 #include "fbo.h"
 #include "Resource/level_loader.h"
 
-#include <Windows.h>
+#include <Core/cs_runner.h>
+#include <future>
 #define WIN32_LEAN_AND_MEAN
+
 
 namespace gdp1 {
 
@@ -28,7 +30,7 @@ struct LoadModelThreadParams {
     int& triangleCount;
 };
 
-class Scene {
+class Scene : public CSRunner {
 public:
 
     Scene(const LevelDesc& levelJson);
@@ -77,6 +79,8 @@ private:
     void UpdateAnimation(float deltaTime);
     void UpdateHierarchy(Transform* xform);
 
+    void LoadModel(std::unordered_map<std::string, Model*>* m_ModelMap, ModelDesc& modelDesc);
+
     void ProcessDesc(const LevelDesc& desc);
     void LoadModels(const std::vector<ModelDesc>& desc);
     bool LoadShaders(const LevelDesc& desc);
@@ -119,6 +123,8 @@ private:
     GameObject* m_RootGameObject;  // root transform must belong to a game object
 
     std::unique_ptr<AnimationSystem> m_AnimationSystemPtr;
+
+    std::vector<std::future<void>> m_Futures;
 
     LevelDesc levelDesc;
 

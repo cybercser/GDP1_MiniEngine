@@ -8,7 +8,8 @@ namespace gdp1 {
 
 Model::Model(const std::string const& path, const std::string& shader, const std::vector<TexturesDesc> textures,
              unsigned int instancing, std::vector<glm::mat4> instanceMatrix, bool gamma /*= false*/)
-    : gammaCorrection(gamma)
+    : CSRunner()
+    , gammaCorrection(gamma)
     , shaderName(shader)
     , num_vertices_(0)
     , num_triangles_(0)
@@ -21,7 +22,8 @@ Model::Model(const std::string const& path, const std::string& shader, const std
 
 // Copy constructor
 Model::Model(const Model& other)
-    : textures_loaded(other.textures_loaded)
+    : CSRunner()
+    , textures_loaded(other.textures_loaded)
     , meshes(other.meshes)
     , directory(other.directory)
     , gammaCorrection(other.gammaCorrection)
@@ -41,21 +43,21 @@ Model::Model(const Model& other)
     , scene(other.scene) {}
 
 void Model::Draw(Shader* shader) {
-    if (currentLODLevel < lodLevels.size()) lodLevels[currentLODLevel].mesh.Draw(shader);
+    if (currentLODLevel < lodLevels.size()) lodLevels[currentLODLevel].mesh->Draw(shader);
 
     // for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].Draw(shader);
 }
 
 void Model::DrawDebug(Shader* shader) {
-    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].DrawDebug(shader);
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i]->DrawDebug(shader);
 }
 
 void Model::SetupInstancing(std::vector<glm::mat4>& instanceMatrix, bool reset) {
-    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].SetupInstancing(instanceMatrix, reset);
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i]->SetupInstancing(instanceMatrix, reset);
 }
 
 void Model::ResetInstancing() {
-    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i].ResetInstancing();
+    for (unsigned int i = 0; i < meshes.size(); i++) meshes[i]->ResetInstancing();
 }
 
 unsigned int Model::GetVertexCount() const { return num_vertices_; }
@@ -131,7 +133,8 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene) {
         // the node object only contains indices to index the actual objects in the scene_ptr_.
         // the scene_ptr_ contains all the data, node is just to keep stuff organized (like relations between nodes).
         aiMesh* aiMesh = scene->mMeshes[node->mMeshes[i]];
-        Mesh mesh = ProcessMesh(aiMesh, scene);
+        Mesh* mesh = ProcessMesh(aiMesh, scene);
+        mesh->Setup();
         meshes.push_back(mesh);
 
         lodLevels.push_back(LODLevel(i + 1, mesh));
@@ -145,19 +148,22 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene) {
     }
 }
 
-Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
+Mesh* Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
+
+    StartWriteLock();
+
     // data to fill
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<TextureInfo> textures;
+    std::vector<TextureInfo*> textures;
 
     // walk through each of the mesh's vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
         vertex.SetBoneDefaults();
 
-        glm::vec3
-            vector;  // we declare a placeholder vector since assimp uses its own vector class that doesn't directly
+        glm::vec3 vector;
+        // we declare a placeholder vector since assimp uses its own vector class that doesn't directly
         // convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
         glm::vec4 color;
         // positions
@@ -203,35 +209,6 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
         // retrieve all indices of the face and store them in the indices vector
         for (unsigned int j = 0; j < face.mNumIndices; j++) indices.push_back(face.mIndices[j]);
     }
-    // process materials
-    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
-    // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
-    // Same applies to other texture as the following list summarizes:
-    // diffuse: texture_diffuseN
-    // specular: texture_specularN
-    // normal: texture_normalN
-
-    // 1. diffuse maps
-    std::vector<TextureInfo> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-    textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-    // 2. specular maps
-    std::vector<TextureInfo> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-    //  3. normal maps
-    std::vector<TextureInfo> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-    // 4. height maps
-    std::vector<TextureInfo> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-    textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-    // 5. opacity maps
-    std::vector<TextureInfo> opacityMaps = LoadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity");
-    textures.insert(textures.end(), opacityMaps.begin(), opacityMaps.end());
-
-    for (TexturesDesc textureDesc : texturesToLoad) {
-        TextureInfo* texture = LoadTexture(textureDesc.name, textureDesc.type);
-        if (texture != nullptr) textures.push_back(*texture);
-    }
 
     // load bones
     for (unsigned int i = 0; i < mesh->mNumBones; i++) {
@@ -263,61 +240,120 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     aiAABB& aabb = mesh->mAABB;
     Bounds b;
     b.SetMinMax(glm::vec3(aabb.mMin.x, aabb.mMin.y, aabb.mMin.z), glm::vec3(aabb.mMax.x, aabb.mMax.y, aabb.mMax.z));
-    Mesh m = Mesh(vertices, indices, textures, b);
+    Mesh* m = new Mesh(vertices, indices, textures, b);
+        
+    m_MeshMap[mesh] = m;
+    bounds.Expand(m->bounds);  // expand model's bounding box so it contains all meshes
 
-    bounds.Expand(m.bounds);  // expand model's bounding box so it contains all meshes
+    EndWriteLock();
 
     return m;
 }
 
-std::vector<TextureInfo> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {
-    std::vector<TextureInfo> textures;
+void Model::SetupMeshes() {
+    for (Mesh* mesh : meshes) {
+        mesh->Setup();
+    }
+}
+
+void Model::LoadTextures() {
+    for (const auto& pair : m_MeshMap) {
+        aiMesh* mesh = pair.first;
+        Mesh* meshData = pair.second;
+
+        std::vector<TextureInfo*> textures;
+
+        // process materials
+        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
+        // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
+        // Same applies to other texture as the following list summarizes:
+        // diffuse: texture_diffuseN
+        // specular: texture_specularN
+        // normal: texture_normalN
+
+        // 1. diffuse maps
+        std::vector<TextureInfo*> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        // 2. specular maps
+        std::vector<TextureInfo*> specularMaps =
+            LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        //  3. normal maps
+        std::vector<TextureInfo*> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+        // 4. height maps
+        std::vector<TextureInfo*> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+        textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+        // 5. opacity maps
+        std::vector<TextureInfo*> opacityMaps = LoadMaterialTextures(material, aiTextureType_OPACITY, "texture_opacity");
+        textures.insert(textures.end(), opacityMaps.begin(), opacityMaps.end());
+
+        for (TexturesDesc textureDesc : texturesToLoad) {
+            TextureInfo* texture = LoadTexture(textureDesc.name, textureDesc.type);
+            if (texture != nullptr) textures.push_back(texture);
+        }
+
+        meshData->textures = textures;
+    }
+}
+
+std::vector<TextureInfo*> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {
+    std::vector<TextureInfo*> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString str;
         mat->GetTexture(type, i, &str);
-        // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-        bool skip = false;
-        for (unsigned int j = 0; j < textures_loaded.size(); j++) {
-            if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
-                textures.push_back(textures_loaded[j]);
-                skip = true;  // a texture with the same filepath has already been loaded, continue to next one.
-                // (optimization)
-                break;
-            }
-        }
-        if (!skip) {  // if texture hasn't been loaded already, load it
-            TextureInfo texture;
-            // texture.id = TextureFromFile(str.C_Str(), this->directory);
-            std::string texturePath = this->directory + '/' + str.C_Str();
-            texture.id = Texture::LoadTexture(texturePath);
-            texture.type = typeName;
-            texture.path = str.C_Str();
-            textures.push_back(texture);
-            textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't
-                                                 // unnecessary load duplicate textures.
-        }
+        //// check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
+        //bool skip = false;
+        //for (unsigned int j = 0; j < textures_loaded.size(); j++) {
+        //    if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
+        //        textures.push_back(textures_loaded[j]);
+        //        skip = true;  // a texture with the same filepath has already been loaded, continue to next one.
+        //        // (optimization)
+        //        break;
+        //    }
+        //}
+        //if (!skip) {  // if texture hasn't been loaded already, load it
+        //    TextureInfo* texture = Texture::GetTexture(str.C_Str());
+        //    if (texture == nullptr) {
+        //        std::string texturePath = this->directory + '/' + str.C_Str();
+        //        texture = 
+        //        texture->id = Texture::LoadTexture(texturePath);
+        //        texture->type = typeName;
+        //        texture->path = str.C_Str();
+        //        textures.push_back(texture);
+        //    } else {
+
+        //    }
+
+        //    textures_loaded.push_back(*texture);  // store it as texture loaded for entire model, to ensure we won't
+        //                                         // unnecessary load duplicate textures.
+        //}
+
+        TextureInfo* texture = LoadTexture(str.C_Str(), typeName);
+        textures.push_back(texture);
     }
     return textures;
 }
 
 TextureInfo* Model::LoadTexture(std::string textureName, std::string textureType) {
-    TextureInfo* texture = nullptr;
+    TextureInfo* texture = Texture::GetTexture(textureName);
 
-    bool skip = false;
+    /*bool skip = false;
     for (unsigned int j = 0; j < textures_loaded.size(); j++) {
         if (textures_loaded[j].path == textureName) {
             skip = true;
             break;
         }
-    }
+    }*/
 
-    if (!skip) {
+    if (texture == nullptr) {
         texture = new TextureInfo();
         texture->id = Texture::LoadTexture(textureName);
         texture->type = textureType;
         texture->path = textureName;
 
-        textures_loaded.push_back(*texture);
+        Texture::AddTexture(texture);
     }
 
     return texture;

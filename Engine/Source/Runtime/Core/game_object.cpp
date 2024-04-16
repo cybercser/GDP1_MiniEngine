@@ -57,6 +57,8 @@ Bounds GameObject::GetTransformedBounds() {
 }
 
 void GameObject::SetCurrentAnimation(std::string name) {
+    if (model == nullptr) return;
+
     this->currentAnim = name;
     auto it = model->character_animations.find(name);
     if (it != model->character_animations.end()) {

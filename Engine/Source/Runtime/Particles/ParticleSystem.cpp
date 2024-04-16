@@ -24,6 +24,8 @@ ParticleSystem::ParticleSystem(std::shared_ptr<Scene> scene, unsigned int numPar
     bounds = new Bounds();
     particleModel = scene->FindModelByName("Cube");
 
+    if (particleModel == nullptr) return;
+
 #pragma omp parallel for
     for (int i = 0; i < numParticles; ++i) {
         // Generate random position, size, and other properties

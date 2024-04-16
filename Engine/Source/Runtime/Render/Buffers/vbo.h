@@ -27,10 +27,12 @@ struct Vertex {
 class VBO {
 public:
     // Reference ID of the Vertex Buffer Object
-    GLuint ID = 0;
+    GLuint ID;
 
     // Constructor that generates a Vertex Buffer Object and links it to vertices
     VBO();
+
+    void Generate();
 
     void BindData(std::vector<Vertex>& vertices, bool isDynamicBuffer);
     void BindData(std::vector<glm::mat4>& mat4s, bool isDynamicBuffer);
