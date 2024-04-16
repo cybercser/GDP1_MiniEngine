@@ -18,7 +18,7 @@ void LODSystem::Update(shared_ptr<Camera> camera, unordered_map<string, GameObje
         }
 
         float distance = glm::length(camera->GetEye() - it->second->transform->localPosition);
-        if (distance >= 0.f && distance <= 5.0f) {
+        if (distance >= 0.f && distance <= 20.0f) {
             model->currentLODLevel = 0;
         } else {
             model->currentLODLevel = 1;

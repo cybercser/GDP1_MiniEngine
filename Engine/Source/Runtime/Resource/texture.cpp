@@ -2,10 +2,15 @@
 
 #include "stb_image.h"
 #include "Core/logger.h"
+#include "Utils/timer.h"
 
+#include <thread>
+#include <future>
 #include <codecvt>
 
 namespace gdp1 {
+
+std::map<std::string, TextureInfo*> Texture::m_TextureMap;
 
 std::wstring GetPath() {
     TCHAR buffer[MAX_PATH] = {0};
@@ -77,6 +82,17 @@ unsigned char* Texture::LoadPixels(const std::string& fName, int& width, int& he
     return data;
 }
 
+void Texture::AddTexture(TextureInfo* texture) { m_TextureMap[texture->path] = texture; }
+
+TextureInfo* Texture::GetTexture(std::string textureName) {
+    auto it = m_TextureMap.find(textureName);
+    if (it != m_TextureMap.end()) {
+        return it->second;  // Return a pointer to the TextureInfo
+    } else {
+        return nullptr;  // Texture with the given name not found
+    }
+}
+
 // GLuint Texture::LoadCubeMap(const std::vector<std::string> &faces) {
 //     GLuint tex;
 //
@@ -108,36 +124,36 @@ unsigned char* Texture::LoadPixels(const std::string& fName, int& width, int& he
 
 // the DSA (Direct State Access) enabled version of LoadCubeMap, requires OpenGL 4.5+
 GLuint Texture::LoadCubeMap(const std::vector<std::string>& faces, bool flipY) {
-    GLuint cubemap;
+        GLuint cubemap;
 
-    glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &cubemap);
+        glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &cubemap);
 
-    int width, height, nChannels;
-    stbi_uc* data = Texture::LoadPixels(faces[0], width, height, nChannels, flipY);
-    glTextureStorage2D(cubemap, 1, GL_RGBA8, width, height);
+        int width, height, nChannels;
+        stbi_uc* data = Texture::LoadPixels(faces[0], width, height, nChannels, flipY);
+        glTextureStorage2D(cubemap, 1, GL_RGBA8, width, height);
 
-    for (unsigned int i = 0; i < faces.size(); i++) {
-        data = Texture::LoadPixels(faces[i], width, height, nChannels, flipY);
-        if (data) {
-            if (nChannels == 3) {
-                glTextureSubImage3D(cubemap, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+        for (unsigned int i = 0; i < faces.size(); i++) {
+            data = Texture::LoadPixels(faces[i], width, height, nChannels, flipY);
+            if (data) {
+                if (nChannels == 3) {
+                    glTextureSubImage3D(cubemap, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-            } else if (nChannels == 4) {
-                glTextureSubImage3D(cubemap, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            }
-        } else {
-            LOG_ERROR("Cubemap texture failed to load at path: {}", faces[i]);
+                } else if (nChannels == 4) {
+                    glTextureSubImage3D(cubemap, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                }
+            } else {
+                LOG_ERROR("Cubemap texture failed to load at path: {}", faces[i]);
             return false;
+            }
+            Texture::DeletePixels(data);
         }
-        Texture::DeletePixels(data);
-    }
 
-    // set the texture wrapping/filtering options
-    glTextureParameteri(cubemap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(cubemap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(cubemap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(cubemap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(cubemap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        // set the texture wrapping/filtering options
+        glTextureParameteri(cubemap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(cubemap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(cubemap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(cubemap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(cubemap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return cubemap;
 }

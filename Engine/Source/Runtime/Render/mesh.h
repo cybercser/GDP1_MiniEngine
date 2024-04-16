@@ -9,19 +9,15 @@
 #include "Buffers/vao.h"
 #include "Buffers/vbo.h"
 #include "Buffers/ebo.h"
+#include "Resource/texture.h"
+
+#include <Core/cs_runner.h>
 
 namespace gdp1 {
 
 struct BoneMatrix {
     aiMatrix4x4 offset_matrix;
     aiMatrix4x4 final_world_transform;
-};
-
-struct TextureInfo {
-    unsigned int id;
-    std::string type;
-    std::string path;
-    bool hasFBO;
 };
 
 class Mesh {
@@ -31,14 +27,14 @@ public:
     // mesh Data
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<TextureInfo> textures;
+    std::vector<TextureInfo*> textures;
 
     Bounds bounds;
 
     bool isDynamicBuffer;
 
     // constructor
-    Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std::vector<TextureInfo> textures,
+    Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std::vector<TextureInfo*> textures,
          const Bounds& bounds, bool isDynamicBuffer = false);
 
     // render the mesh
@@ -53,6 +49,8 @@ public:
     void ResetInstancing();
 
     void DrawDebug(Shader* shader);
+
+    void Setup();
 
 private:
     // initializes all the buffer objects/arrays

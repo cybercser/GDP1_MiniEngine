@@ -56,7 +56,7 @@ private:
     CONDITION_VARIABLE read_cv;
     CONDITION_VARIABLE write_cv;
 
-    std::queue<std::function<void()>> tasks;
+    //std::queue<std::function<void()>> tasks;
 
     LONG num_readers;
     bool writing;

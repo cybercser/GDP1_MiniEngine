@@ -45,44 +45,47 @@ void SoftBody::CreateParticles(Model* model, Transform* transform) {
     if (particles.size() > 0) return;
 
     for (unsigned int i = 0; i < model->meshes.size(); i++) {
-        Mesh meshToCopy = model->meshes[i];
+        Mesh* meshToCopy = model->meshes[i];
 
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<TextureInfo> textures;
+        std::vector<TextureInfo*> textures;
         Bounds bounds;
 
-        vertices.resize(meshToCopy.vertices.size());
-        indices.resize(meshToCopy.indices.size());
-        textures.resize(meshToCopy.textures.size());
-        bounds = meshToCopy.bounds;
+        vertices.resize(meshToCopy->vertices.size());
+        indices.resize(meshToCopy->indices.size());
+        textures.resize(meshToCopy->textures.size());
+        bounds = meshToCopy->bounds;
 
-        for (unsigned int i = 0; i < meshToCopy.vertices.size(); i++) {
+        for (unsigned int i = 0; i < meshToCopy->vertices.size(); i++) {
             Vertex& vertex = vertices[i];
             vertex.SetBoneDefaults();
 
-            vertex.position = meshToCopy.vertices[i].position;
-            vertex.normal = meshToCopy.vertices[i].normal;
-            vertex.texCoords = meshToCopy.vertices[i].texCoords;
-            vertex.tangent = meshToCopy.vertices[i].tangent;
-            vertex.bitangent = meshToCopy.vertices[i].bitangent;
+            vertex.position = meshToCopy->vertices[i].position;
+            vertex.normal = meshToCopy->vertices[i].normal;
+            vertex.texCoords = meshToCopy->vertices[i].texCoords;
+            vertex.tangent = meshToCopy->vertices[i].tangent;
+            vertex.bitangent = meshToCopy->vertices[i].bitangent;
 
             for (int index = 0; index < MAX_BONE_INFLUENCE; index++) {
-                vertex.AddBoneData(meshToCopy.vertices[i].boneIDs[index], meshToCopy.vertices[i].weights[index]);
+                vertex.AddBoneData(meshToCopy->vertices[i].boneIDs[index], meshToCopy->vertices[i].weights[index]);
             }
         }
 
-        for (int i = 0; i < meshToCopy.indices.size(); i++) {
-            indices[i] = meshToCopy.indices[i];
+        for (int i = 0; i < meshToCopy->indices.size(); i++) {
+            indices[i] = meshToCopy->indices[i];
         }
 
-        for (int i = 0; i < meshToCopy.textures.size(); i++) {
-            TextureInfo& texture = textures[i];
+        meshToCopy->textures = textures;
 
-            texture.id = meshToCopy.textures[i].id;
-            texture.path = meshToCopy.textures[i].path;
-            texture.type = meshToCopy.textures[i].type;
-        }
+
+        /*for (int i = 0; i < meshToCopy->textures.size(); i++) {
+            TextureInfo* texture = textures[i];
+
+            texture.id = meshToCopy->textures[i].id;
+            texture.path = meshToCopy->textures[i].path;
+            texture.type = meshToCopy->textures[i].type;
+        }*/
 
         Mesh mesh = Mesh(vertices, indices, textures, bounds, true);
 

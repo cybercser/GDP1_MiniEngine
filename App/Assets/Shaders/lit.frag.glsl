@@ -192,7 +192,7 @@ float logisticDepth(float depth, float steepness, float offset)
     return (1.0 / (1.0 + exp(-steepness * (zVal - offset))));
 }
 
-float u_FogDensity = 0.3;
+float u_FogDensity = 0.1;
 vec3 u_FogColor = vec3(0.1, 0.1, 0.1);
 
 void main() {

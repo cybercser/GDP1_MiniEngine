@@ -8,16 +8,20 @@ using namespace gdp1::utils;
 #include "Input/mouse_button_codes.h"
 
 #include "Utils/softbody_utils.h"
+#include "Utils/timer.h"
 
 GameLayer::GameLayer()
     : Layer("Game") {}
 
 void GameLayer::OnAttach() {
-    EnableGLDebugging();
-    SetGLDebugLogLevel(DebugLogLevel::High);
+    {
+        GTimer timer = GTimer("OnAttach");
+        EnableGLDebugging();
+        SetGLDebugLogLevel(DebugLogLevel::High);
 
-    // Create Scene
-    m_Scene = std::make_shared<Scene>("Assets/Levels/fps_test.json");
+        // Create Scene
+        m_Scene = std::make_shared<Scene>("Assets/Levels/fps_test.json");
+    }
 
     // Initialize things here
 
@@ -30,15 +34,12 @@ void GameLayer::OnAttach() {
     // Add Player and objects to the scene
     AddPlayer();
 
-    // Add Spheres
-    //CreateSpheres(m_Scene.get(), 3000);
-
     // Initialize Audio Manager
     m_audioManager = std::make_unique<AudioManager>();
     m_audioManager->Initialize();
 
     // Particle System
-    m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 50000);
+    m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 1);
 
     // Play SFX Music initially - later change to handling by lua scripts
     gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
@@ -87,7 +88,6 @@ void GameLayer::OnEvent(gdp1::Event& event) {
 }
 
 void GameLayer::OnUpdate(gdp1::Timestep ts) {
-
     // m_FlyCamera->OnUpdate(ts);
     m_Player->Update(ts);
 
@@ -95,7 +95,7 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
     m_Scene->Update(ts);
 
     m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts);
-    //m_ParticleSystem->Render(m_Player->fps_camera_ptr_.get()->GetCamera());
+    // m_ParticleSystem->Render(m_Player->fps_camera_ptr_.get()->GetCamera());
 }
 
 void GameLayer::OnImGuiRender() {

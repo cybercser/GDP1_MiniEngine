@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 #include <Core/application.h>
+#include <Resource/texture.h>
 
 #define ADD_LINE(a, b)          \
     boundsIndices.push_back(a); \
@@ -9,7 +10,7 @@
 
 namespace gdp1 {
 
-Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std::vector<TextureInfo> textures,
+Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std::vector<TextureInfo*> textures,
            const Bounds& bounds, bool isDynamicBuffer) {
     this->vertices = vertices;
     this->indices = indices;
@@ -17,10 +18,11 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int> indices, std
 
     this->bounds = bounds;
     this->isDynamicBuffer = isDynamicBuffer;
+}
 
+void Mesh::Setup() {
     // now that we have all the required data, set the vertex buffers and its attribute pointers.
     SetupMesh();
-
     SetupDebugData();
 }
 
@@ -35,7 +37,7 @@ void Mesh::DrawTextures(Shader* shader) {
         glActiveTexture(GL_TEXTURE0 + i);  // active proper texture unit before binding
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
-        std::string name = textures[i].type;
+        std::string name = textures[i]->type;
         if (name == "texture_diffuse") number = std::to_string(diffuseUnit++);
         // else if (name == "texture_specular")
         //	number = std::to_string(specularUnit++);
@@ -54,7 +56,7 @@ void Mesh::DrawTextures(Shader* shader) {
         }
 
         // and finally bind the texture
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        glBindTexture(GL_TEXTURE_2D, textures[i]->id);
     }
 }
 
@@ -62,12 +64,12 @@ void Mesh::Draw(Shader* shader) {
     DrawTextures(shader);
 
     // draw mesh
-    glBindVertexArray(_VAO.ID);
+    _VAO.Bind();
     glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, numInstances);
     glBindVertexArray(0);
 
     // always good practice to set everything back to defaults once configured.
-    //glActiveTexture(GL_TEXTURE0);
+    // glActiveTexture(GL_TEXTURE0);
     Application::drawCalls++;
 }
 
@@ -81,7 +83,7 @@ void Mesh::SetupInstancing(std::vector<glm::mat4>& instanceMatrix, bool reset) {
 
     _VAO.Bind();
 
-    _instanceVBO = VBO();
+    _instanceVBO.Generate();
     _instanceVBO.Bind();
     _instanceVBO.BindData(instanceMatrix, isDynamicBuffer);
 
@@ -119,8 +121,10 @@ void Mesh::DrawDebug(Shader* shader) {
 
 void Mesh::SetupMesh() {
     // create buffers/arrays
+    _VAO.Generate();
     _VAO.Bind();
 
+    _VBO.Generate();
     _VBO.Bind();
     _VBO.BindData(vertices, isDynamicBuffer);
 
@@ -190,9 +194,11 @@ void Mesh::SetupDebugData() {
     ADD_LINE(6, 7);
 
     // create buffers/arrays
+    debugVAO.Generate();
     debugVAO.Bind();
 
     // load data into vertex buffers
+    debugVBO.Generate();
     debugVBO.Bind();
     debugVBO.BindData(boundsVertices, false);
 

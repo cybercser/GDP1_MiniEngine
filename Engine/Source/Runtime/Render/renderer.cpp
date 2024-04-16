@@ -11,6 +11,7 @@
 #include "Core/timestep.h"
 #include "Render/frustum.h"
 #include "Resource/lod_system.h"
+#include "Utils/timer.h"
 
 #include <GLFW/glfw3.h>
 

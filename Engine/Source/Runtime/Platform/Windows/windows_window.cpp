@@ -50,17 +50,30 @@ void WindowsWindow::Init(const WindowProps& props) {
         s_GLFWInitialized = true;
     }
 
-    //if (m_Data.width == 0 || m_Data.height == 0) {
-    //    GLFWmonitor* monitor = glfwGetPrimaryMonitor();       // Get the primary monitor
-    //    const GLFWvidmode* mode = glfwGetVideoMode(monitor);  // Get the current video mode of the primary monitor
+    if (m_Data.width == 0 || m_Data.height == 0) {
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();       // Get the primary monitor
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);  // Get the current video mode of the primary monitor
 
-    //    m_Data.width = mode->width;
-    //    m_Data.height = mode->height;
-    //}
+        m_Data.width = mode->width;
+        m_Data.height = mode->height;
+    }
 
+    //StartWriteLock();
     m_Window = glfwCreateWindow((int)m_Data.width, (int)m_Data.height, m_Data.title.c_str(), nullptr, nullptr);
 
+    if (!m_Window) {
+        LOG_ERROR("Error creating window");
+        glfwTerminate();
+
+        //EndWriteLock();
+        return;
+    }
+
+    int w, h;
+    glfwGetFramebufferSize(m_Window, &w, &h);
     glfwMakeContextCurrent(m_Window);
+    //EndWriteLock();
+
     int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     GLCORE_ASSERT(status, "Failed to initialize Glad!");
 
@@ -93,7 +106,7 @@ void WindowsWindow::Init(const WindowProps& props) {
         switch (action) {
             case GLFW_PRESS: {
                 KeyPressedEvent event(key, 0);
-                data.EventCallback(event);
+                data.\EventCallback(event);
                 break;
             }
             case GLFW_RELEASE: {
