@@ -221,7 +221,7 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
 
     // update uniforms for default shader
     scene->lit_shader_ptr_->Use();
-    SetupLights(scene, scene->lit_shader_ptr_, normalMatrix);
+    SetupLights(scene, scene->lit_shader_ptr_, view, normalMatrix);
 
     scene->lit_shader_ptr_->SetUniform("u_Model", model);
     scene->lit_shader_ptr_->SetUniform("u_View", view);
@@ -232,7 +232,7 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
 
     // update uniforms for instance shader same as default
     scene->inst_shader_ptr_->Use();
-    SetupLights(scene, scene->inst_shader_ptr_, normalMatrix);
+    SetupLights(scene, scene->inst_shader_ptr_, view, normalMatrix);
 
     scene->inst_shader_ptr_->SetUniform("u_View", view);
     scene->inst_shader_ptr_->SetUniform("u_Proj", projection);
@@ -257,15 +257,18 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
     isShadersInitialized = true;
 }
 
-void Renderer::SetupLights(std::shared_ptr<Scene> scene, Shader* shader, glm::mat3 normalMatrix) { 
+void Renderer::SetupLights(std::shared_ptr<Scene> scene, Shader* shader, glm::mat4 view, glm::mat3 normalMatrix) { 
     shader->Use();
 
     // get the directional light
     DirectionalLight* dirLight = scene->FindDirectionalLightByName("Sun");
     vec3 lightDirViewSpace = normalMatrix * dirLight->direction;
 
+    Lights* lightsData = scene->lightsData;
     LightSettings* lightSettings = scene->lightSettings;
+
     UBO* lightSettingsBuffer = scene->lightSettingsBuffer;
+    UBO* lightBuffer = scene->lightBuffer;
 
     lightSettings->useLights = useLights;
     lightSettings->useDirLight = useDirLight;
@@ -282,6 +285,54 @@ void Renderer::SetupLights(std::shared_ptr<Scene> scene, Shader* shader, glm::ma
     lightSettingsBuffer->writeElement<bool>(&lightSettings->useDirLight);
     lightSettingsBuffer->writeElement<bool>(&lightSettings->usePointLights);
     lightSettingsBuffer->writeElement<bool>(&lightSettings->useSpotLights);
+
+    lightSettingsBuffer->clear();
+
+    lightBuffer->bind();
+    lightBuffer->startWrite();
+
+    lightBuffer->writeElement<glm::vec3>(&lightsData->dirLight.dir);
+    lightBuffer->writeElement<glm::vec4>(&lightsData->dirLight.color);
+    lightBuffer->writeElement<float>(&lightsData->dirLight.intensity);
+
+    unsigned int i = 0;
+    lightSettings->numPointLights = scene->m_PointLightMap.size();
+    for (std::unordered_map<std::string, PointLight*>::iterator it = scene->m_PointLightMap.begin();
+         it != scene->m_PointLightMap.end(); it++, i++) {
+        PointLight* pointLight = it->second;
+        lightsData->pointLights[i].pos = pointLight->position;
+        lightsData->pointLights[i].color = pointLight->color;
+        lightsData->pointLights[i].intensity = pointLight->intensity;
+        lightsData->pointLights[i].c = pointLight->constant;
+        lightsData->pointLights[i].l = pointLight->linear;
+        lightsData->pointLights[i].q = pointLight->quadratic;
+
+        glm::vec4 lightPosInViewSpace = glm::vec4(view * glm::vec4(lightsData->pointLights[i].pos, 1.0f));
+
+        lightBuffer->writeElement<glm::vec3>(&glm::vec3(lightPosInViewSpace));
+        lightBuffer->writeElement<glm::vec4>(&lightsData->pointLights[i].color);
+        lightBuffer->writeElement<float>(&lightsData->pointLights[i].intensity);
+        lightBuffer->writeElement<float>(&lightsData->pointLights[i].c);
+        lightBuffer->writeElement<float>(&lightsData->pointLights[i].l);
+        lightBuffer->writeElement<float>(&lightsData->pointLights[i].q);
+    }
+    lightBuffer->advanceArray(MAX_POINT_LIGHTS - i);
+
+    for (i = 0; i < lightSettings->numSpotLights; i++) {
+        glm::vec4 lightPosInViewSpace = glm::vec4(view * glm::vec4(lightsData->spotLights[i].pos, 1.0f));
+
+        lightBuffer->writeElement<glm::vec3>(&glm::vec3(lightPosInViewSpace));
+        lightBuffer->writeElement<glm::vec3>(&lightsData->spotLights[i].dir);
+        lightBuffer->writeElement<float>(&lightsData->spotLights[i].cutoff);
+        lightBuffer->writeElement<float>(&lightsData->spotLights[i].outerCutoff);
+        lightBuffer->writeElement<glm::vec3>(&lightsData->spotLights[i].ambient);
+        lightBuffer->writeElement<glm::vec3>(&lightsData->spotLights[i].diffuse);
+        lightBuffer->writeElement<glm::vec3>(&lightsData->spotLights[i].specular);
+        lightBuffer->writeElement<float>(&lightsData->spotLights[i].c);
+        lightBuffer->writeElement<float>(&lightsData->spotLights[i].l);
+        lightBuffer->writeElement<float>(&lightsData->spotLights[i].q);
+    }
+    lightBuffer->advanceArray(MAX_SPOT_LIGHTS - i);
 
     lightSettingsBuffer->clear();
 }

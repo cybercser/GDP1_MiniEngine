@@ -22,7 +22,7 @@ ParticleSystem::ParticleSystem(std::shared_ptr<Scene> scene, unsigned int numPar
     this->scene = scene;
 
     bounds = new Bounds();
-    particleModel = scene->FindModelByName("Cube");
+    particleModel = scene->FindModelByName("sphere");
 
     if (particleModel == nullptr) return;
 

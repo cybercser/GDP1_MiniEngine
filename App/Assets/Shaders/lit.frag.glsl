@@ -1,7 +1,7 @@
 #version 460 core
 
 // Maximum number of lights
-#define MAX_POINT_LIGHTS 2
+#define MAX_POINT_LIGHTS 64
 #define MAX_SPOT_LIGHTS 1
 
 // Light Structs
@@ -59,15 +59,15 @@ struct Material {
     float shininess;  // Specular shininess factor
 };
 
-uniform Material u_Material;
-uniform bool u_UseProjTex;
-uniform bool u_SetLit;
-
-layout(std140, binding = 3) uniform LightBlock {
+layout(std140, binding = 0) uniform LightBlock {
     DirectionalLight dirLight;
     PointLight pointLights[MAX_POINT_LIGHTS];
     SpotLight spotLights[MAX_SPOT_LIGHTS];
 } u_Lights;
+
+uniform Material u_Material;
+uniform bool u_UseProjTex;
+uniform bool u_SetLit;
 
 layout(binding = 4) uniform sampler2D u_ProjectorTex;
 
@@ -79,8 +79,6 @@ layout(std140, binding = 5) uniform LightSettings {
     bool useDirLight;
     bool usePointLights;
     bool useSpotLights;
-
-    DirectionalLight dirLight;
 } u_LightSettings;
 
 // Define reusable variables for texture lookups

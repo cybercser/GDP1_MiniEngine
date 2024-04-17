@@ -39,7 +39,7 @@ void GameLayer::OnAttach() {
     m_audioManager->Initialize();
 
     // Particle System
-    //m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 30);
+    m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 60);
 
     // Play SFX Music initially - later change to handling by lua scripts
     gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
@@ -95,7 +95,7 @@ void GameLayer::OnUpdate(gdp1::Timestep ts) {
     m_Scene->Update(ts);
 
     m_Renderer->Render(m_Scene, m_Player->fps_camera_ptr_.get()->GetCamera(), ts);
-    // m_ParticleSystem->Render(m_Player->fps_camera_ptr_.get()->GetCamera());
+    m_ParticleSystem->Render(m_Player->fps_camera_ptr_.get()->GetCamera());
 }
 
 void GameLayer::OnImGuiRender() {

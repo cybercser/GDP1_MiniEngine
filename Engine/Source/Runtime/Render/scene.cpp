@@ -315,21 +315,14 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
     lightSettings->useSpotLights = false;
 
     lightBuffer = new UBO(
-        3, {newStruct({Type::VEC3, Type::VEC4, Type::SCALAR}),
+        0, {newStruct({Type::VEC3, Type::VEC4, Type::SCALAR}),
             newArray(MAX_POINT_LIGHTS,
                      newStruct({Type::VEC3, Type::VEC4, Type::SCALAR, Type::SCALAR, Type::SCALAR, Type::SCALAR})),
             newArray(MAX_SPOT_LIGHTS, newStruct({Type::VEC3, Type::VEC3, Type::SCALAR, Type::SCALAR, Type::VEC3,
                                                  Type::VEC3, Type::VEC3, Type::SCALAR, Type::SCALAR, Type::SCALAR}))});
 
-    lightSettingsBuffer = new UBO(5, {
-                                         Type::SCALAR,
-                                         Type::SCALAR,
-                                         Type::SCALAR,
-                                         Type::SCALAR,
-                                         Type::SCALAR,
-                                         Type::SCALAR,
-                                         newStruct({Type::VEC3, Type::VEC4, Type::SCALAR}),
-                                     });
+    lightSettingsBuffer =
+        new UBO(5, {Type::SCALAR, Type::SCALAR, Type::SCALAR, Type::SCALAR, Type::SCALAR, Type::SCALAR});
 
     try {
         lit_shader_ptr_ = new Shader();
@@ -493,10 +486,6 @@ bool Scene::LoadShaders(const LevelDesc& desc) {
     lightSettingsBuffer->writeElement<bool>(&lightSettings->useDirLight);
     lightSettingsBuffer->writeElement<bool>(&lightSettings->usePointLights);
     lightSettingsBuffer->writeElement<bool>(&lightSettings->useSpotLights);
-
-    lightSettingsBuffer->writeElement<glm::vec3>(&lightsData->dirLight.dir);
-    lightSettingsBuffer->writeElement<glm::vec4>(&lightsData->dirLight.color);
-    lightSettingsBuffer->writeElement<float>(&lightsData->dirLight.intensity);
 
     lightSettingsBuffer->clear();
 

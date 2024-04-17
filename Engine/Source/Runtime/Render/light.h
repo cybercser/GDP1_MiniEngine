@@ -3,7 +3,7 @@
 #include "common.h"
 
 // Define the maximum number of point lights and spot lights
-#define MAX_POINT_LIGHTS 2
+#define MAX_POINT_LIGHTS 64
 #define MAX_SPOT_LIGHTS 1
 
 namespace gdp1 {
@@ -96,6 +96,7 @@ struct Lights {
 
 struct LightSettings {
     DirectionalLight dirLight;
+    PointLight pointLights[MAX_POINT_LIGHTS];
 
     int numPointLights = 0;
     int numSpotLights = 0;

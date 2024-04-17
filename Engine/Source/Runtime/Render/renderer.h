@@ -54,7 +54,7 @@ private:
 private:
     void SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, glm::mat4 view, glm::mat4 model,
                       glm::mat3 normalMat);
-    void SetupLights(std::shared_ptr<Scene> scene, Shader* shader, glm::mat3 normalMat);
+    void SetupLights(std::shared_ptr<Scene> scene, Shader* shader, glm::mat4 view, glm::mat3 normalMat);
     void ResetFrameBuffers();
     bool IsObjectVisible(glm::mat4& projMatrix, glm::mat4& viewMatrix, GameObject* object);
     std::vector<GameObject*> PerformFrustumCulling(glm::mat4& projMatrix, glm::mat4& viewMatrix,
