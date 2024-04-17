@@ -8,6 +8,10 @@
 
 namespace gdp1 {
 
+    struct Material {
+
+};
+
 struct TextureInfo {
     unsigned int id;
     std::string type;

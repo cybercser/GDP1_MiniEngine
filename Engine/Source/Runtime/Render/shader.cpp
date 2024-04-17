@@ -191,23 +191,47 @@ void Shader::Link() {
 
 void Shader::FindUniformLocations() {
     m_UniformLocations.clear();
+    m_UniformLocations.clear();
 
-    GLint numUniforms = 0;
+    GLint numUniforms = 0, numBlocks = 0;
 
     // For OpenGL 4.3 and above, use glGetProgramResource
     glGetProgramInterfaceiv(m_Handle, GL_UNIFORM, GL_ACTIVE_RESOURCES, &numUniforms);
+    glGetProgramInterfaceiv(m_Handle, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &numBlocks);
 
-    GLenum properties[] = {GL_NAME_LENGTH, GL_TYPE, GL_LOCATION, GL_BLOCK_INDEX};
+    GLenum uniformProperties[] = {GL_NAME_LENGTH, GL_TYPE, GL_LOCATION, GL_BLOCK_INDEX};
+    GLenum blockProperties[] = {GL_NAME_LENGTH, GL_NUM_ACTIVE_VARIABLES};
 
+    // Process regular uniforms
     for (GLint i = 0; i < numUniforms; ++i) {
         GLint results[4];
-        glGetProgramResourceiv(m_Handle, GL_UNIFORM, i, 4, properties, 4, NULL, results);
+        glGetProgramResourceiv(m_Handle, GL_UNIFORM, i, 4, uniformProperties, 4, NULL, results);
 
         if (results[3] != -1) continue;  // Skip uniforms in blocks
         GLint nameBufSize = results[0] + 1;
         char* name = new char[nameBufSize];
         glGetProgramResourceName(m_Handle, GL_UNIFORM, i, nameBufSize, NULL, name);
         m_UniformLocations[name] = results[2];
+        delete[] name;
+    }
+
+    // Process uniform blocks
+    for (GLint i = 0; i < numBlocks; ++i) {
+        GLint results[2];
+        glGetProgramResourceiv(m_Handle, GL_UNIFORM_BLOCK, i, 2, blockProperties, 2, NULL, results);
+
+        GLint nameBufSize = results[0] + 1;
+        char* name = new char[nameBufSize];
+        glGetProgramResourceName(m_Handle, GL_UNIFORM_BLOCK, i, nameBufSize, NULL, name);
+
+        // Get the uniform block index
+        GLuint blockIndex = glGetUniformBlockIndex(m_Handle, name);
+        if (blockIndex != GL_INVALID_INDEX) {
+            GLint blockSize;
+            glGetActiveUniformBlockiv(m_Handle, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+            m_UniformBlockLocations[name] = blockIndex;
+        }
+
         delete[] name;
     }
 }
@@ -293,6 +317,15 @@ void Shader::SetUniform(const std::string& name, int val) { SetUniform(name.c_st
 void Shader::SetUniform(const std::string& name, bool val) { SetUniform(name.c_str(), val); }
 
 void Shader::SetUniform(const std::string& name, GLuint val) { SetUniform(name.c_str(), val); }
+
+void Shader::SetUniformBlock(const char* name, GLuint bindingPoint) {
+    int loc = GetUniformBlockIndex(name);
+    glUniformBlockBinding(m_Handle, loc, bindingPoint);
+}
+
+void Shader::SetUniformBlock(const std::string& name, GLuint bindingPoint) {
+    SetUniformBlock(name.c_str(), bindingPoint);
+}
 
 void Shader::PrintActiveUniforms() {
     // For OpenGL 4.3 and above, use glGetProgramResource
@@ -448,5 +481,18 @@ int Shader::GetUniformLocation(const std::string& name) {
 
     return pos->second;
 }
+
+
+int Shader::GetUniformBlockIndex(const std::string& name) {
+    auto pos = m_UniformBlockLocations.find(name);
+
+    if (pos == m_UniformBlockLocations.end()) {
+        GLint loc = glGetUniformBlockIndex(m_Handle, name.c_str());
+        m_UniformBlockLocations[name] = loc;
+        return loc;
+    }
+
+    return pos->second;
+ }
 
 }  // namespace gdp1

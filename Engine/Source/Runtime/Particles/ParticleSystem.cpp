@@ -73,6 +73,17 @@ ParticleSystem::ParticleSystem(std::shared_ptr<Scene> scene, unsigned int numPar
         scene->AddPointLight(pointLight);
         m_Scene->GetLevelDesc().rigidbodyDescs.push_back(rigidbodyDesc);*/
 
+        PointLight pointLight;
+        pointLight.color = randomColor;
+        pointLight.name = desc.name;
+        pointLight.position = {x, y, z};
+        pointLight.intensity = 0.7f;
+        pointLight.constant = 0.5f;
+        pointLight.linear = 2.0f;
+        pointLight.quadratic = 1.0f;
+
+        scene->AddPointLight(pointLight);
+
         // particles.push_back(particle);
         particles[desc.name] = particle;
         particle->transform->SetWorldMatrix(particle->transform->LocalMatrix());

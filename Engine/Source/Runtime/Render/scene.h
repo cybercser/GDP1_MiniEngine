@@ -22,6 +22,7 @@ class Animation;
 class AnimationSystem;
 class Renderer;
 class ParticleSystem;
+class UBO;
 
 struct LoadModelThreadParams {
     ModelDesc modelDesc;
@@ -107,6 +108,11 @@ private:
     Shader* skybox_shader_ptr_;
     Shader* inst_shader_ptr_;
     std::unordered_map<std::string, Shader*> m_ShaderMap;
+
+    LightSettings* lightSettings;
+    Lights* lightsData;
+    UBO* lightBuffer;
+    UBO* lightSettingsBuffer;
 
     using DirectionalLightMap = std::unordered_map<std::string, DirectionalLight*>;
     using PointLightMap = std::unordered_map<std::string, PointLight*>;

@@ -10,6 +10,7 @@
 #include "Physics/softbody.h"
 #include "Core/timestep.h"
 #include "Render/frustum.h"
+#include "Render/Buffers/ubo.hpp"
 #include "Resource/lod_system.h"
 #include "Utils/timer.h"
 
@@ -216,65 +217,28 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
                             glm::mat3 normalMatrix) {
     // get the directional light
     DirectionalLight* dirLight = scene->FindDirectionalLightByName("Sun");
+    vec3 lightDirViewSpace = normalMatrix * dirLight->direction;
 
     // update uniforms for default shader
     scene->lit_shader_ptr_->Use();
+    SetupLights(scene, scene->lit_shader_ptr_, normalMatrix);
+
     scene->lit_shader_ptr_->SetUniform("u_Model", model);
     scene->lit_shader_ptr_->SetUniform("u_View", view);
     scene->lit_shader_ptr_->SetUniform("u_Proj", projection);
     scene->lit_shader_ptr_->SetUniform("u_NormalMat", normalMatrix);
-
-    vec3 lightDirViewSpace = normalMatrix * dirLight->direction;
-
-    // directional light
-    scene->lit_shader_ptr_->SetUniform("u_DirLight.dir", lightDirViewSpace);
-    scene->lit_shader_ptr_->SetUniform("u_NumPointLights", (int)scene->m_PointLightMap.size());
-    scene->lit_shader_ptr_->SetUniform("u_UseLights", true);
-
-    int lightIndex = 0;
-    for (std::unordered_map<std::string, PointLight*>::iterator it = scene->m_PointLightMap.begin();
-         it != scene->m_PointLightMap.end(); it++, lightIndex++) {
-        PointLight* pointLight = it->second;
-        vec4 lightPosInViewSpace = glm::vec4(view * glm::vec4(pointLight->position, 1.0f));
-        scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].color",
-                                           pointLight->color);
-        scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].intensity",
-                                           pointLight->intensity);
-        scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].c", pointLight->constant);
-        scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].l", pointLight->linear);
-        scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].q",
-                                           pointLight->quadratic);
-        scene->lit_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos",
-                                           glm::vec3(lightPosInViewSpace));
-    }
+    scene->lit_shader_ptr_->SetUniformBlock("LightBlock", scene->lightBuffer->bindingPos);
+    scene->lit_shader_ptr_->SetUniformBlock("LightSettings", scene->lightSettingsBuffer->bindingPos);
 
     // update uniforms for instance shader same as default
     scene->inst_shader_ptr_->Use();
+    SetupLights(scene, scene->inst_shader_ptr_, normalMatrix);
+
     scene->inst_shader_ptr_->SetUniform("u_View", view);
     scene->inst_shader_ptr_->SetUniform("u_Proj", projection);
     scene->inst_shader_ptr_->SetUniform("u_NormalMat", normalMatrix);
-
-    scene->inst_shader_ptr_->SetUniform("u_DirLight.dir", lightDirViewSpace);
-    scene->inst_shader_ptr_->SetUniform("u_NumPointLights", (int)scene->m_PointLightMap.size());
-    scene->inst_shader_ptr_->SetUniform("u_UseLights", true);
-
-    lightIndex = 0;
-    for (std::unordered_map<std::string, PointLight*>::iterator it = scene->m_PointLightMap.begin();
-         it != scene->m_PointLightMap.end(); it++, lightIndex++) {
-        PointLight* pointLight = it->second;
-        vec4 lightPosInViewSpace = glm::vec4(view * glm::vec4(pointLight->position, 1.0f));
-        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].color",
-                                            pointLight->color);
-        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].intensity",
-                                            pointLight->intensity);
-        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].c",
-                                            pointLight->constant);
-        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].l", pointLight->linear);
-        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].q",
-                                            pointLight->quadratic);
-        scene->inst_shader_ptr_->SetUniform("u_PointLights[" + std::to_string(lightIndex) + "].pos",
-                                            glm::vec3(lightPosInViewSpace));
-    }
+    scene->inst_shader_ptr_->SetUniformBlock("LightBlock", scene->lightBuffer->bindingPos);
+    scene->inst_shader_ptr_->SetUniformBlock("LightSettings", scene->lightSettingsBuffer->bindingPos);
 
     // update uniforms for untextured shader
     scene->untextured_shader_ptr_->Use();
@@ -291,6 +255,35 @@ void Renderer::SetupShaders(std::shared_ptr<Scene> scene, glm::mat4 projection, 
     scene->unlit_shader_ptr_->SetUniform("u_Proj", projection);
 
     isShadersInitialized = true;
+}
+
+void Renderer::SetupLights(std::shared_ptr<Scene> scene, Shader* shader, glm::mat3 normalMatrix) { 
+    shader->Use();
+
+    // get the directional light
+    DirectionalLight* dirLight = scene->FindDirectionalLightByName("Sun");
+    vec3 lightDirViewSpace = normalMatrix * dirLight->direction;
+
+    LightSettings* lightSettings = scene->lightSettings;
+    UBO* lightSettingsBuffer = scene->lightSettingsBuffer;
+
+    lightSettings->useLights = useLights;
+    lightSettings->useDirLight = useDirLight;
+    lightSettings->usePointLights = usePointLights;
+    lightSettings->useSpotLights = useSpotLights;
+
+    lightSettingsBuffer->bind();
+    lightSettingsBuffer->startWrite();
+
+    lightSettingsBuffer->writeElement<int>(&lightSettings->numPointLights);
+    lightSettingsBuffer->writeElement<int>(&lightSettings->numSpotLights);
+
+    lightSettingsBuffer->writeElement<bool>(&lightSettings->useLights);
+    lightSettingsBuffer->writeElement<bool>(&lightSettings->useDirLight);
+    lightSettingsBuffer->writeElement<bool>(&lightSettings->usePointLights);
+    lightSettingsBuffer->writeElement<bool>(&lightSettings->useSpotLights);
+
+    lightSettingsBuffer->clear();
 }
 
 void Renderer::ResetFrameBuffers() {

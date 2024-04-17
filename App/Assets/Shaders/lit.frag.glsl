@@ -1,20 +1,10 @@
 #version 460 core
 
-in VS_OUT {
-    vec3 Pos;
-    vec3 Normal;
-    vec2 TexCoords;
-    vec4 ProjTexCoord;
-} fs_in;
+// Maximum number of lights
+#define MAX_POINT_LIGHTS 2
+#define MAX_SPOT_LIGHTS 1
 
-out vec4 o_FragColor;
-
-struct DirectionalLight {
-    vec3 dir;  // Light direction in view space.
-    vec4 color;
-    float intensity;
-};
-
+// Light Structs
 struct PointLight {
     vec3 pos;  // Light position in view space.
 
@@ -42,30 +32,56 @@ struct SpotLight {
     float q;  // quadratic attenuation exponent
 };
 
+struct DirectionalLight {
+    vec3 dir;  // Light direction in view space.
+    vec4 color;
+    float intensity;
+};
+
+in VS_OUT {
+    vec3 Pos;
+    vec3 Normal;
+    vec2 TexCoords;
+    vec4 ProjTexCoord;
+} fs_in;
+
+out vec4 o_FragColor;
+
 struct Material {
     sampler2D texture_diffuse1;
-    // sampler2D texture_specular1; // specular map
     sampler2D texture_normal1;
     sampler2D texture_height1;
     sampler2D texture_opacity1;
+
+    // sampler2D texture_specular1; // specular map
+
     vec3 s;           // Specular reflectivity
     float shininess;  // Specular shininess factor
 };
 
-const int NUM_LIGHTS = 1;
-
-uniform DirectionalLight u_DirLight;
-uniform PointLight u_PointLights[NUM_LIGHTS];
-uniform SpotLight u_SpotLights[NUM_LIGHTS];
 uniform Material u_Material;
-layout(binding = 4) uniform sampler2D u_ProjectorTex;
-uniform bool u_UseLights;
-uniform bool u_UsePointLights;
-uniform bool u_UseSpotLights;
 uniform bool u_UseProjTex;
 uniform bool u_SetLit;
 
-uniform int u_NumPointLights;
+layout(std140, binding = 3) uniform LightBlock {
+    DirectionalLight dirLight;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    SpotLight spotLights[MAX_SPOT_LIGHTS];
+} u_Lights;
+
+layout(binding = 4) uniform sampler2D u_ProjectorTex;
+
+layout(std140, binding = 5) uniform LightSettings {
+    int numPointLights;
+    int numSpotLights;
+
+    bool useLights;
+    bool useDirLight;
+    bool usePointLights;
+    bool useSpotLights;
+
+    DirectionalLight dirLight;
+} u_LightSettings;
 
 // Define reusable variables for texture lookups
 vec4 diffuseTextureColor = texture(u_Material.texture_diffuse1, fs_in.TexCoords);
@@ -76,12 +92,12 @@ vec4 diffuseTextureColor = texture(u_Material.texture_diffuse1, fs_in.TexCoords)
 vec3 shadingDirectionalLight(DirectionalLight light, vec3 pos, vec3 n) {
     vec3 lightColor = light.color.rgb * light.intensity;
     // ambient component
-    vec3 ambient = lightColor * texture(u_Material.texture_diffuse1, fs_in.TexCoords).rgb;
+    vec3 ambient = lightColor * diffuseTextureColor.rgb;
 
     // diffuse component
     vec3 s = normalize(-light.dir);  // s is the light source direction
     float sDotN = max(dot(n, s), 0.0);
-    vec3 diffuse = lightColor * sDotN * texture(u_Material.texture_diffuse1, fs_in.TexCoords).rgb;
+    vec3 diffuse = lightColor * sDotN * diffuseTextureColor.rgb;
 
     // specular component
     vec3 specular = vec3(0.0);
@@ -102,12 +118,12 @@ vec3 shadingDirectionalLight(DirectionalLight light, vec3 pos, vec3 n) {
 vec3 shadingPointLight(PointLight light, vec3 pos, vec3 n) {
     vec3 lightColor = light.color.rgb * light.intensity;
     // ambient component
-    vec3 ambient = lightColor * texture(u_Material.texture_diffuse1, fs_in.TexCoords).rgb;
+    vec3 ambient = lightColor * diffuseTextureColor.rgb;
 
     // diffuse component
     vec3 s = normalize(light.pos - pos);  // s is the light source direction
     float sDotN = max(dot(n, s), 0.0);
-    vec3 diffuse = lightColor * sDotN * texture(u_Material.texture_diffuse1, fs_in.TexCoords).rgb;
+    vec3 diffuse = lightColor * sDotN * diffuseTextureColor.rgb;
 
     // specular component
     vec3 specular = vec3(0.0);
@@ -143,11 +159,11 @@ vec3 shadingSpotLight(SpotLight light, vec3 pos, vec3 n) {
     float intensity = smoothstep(0.0, 1.0, (light.outerCutoff - theta) / epsilon);
 
     // ambient component
-    vec3 ambient = light.ambient * texture(u_Material.texture_diffuse1, fs_in.TexCoords).rgb;
+    vec3 ambient = light.ambient * diffuseTextureColor.rgb;
 
     // diffuse component
     float sDotN = max(dot(n, s), 0.0);
-    vec3 diffuse = light.diffuse * sDotN * texture(u_Material.texture_diffuse1, fs_in.TexCoords).rgb;
+    vec3 diffuse = light.diffuse * sDotN * diffuseTextureColor.rgb;
 
     // specular component
     vec3 specular = vec3(0.0);
@@ -202,27 +218,29 @@ void main() {
 
     vec4 finalColor;
 
-    if (u_UseLights) {
+    if (u_LightSettings.useLights) {
         vec3 lightColor = vec3(0.0);
 
         // Only one directional light
-        vec3 dirColor = shadingDirectionalLight(u_DirLight, fs_in.Pos, normalize(fs_in.Normal));
+        if (u_LightSettings.useDirLight) {
+            lightColor = shadingDirectionalLight(u_Lights.dirLight, fs_in.Pos, normalize(fs_in.Normal));
+        }
 
         // Shading for the point lights
-        if (u_UsePointLights) {
-            for (int i = 0; i < u_NumPointLights; i++) {
-                lightColor += shadingPointLight(u_PointLights[i], fs_in.Pos, normalize(fs_in.Normal));
+        if (u_LightSettings.usePointLights) {
+            for (int i = 0; i < u_LightSettings.numPointLights; i++) {
+                lightColor += shadingPointLight(u_Lights.pointLights[i], fs_in.Pos, normalize(fs_in.Normal));
             }
         }
 
         // Shading for the spot lights
-        if (u_UseSpotLights) {
-            for (int i = 0; i < 4; i++) {
-                lightColor += shadingSpotLight(u_SpotLights[i], fs_in.Pos, normalize(fs_in.Normal));
+        if (u_LightSettings.useSpotLights) {
+            for (int i = 0; i < u_LightSettings.numSpotLights; i++) {
+                lightColor += shadingSpotLight(u_Lights.spotLights[i], fs_in.Pos, normalize(fs_in.Normal));
             }
         }
 
-        finalColor = vec4(dirColor + lightColor, 1.0);
+        finalColor = vec4(lightColor, 1.0);
     } else {
         finalColor = diffuseTextureColor;
     }
@@ -242,6 +260,6 @@ void main() {
 
     // Apply fog effect
     o_FragColor = vec4(blendedColor, finalColor.a);
-
+    
     //o_FragColor = finalColor;
 }

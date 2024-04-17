@@ -106,7 +106,7 @@ void WindowsWindow::Init(const WindowProps& props) {
         switch (action) {
             case GLFW_PRESS: {
                 KeyPressedEvent event(key, 0);
-                data.\EventCallback(event);
+                data.EventCallback(event);
                 break;
             }
             case GLFW_RELEASE: {

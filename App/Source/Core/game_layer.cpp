@@ -39,12 +39,12 @@ void GameLayer::OnAttach() {
     m_audioManager->Initialize();
 
     // Particle System
-    m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 1);
+    //m_ParticleSystem = std::make_unique<ParticleSystem>(m_Scene, 30);
 
     // Play SFX Music initially - later change to handling by lua scripts
     gdp1::AudioSourceDesc sfxAudio = m_Scene->GetLevelDesc().audioSourceDescs[0];
-    m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
-    m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
+    //m_audioManager.get()->LoadAudio(sfxAudio.filepath.c_str());
+    //m_audioManager.get()->PlayAudio(sfxAudio.filepath.c_str(), CHANNELGROUP_SFX_INDEX);
 
     // Initialize Database
     db = std::make_shared<SQLiteDatabase>("Assets/Data/game_data.db");
@@ -117,6 +117,10 @@ void GameLayer::OnImGuiRender() {
     ImGui::Checkbox("Enable Skybox", &m_Renderer->renderSkybox);
     ImGui::Checkbox("Draw Debug", &m_Renderer->drawDebug);
     ImGui::Checkbox("Set Instanced", &m_Renderer->setInstanced);
+    ImGui::Checkbox("Enable Lights", &m_Renderer->useLights);
+    ImGui::Checkbox("Directional Light", &m_Renderer->useDirLight);
+    ImGui::Checkbox("Point Lights", &m_Renderer->usePointLights);
+    ImGui::Checkbox("Spot Lights", &m_Renderer->useSpotLights);
 
     ImGui::End();
 
@@ -239,6 +243,8 @@ void GameLayer::CreateSpheres(gdp1::Scene* scene, int numRaindrops) {
         rigidbodyDesc.orientation = glm::vec3(0.0f);
         rigidbodyDesc.position = glm::vec3(0.0f);
         rigidbodyDesc.velocity = glm::vec3(0.0f);
+
+
 
         scene->AddGameObject(raindrop);  // Add the raindrop to the scene (assuming this function exists)
     }

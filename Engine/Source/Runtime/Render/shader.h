@@ -31,8 +31,11 @@ private:
     GLuint m_Handle;
     bool m_Linked;
     std::unordered_map<std::string, int> m_UniformLocations;
+    std::unordered_map<std::string, int> m_UniformBlockLocations;
 
     inline GLint GetUniformLocation(const std::string& name);
+    inline GLint GetUniformBlockIndex(const std::string& name);
+
     void DetachAndDeleteShaderObjects();
     bool FileExists(const std::string& fileName);
     std::string GetExtension(const std::string& fileName);
@@ -81,6 +84,9 @@ public:
     void SetUniform(const char* name, int val);
     void SetUniform(const char* name, bool val);
     void SetUniform(const char* name, GLuint val);
+
+    void SetUniformBlock(const std::string& name, GLuint bindingPoint);
+    void SetUniformBlock(const char* name, GLuint bindingPoint);
 
     void FindUniformLocations();
     void PrintActiveUniforms();
